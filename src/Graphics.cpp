@@ -32,7 +32,7 @@ Graphics::Graphics(const char* title, int width, int height, int scale)
 
     LoadTextures();
 
-    font_1 = TTF_OpenFont("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/fonts/bulan-ramadhan-font/BulanRamadhan-YzRYL.ttf",50);
+    font_1 = TTF_OpenFont("../../assets/fonts/bulan-ramadhan-font/BulanRamadhan-YzRYL.ttf",50);
     if (!font_1) 
     {
         std::cout << "[!] font 1 not initialized.";
@@ -61,33 +61,33 @@ void Graphics::LoadTextures()
 {
     // [ LIST OF TEXTURES ]
     // Background
-    texture_map["background_texture"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/background-sprites/1.png");
-    texture_map["clouds1_texture"] =  GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/background-sprites/4.png");
+    texture_map["background_texture"] = GetTexture("../../assets/sprites/background-sprites/1.png");
+    texture_map["clouds1_texture"] =  GetTexture("../../assets/sprites/background-sprites/4.png");
 
     // Player
-    texture_map["player_main_texture"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/player-sprites/zephyr.png");
-    texture_map["player_secondary_fire_hud_texture"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/player-sprites/secondary_fire_hud.png");
-    texture_map["player_secondary_fire_marker_texture"] =  GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/player-sprites/secondary_fire_marker.png");
-    texture_map["player_shield"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/player-sprites/player_shield.png");
+    texture_map["player_main_texture"] = GetTexture("../../assets/sprites/player-sprites/zephyr.png");
+    texture_map["player_secondary_fire_hud_texture"] = GetTexture("../../assets/sprites/player-sprites/secondary_fire_hud.png");
+    texture_map["player_secondary_fire_marker_texture"] =  GetTexture("../../assets/sprites/player-sprites/secondary_fire_marker.png");
+    texture_map["player_shield"] = GetTexture("../../assets/sprites/player-sprites/player_shield.png");
 
     // Projectiles
-    texture_map["primary_fire"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/projectile-sprites/primary_fire.png");
-    texture_map["primary_fire_impact"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/projectile-sprites/primary_fire_impact.png");
-    texture_map["secondary_fire"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/projectile-sprites/secondary_fire.png");
-    texture_map["secondary_fire_impact"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/projectile-sprites/secondary_fire_impact.png");
-    //texture_map["purple_crystal_projectile"] =  GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/projectile-sprites/purple_projectile.png");
-    //texture_map["purple_crystal_projectile_impact"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/projectile-sprites/purple_crystal_impact.png");
-    texture_map["ice_shard_conjure"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/projectile-sprites/Ice_Shard_Cast.png");
-    texture_map["ice_shard"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/projectile-sprites/Ice_shard.png");
-    texture_map["ice_shard_impact"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/projectile-sprites/Ice_Shard_Hit.png");
+    texture_map["primary_fire"] = GetTexture("../../assets/sprites/projectile-sprites/primary_fire.png");
+    texture_map["primary_fire_impact"] = GetTexture("../../assets/sprites/projectile-sprites/primary_fire_impact.png");
+    texture_map["secondary_fire"] = GetTexture("../../assets/sprites/projectile-sprites/secondary_fire.png");
+    texture_map["secondary_fire_impact"] = GetTexture("../../assets/sprites/projectile-sprites/secondary_fire_impact.png");
+    //texture_map["purple_crystal_projectile"] =  GetTexture("../../assets/sprites/projectile-sprites/purple_projectile.png");
+    //texture_map["purple_crystal_projectile_impact"] = GetTexture("../../assets/sprites/projectile-sprites/purple_crystal_impact.png");
+    texture_map["ice_shard_conjure"] = GetTexture("../../assets/sprites/projectile-sprites/Ice_Shard_Cast.png");
+    texture_map["ice_shard"] = GetTexture("../../assets/sprites/projectile-sprites/Ice_shard.png");
+    texture_map["ice_shard_impact"] = GetTexture("../../assets/sprites/projectile-sprites/Ice_Shard_Hit.png");
 
     // Items
-    texture_map["item_cloud"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/item-sprites/item_cloud.png");
-    texture_map["glass_toucan"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/item-sprites/glass_toucan.png");
+    texture_map["item_cloud"] = GetTexture("../../assets/sprites/item-sprites/item_cloud.png");
+    texture_map["glass_toucan"] = GetTexture("../../assets/sprites/item-sprites/glass_toucan.png");
 
     // Enemies
-    texture_map["purple_crystal_main"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/enemies-sprites/light_blue.png");
-    texture_map["purple_crystal_death"] = GetTexture("G:/My Drive/PC-Space/Video-Game-Stuff/Zephyr-the-Avenger/assets/sprites/enemies-sprites/light_blue_destr.png");
+    texture_map["purple_crystal_main"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue.png");
+    texture_map["purple_crystal_death"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue_destr.png");
 }
 
 void Graphics::HideWindow()
