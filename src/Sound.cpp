@@ -28,6 +28,7 @@ SoundManager::SoundManager()
     LoadSoundEffect("player_shield_hit", "../../assets/sounds/jade-drum.wav");
     LoadSoundEffect("dash_sound", "../../assets/sounds/whoosh-wind-sweep-2632.wav");
 
+    LoadSoundEffect("ice_shard_impact", "../../assets/sounds/ice_breaking.wav");
 
     LoadSoundEffect("item_collection_sound", "../../assets/sounds/unlock-new-item-game-notification-254.wav");
     
