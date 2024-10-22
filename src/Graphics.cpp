@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <sstream>
+#include <random>
 
 #include "Graphics.hpp"
 #include "Projectiles.hpp"
@@ -23,7 +24,17 @@ Graphics::Graphics(const char* title, int width, int height, int scale)
     pixel_scale = scale;
 
     // BACKGROUND STUFF
-    clouds1_dest = {-300, 300, 576 * 4, 324 * 4}; //FILE SIZE * arbitrary scale factor
+    clouds1_dest = {screen_width - 300, 0, 324 * 5, 576 * 5}; //FILE SIZE * arbitrary scale factor
+    //clouds2_dest = { -450, 700, 576 * 4, 324 * 4 }; //FILE SIZE * arbitrary scale factor
+    //clouds3_dest = { screen_height - (324 * 5 / 2), 300, 576 * 5, 324 * 5}; //FILE SIZE * arbitrary scale factor
+
+    cloud1_speed = 1;
+    cloud2_speed = 3;
+    cloud3_speed = 2;
+
+    cloud1_flipped = true;
+    cloud2_flipped = false;
+    cloud3_flipped = true;
     
     if (init(title, width, height)) 
     {
@@ -61,8 +72,10 @@ void Graphics::LoadTextures()
 {
     // [ LIST OF TEXTURES ]
     // Background
-    texture_map["background_texture"] = GetTexture("../../assets/sprites/background-sprites/1.png");
-    texture_map["clouds1_texture"] =  GetTexture("../../assets/sprites/background-sprites/4.png");
+    texture_map["light_blue_background"] = GetTexture("../../assets/sprites/background-sprites/light-blue-background.png");
+    texture_map["clouds1_texture"] =  GetTexture("../../assets/sprites/background-sprites/clouds1.png");
+    texture_map["clouds2_texture"] = GetTexture("../../assets/sprites/background-sprites/clouds2.png");
+    texture_map["clouds3_texture"] = GetTexture("../../assets/sprites/background-sprites/clouds3.png");
 
     // Player
     texture_map["player_main_texture"] = GetTexture("../../assets/sprites/player-sprites/zephyr.png");
@@ -175,14 +188,47 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
 
 
     // BACKGROUD //
-    if ( 0 != SDL_RenderCopy(renderer, texture_map["background_texture"], NULL, NULL) ) //Second arg NULL means use whole png.
+    if ( 0 != SDL_RenderCopy(renderer, texture_map["light_blue_background"], NULL, NULL) ) //Second arg NULL means use whole png.
     {
         std::cout << "[!] Background failed to render.\n";
     }
-    if ( 0 != SDL_RenderCopy(renderer, texture_map["clouds1_texture"], NULL, &clouds1_dest) ) //Second arg NULL means use whole png.
+
+    // cloud 1
+    if (!cloud1_flipped)
     {
-        std::cout << "[!] Background failed to render.\n";
+        if (0 != SDL_RenderCopyEx(renderer, texture_map["clouds1_texture"], NULL, &clouds1_dest, 0.0, NULL, SDL_FLIP_NONE)) //Second arg NULL means use whole png.
+        {
+            std::cout << "[!] Clouds1 failed to render.\n";
+        }
     }
+    else
+    {
+        if (0 != SDL_RenderCopyEx(renderer, texture_map["clouds1_texture"], NULL, &clouds1_dest, 0.0, NULL, SDL_FLIP_HORIZONTAL)) //Second arg NULL means use whole png.
+        {
+            std::cout << "[!] Clouds1 failed to render.\n";
+        }
+    }
+
+    // cloud 3
+    /*if (!cloud3_flipped)
+    {
+        if (0 != SDL_RenderCopyEx(renderer, texture_map["clouds3_texture"], NULL, &clouds3_dest, 0.0, NULL, SDL_FLIP_NONE)) //Second arg NULL means use whole png.
+        {
+            std::cout << "[!] Clouds1 failed to render.\n";
+        }
+    }
+    else
+    {
+        if (0 != SDL_RenderCopyEx(renderer, texture_map["clouds3_texture"], NULL, &clouds3_dest, 0.0, NULL, SDL_FLIP_HORIZONTAL)) //Second arg NULL means use whole png.
+        {
+            std::cout << "[!] Clouds1 failed to render.\n";
+        }
+    }
+
+    /*if (0 != SDL_RenderCopy(renderer, texture_map["clouds3_texture"], NULL, &clouds3_dest)) //Second arg NULL means use whole png.
+    {
+        std::cout << "[!] Clouds3 failed to render.\n";
+    }*/
 
     // ITEMS //
     for (int i = 0; i < (*item_list).size(); i++)
@@ -463,19 +509,71 @@ bool Graphics::IsFrameDone(Uint32 frame_time_ms, Uint32 last_frame_start)
 
 void Graphics::BackgroundUpdate(Uint32 loop)
 {
-    if (clouds1_dest.x >= screen_width || clouds1_dest.y >= (screen_height + 256 )) 
+    // CLOUD 1
+    if (clouds1_dest.y >= (screen_height)) 
     { 
-        clouds1_dest.x = -300; //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
-        clouds1_dest.y = 300;
+        if (GenRandomNumber(0, 1000) % 2 == 0)
+        {
+            cloud1_flipped = false;
+            std::cout << "[*] Cloud 1 normal\n";
+            clouds1_dest.x = GenRandomNumber(-1200, -870);; //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
+        }
+        else
+        {
+            cloud1_flipped = true;
+            std::cout << "[*] Cloud 1 FLIPPED\n";
+            clouds1_dest.x = GenRandomNumber(screen_width - 750, screen_width - 400); //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
+        }
+        
+        clouds1_dest.y = 0 - clouds1_dest.h;
+        cloud1_speed = GenRandomNumber(1, 1);
     }
-    
-    if (loop % 4 == 0)
+
+    if (loop % cloud1_speed == 0)
     {
-        clouds1_dest.x += 1;
         clouds1_dest.y += 1;
     }
 
-    clouds1_animation_index++;
+    // CLOUD 3
+    /*if (clouds3_dest.y >= (screen_height + 128))
+    {
+        if (GenRandomNumber(0, 1000) % 2 == 0)
+        {
+            cloud1_flipped = false; 
+            std::cout << "[*] Cloud 3 normal\n";
+            clouds3_dest.x = GenRandomNumber(-500, -300); //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
+        }
+        else
+        {
+            cloud1_flipped = true;
+            std::cout << "[*] Cloud 3 FLIPPED\n";
+            clouds3_dest.x = GenRandomNumber(screen_width + 500, screen_width + 700); //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
+        }
+
+
+
+        clouds3_dest.y = GenRandomNumber(100, screen_height * 0.4);
+        cloud3_speed = GenRandomNumber(3, 7);
+    }
+
+    if (loop % cloud3_speed == 0)
+    {
+        if (cloud3_flipped)
+            clouds3_dest.x -= 2;
+        else
+            clouds3_dest.x += 2;
+        clouds3_dest.y += 1;
+    }*/
+
+    // CLOUD 2
+    /*if (clouds3_dest.x >= screen_width || clouds3_dest.y >= (screen_height + 256))
+    {
+        clouds3_dest.x = -300; //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE
+        clouds3_dest.y = 300;
+    }*/
+    //clouds3_dest.x += 1;
+    //clouds3_dest.y += 1;
+    
 }
 
 void Graphics::RenderPlayerText(Player* player)
@@ -510,5 +608,13 @@ void Graphics::RenderPlayerText(Player* player)
 SDL_Renderer* Graphics::GetRenderer()
 {
     return renderer;
+}
+
+int Graphics::GenRandomNumber(int low, int high)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(low, high);
+    return (distrib(gen));
 }
 

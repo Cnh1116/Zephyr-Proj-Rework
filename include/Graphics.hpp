@@ -46,6 +46,8 @@ public:
 
     SDL_Renderer* GetRenderer();
 
+    int GenRandomNumber(int low, int high);
+
 
     
 
@@ -54,13 +56,21 @@ private:
     SDL_Renderer* renderer;
 
     // Background Stuff
-    SDL_Rect clouds1_src, clouds1_dest;
+    SDL_Rect clouds1_src, clouds1_dest, clouds2_src, clouds2_dest, clouds3_src, clouds3_dest;
     int clouds1_animation_index;
 
     int screen_width;
     int screen_height;
     int pixel_scale;
-    
+
+    int cloud1_speed;
+    int cloud2_speed;
+    int cloud3_speed;
+
+    bool cloud1_flipped;
+    bool cloud2_flipped;
+    bool cloud3_flipped;
+
     bool is_shown;
 
     std::map<std::string, SDL_Texture*> texture_map;
