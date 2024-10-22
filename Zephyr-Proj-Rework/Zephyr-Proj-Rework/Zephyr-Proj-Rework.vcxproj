@@ -72,8 +72,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExecutablePath>C:\Users\cnh11\OneDrive\Desktop\Zephyr-new-file-structure\SDL\bin;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>C:\Users\cnh11\OneDrive\Desktop\Zephyr-new-file-structure\SDL\include;C:\Users\cnh11\OneDrive\Desktop\Zephyr-new-file-structure\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\cnh11\OneDrive\Desktop\Zephyr-new-file-structure\SDL\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(MY_SDL_INCLUDE);$(MY_HEADERS_INCLUDE);$(IncludePath)</IncludePath>
+    <LibraryPath>$(MY_SDL_LIB);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
