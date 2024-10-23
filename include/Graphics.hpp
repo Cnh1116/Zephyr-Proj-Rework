@@ -56,20 +56,19 @@ private:
     SDL_Renderer* renderer;
 
     // Background Stuff
-    SDL_Rect clouds1_src, clouds1_dest, clouds2_src, clouds2_dest, clouds3_src, clouds3_dest;
+    SDL_Rect clouds1L_dest, clouds1R_dest,  clouds2L_dest, clouds2R_dest, clouds3L_dest, clouds3R_dest;
     int clouds1_animation_index;
 
     int screen_width;
     int screen_height;
     int pixel_scale;
 
-    int cloud1_speed;
-    int cloud2_speed;
-    int cloud3_speed;
-
-    bool cloud1_flipped;
-    bool cloud2_flipped;
-    bool cloud3_flipped;
+    int cloud1R_speed;
+    int cloud1L_speed;
+    int cloud2R_speed;
+    int cloud2L_speed;
+    int cloud3R_speed;
+    int cloud3L_speed;
 
     bool is_shown;
 

@@ -23,18 +23,23 @@ Graphics::Graphics(const char* title, int width, int height, int scale)
     screen_height = height;
     pixel_scale = scale;
 
+    
     // BACKGROUND STUFF
-    clouds1_dest = {screen_width - 300, 0, 324 * 5, 576 * 5}; //FILE SIZE * arbitrary scale factor
+    clouds1L_dest = { GenRandomNumber(-1200, -870), 0, 324 * 5, 576 * 5}; //FILE SIZE * arbitrary scale factor
+    clouds1R_dest = { GenRandomNumber(1050, 1400), -45, 324 * 6, 576 * 6 };
+    clouds2L_dest = { GenRandomNumber(-1100, -870), 0, 324 * 5, 576 * 5 };
+    clouds2R_dest = { GenRandomNumber(450, 600),    -45, 324 * 6, 576 * 6 };
+    //clouds3L_dest
+    //clouds3R_dest = 
     //clouds2_dest = { -450, 700, 576 * 4, 324 * 4 }; //FILE SIZE * arbitrary scale factor
     //clouds3_dest = { screen_height - (324 * 5 / 2), 300, 576 * 5, 324 * 5}; //FILE SIZE * arbitrary scale factor
 
-    cloud1_speed = 1;
-    cloud2_speed = 3;
-    cloud3_speed = 2;
-
-    cloud1_flipped = true;
-    cloud2_flipped = false;
-    cloud3_flipped = true;
+    cloud1R_speed = 5;
+    cloud1L_speed = 6;
+    cloud2R_speed = 3;
+    cloud2L_speed = 2;
+    cloud3R_speed = 2;
+    cloud3L_speed = 2;
     
     if (init(title, width, height)) 
     {
@@ -43,7 +48,7 @@ Graphics::Graphics(const char* title, int width, int height, int scale)
 
     LoadTextures();
 
-    font_1 = TTF_OpenFont("../../assets/fonts/bulan-ramadhan-font/BulanRamadhan-YzRYL.ttf",50);
+    font_1 = TTF_OpenFont("../../assets/fonts/dash-horizon-font/Dashhorizon-eZ5wg.otf",50);
     if (!font_1) 
     {
         std::cout << "[!] font 1 not initialized.";
@@ -194,20 +199,27 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
     }
 
     // cloud 1
-    if (!cloud1_flipped)
+    if (0 != SDL_RenderCopyEx(renderer, texture_map["clouds1_texture"], NULL, &clouds1L_dest, 0.0, NULL, SDL_FLIP_NONE)) //Second arg NULL means use whole png.
     {
-        if (0 != SDL_RenderCopyEx(renderer, texture_map["clouds1_texture"], NULL, &clouds1_dest, 0.0, NULL, SDL_FLIP_NONE)) //Second arg NULL means use whole png.
-        {
-            std::cout << "[!] Clouds1 failed to render.\n";
-        }
+        std::cout << "[!] Clouds1L failed to render.\n";
     }
-    else
+
+    if (0 != SDL_RenderCopyEx(renderer, texture_map["clouds1_texture"], NULL, &clouds1R_dest, 0.0, NULL, SDL_FLIP_HORIZONTAL)) //Second arg NULL means use whole png.
     {
-        if (0 != SDL_RenderCopyEx(renderer, texture_map["clouds1_texture"], NULL, &clouds1_dest, 0.0, NULL, SDL_FLIP_HORIZONTAL)) //Second arg NULL means use whole png.
-        {
-            std::cout << "[!] Clouds1 failed to render.\n";
-        }
+        std::cout << "[!] Clouds1R failed to render.\n";
     }
+
+    // cloud 2
+    if (0 != SDL_RenderCopyEx(renderer, texture_map["clouds3_texture"], NULL, &clouds2L_dest, 0.0, NULL, SDL_FLIP_NONE)) //Second arg NULL means use whole png.
+    {
+        std::cout << "[!] Clouds2L failed to render.\n";
+    }
+
+    if (0 != SDL_RenderCopyEx(renderer, texture_map["clouds3_texture"], NULL, &clouds2R_dest, 0.0, NULL, SDL_FLIP_HORIZONTAL)) //Second arg NULL means use whole png.
+    {
+        std::cout << "[!] Clouds2R failed to render.\n";
+    }
+ 
 
     // cloud 3
     /*if (!cloud3_flipped)
@@ -510,69 +522,61 @@ bool Graphics::IsFrameDone(Uint32 frame_time_ms, Uint32 last_frame_start)
 void Graphics::BackgroundUpdate(Uint32 loop)
 {
     // CLOUD 1
-    if (clouds1_dest.y >= (screen_height)) 
+    
+    if (clouds1L_dest.y >= (screen_height)) 
     { 
-        if (GenRandomNumber(0, 1000) % 2 == 0)
-        {
-            cloud1_flipped = false;
-            std::cout << "[*] Cloud 1 normal\n";
-            clouds1_dest.x = GenRandomNumber(-1200, -870);; //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
-        }
-        else
-        {
-            cloud1_flipped = true;
-            std::cout << "[*] Cloud 1 FLIPPED\n";
-            clouds1_dest.x = GenRandomNumber(screen_width - 750, screen_width - 400); //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
-        }
-        
-        clouds1_dest.y = 0 - clouds1_dest.h;
-        cloud1_speed = GenRandomNumber(1, 1);
+        std::cout << "[*] Looping cloud 1L back to the top\n";
+        clouds1L_dest.x = GenRandomNumber(-1200, -870);; //INSTEAD OF ALWAYS AT ORIGIN, 
+        clouds1L_dest.y = 0 - (clouds1L_dest.h / 2);
+        cloud1L_speed = GenRandomNumber(4, 8);
     }
 
-    if (loop % cloud1_speed == 0)
+    if (clouds1R_dest.y >= (screen_height))
     {
-        clouds1_dest.y += 1;
+        std::cout << "[*] Looping cloud 1R back to the top\n";
+        clouds1R_dest.x = GenRandomNumber(1050, 1400); //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
+        clouds1R_dest.y = 0 - (clouds1R_dest.h / 2);
+        cloud1R_speed = GenRandomNumber(4, 8);
+    }
+    if (loop % cloud1L_speed == 0)
+    {
+        clouds1L_dest.y += 1;
     }
 
-    // CLOUD 3
-    /*if (clouds3_dest.y >= (screen_height + 128))
+    if (loop % cloud1R_speed == 0)
     {
-        if (GenRandomNumber(0, 1000) % 2 == 0)
-        {
-            cloud1_flipped = false; 
-            std::cout << "[*] Cloud 3 normal\n";
-            clouds3_dest.x = GenRandomNumber(-500, -300); //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
-        }
-        else
-        {
-            cloud1_flipped = true;
-            std::cout << "[*] Cloud 3 FLIPPED\n";
-            clouds3_dest.x = GenRandomNumber(screen_width + 500, screen_width + 700); //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
-        }
-
-
-
-        clouds3_dest.y = GenRandomNumber(100, screen_height * 0.4);
-        cloud3_speed = GenRandomNumber(3, 7);
+    
+        clouds1R_dest.y += 1;
     }
-
-    if (loop % cloud3_speed == 0)
-    {
-        if (cloud3_flipped)
-            clouds3_dest.x -= 2;
-        else
-            clouds3_dest.x += 2;
-        clouds3_dest.y += 1;
-    }*/
 
     // CLOUD 2
-    /*if (clouds3_dest.x >= screen_width || clouds3_dest.y >= (screen_height + 256))
+    if (clouds2L_dest.y >= (screen_height))
     {
-        clouds3_dest.x = -300; //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE
-        clouds3_dest.y = 300;
-    }*/
-    //clouds3_dest.x += 1;
-    //clouds3_dest.y += 1;
+        std::cout << "[*] Looping cloud 1L back to the top\n";
+        clouds2L_dest.x = GenRandomNumber(-1200, -870);; //INSTEAD OF ALWAYS AT ORIGIN, 
+        clouds2L_dest.y = 0 - (clouds2L_dest.h);
+        cloud1L_speed = GenRandomNumber(2, 3);
+    }
+
+    if (clouds2R_dest.y >= (screen_height))
+    {
+        std::cout << "[*] Looping cloud 1R back to the top\n";
+        clouds2R_dest.x = GenRandomNumber(450, 600); //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
+        clouds2R_dest.y = 0 - (clouds2R_dest.h);
+        cloud1R_speed = GenRandomNumber(1, 3);
+    }
+
+    if (loop % cloud2L_speed == 0)
+    {
+        clouds2L_dest.y += 1;
+    }
+
+    if (loop % cloud2R_speed == 0)
+    {
+
+        clouds2R_dest.y += 1;
+    }
+
     
 }
 
@@ -588,21 +592,21 @@ void Graphics::RenderPlayerText(Player* player)
 
     std::string player_pos = std::string("X: ") + std::to_string(player->GetDstRect()->x) + std::string(" Y: ") + std::to_string(player->GetDstRect()->y);
     std::string player_damage = std::string("Base Damage ") + std::to_string(static_cast<int>(player->GetBaseDamage()));
-    
     std::string player_crit = std::string("Crit Chance ") + crit_string + "%";
     std::string player_health = std::string("Health ") + std::to_string(static_cast<int>(player->GetHealth()));
     std::string player_speed = std::string("Speed ") + std::to_string(static_cast<int>(player->GetSpeed()));
-
     std::string state = std::string("State: ") + player->GetPlayerState();
     
+    std::string points = std::string("Points: xxx");
     
     
-    RenderText(player_pos, { 1500, 930, static_cast<int>(player_pos.length()) * 30, 50 }, { 0,0,0,0 });
-    RenderText(player_damage, { 1450, 830, static_cast<int>(player_damage.length()) * 30, 50 }, { 0,0,0,0 });
-    RenderText(player_crit, { 1450, 770, static_cast<int>(player_crit.length()) * 30, 50 }, { 0,0,0,0 });
-    RenderText(player_health, { 1450, 740, static_cast<int>(player_health.length()) * 30, 50 }, { 0,0,0,0 });
-    RenderText(player_speed, { 1450, 710, static_cast<int>(player_speed.length()) * 30, 50 }, { 0,0,0,0 });
-    RenderText(state, { 680, 930, static_cast<int>(state.length()) * 30, 50 }, { 0,0,0,0 });
+    RenderText(player_pos, { screen_width - static_cast<int>(player_pos.length()) * 12, screen_height - 30, static_cast<int>(player_pos.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(player_damage, { screen_width - static_cast<int>(player_damage.length()) * 12, screen_height - 60, static_cast<int>(player_damage.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(player_crit, { screen_width - static_cast<int>(player_crit.length()) * 12, screen_height - 90, static_cast<int>(player_crit.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(player_health, { screen_width - static_cast<int>(player_health.length()) * 12, screen_height - 120, static_cast<int>(player_health.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(player_speed, { screen_width - static_cast<int>(player_speed.length()) * 12, screen_height - 150, static_cast<int>(player_speed.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(state, { screen_width - static_cast<int>(state.length()) * 12, screen_height - 180, static_cast<int>(state.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(points, { screen_width / 2 - static_cast<int>(state.length()) * 12, 0, static_cast<int>(state.length()) * 12, 30 }, { 0,0,0,0 });
 }
 
 SDL_Renderer* Graphics::GetRenderer()
