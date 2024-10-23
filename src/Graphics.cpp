@@ -86,7 +86,7 @@ void Graphics::LoadTextures()
     texture_map["player_main_texture"] = GetTexture("../../assets/sprites/player-sprites/zephyr.png");
     texture_map["player_secondary_fire_hud_texture"] = GetTexture("../../assets/sprites/player-sprites/secondary_fire_hud.png");
     texture_map["player_secondary_fire_marker_texture"] =  GetTexture("../../assets/sprites/player-sprites/secondary_fire_marker.png");
-    texture_map["player_shield"] = GetTexture("../../assets/sprites/player-sprites/player_shield.png");
+    texture_map["player_shield"] = GetTexture("../../assets/sprites/player-sprites/player_shield2.png");
 
     // Projectiles
     texture_map["primary_fire"] = GetTexture("../../assets/sprites/projectile-sprites/primary_fire.png");

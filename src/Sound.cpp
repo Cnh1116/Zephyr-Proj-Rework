@@ -18,7 +18,8 @@ SoundManager::SoundManager()
         exit(1);
     }
 
-
+    std::cout << "[*] Allocating 32 channels for sound!\n";
+    Mix_AllocateChannels(32); //8 Player, 16 Enemies, 8 items
     
     LoadSoundEffect("player_primary_fire", "../../assets/sounds/cinematic-wind-swoosh-1471.wav");
     LoadSoundEffect("player_secondary_fire", "../../assets/sounds/fast-air-zoom-2625.wav");
@@ -26,6 +27,8 @@ SoundManager::SoundManager()
     LoadSoundEffect("player_hit", "../../assets/sounds/player_hit.wav");
     LoadSoundEffect("player_shield_activate", "../../assets/sounds/fast-air-zoom-2625.wav");
     LoadSoundEffect("player_shield_hit", "../../assets/sounds/jade-drum.wav");
+    LoadSoundEffect("shield_activate", "../../assets/sounds/ending-wind-swoosh-1482.wav");
+    
     LoadSoundEffect("dash_sound", "../../assets/sounds/whoosh-wind-sweep-2632.wav");
 
     LoadSoundEffect("ice_shard_impact", "../../assets/sounds/ice_breaking.wav");
@@ -51,19 +54,24 @@ SoundManager::~SoundManager()
 
 
 
-void SoundManager::PlaySound(const char* sound_map_key)
+void SoundManager::PlaySound(const char* sound_map_key, int volume_percent)
 {
     if (1 == Mix_Playing(-1))
     {
         std::cout << "[*] A sound is already playing, doing nothing.";
         //return;
     }
-    
-    
+
+    if (volume_percent < 0)
+        volume_percent = 0;
+    if (volume_percent > 100)
+        volume_percent = 100;
+
+
 
     std::cout << "[*] Playing Sound Effect" << sound_effects_map[sound_map_key] << std::endl;
     // Play the WAV sound effect (channel -1 means the first free channel)
-    Mix_VolumeChunk(sound_effects_map[sound_map_key], MIX_MAX_VOLUME);
+    Mix_VolumeChunk(sound_effects_map[sound_map_key], (volume_percent * MIX_MAX_VOLUME / 100));
     int channel = Mix_PlayChannel(-1, sound_effects_map[sound_map_key], 0); // The third parameter is the loop count (0 means play once)
 
     if (channel == -1) 

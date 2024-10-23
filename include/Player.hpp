@@ -165,12 +165,12 @@ class Player
 
         struct Shield
         {
-            std::vector<SDL_Rect> shield_frames = { { 0, 0, 32, 32 }, { 32, 0, 32, 32 }, { 64, 0, 32, 32 }, { 96, 0, 32, 32 }, { 128, 0, 32, 32 }, { 160, 0, 32, 32 } };
+            std::vector<SDL_Rect> shield_frames = { { 0, 0, 32, 32 }, { 32, 0, 32, 32 }, { 64, 0, 32, 32 }, { 96, 0, 32, 32 }, { 128, 0, 32, 32 }, { 160, 0, 32, 32 }, { 192, 0, 32, 32 }, { 224, 0, 32, 32 }, { 256, 0, 32, 32 } };
             SDL_Rect dest_rect;
             SDL_Rect coll_rect;
             std::string shield_texture_key = "player_shield";
             Uint32 last_shield_frame_time = 0;
-            Uint32 shield_frame_time_ms = 75;
+            Uint32 shield_frame_time_ms = 40;
             
             Uint32 last_time_used = 0;
             Uint32 shield_cooldown_ms = 1000;

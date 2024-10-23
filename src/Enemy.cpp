@@ -2,6 +2,7 @@
 #include <SDL.h>
 
 #include "Enemy.hpp"
+#include "Player.hpp"
 
 Enemy::Enemy(const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, std::vector<SDL_Rect> main_frames_arg, std::vector<SDL_Rect> death_frames_arg,  float move_speed, int health_arg, float crit, float start_damage)
 {
@@ -116,12 +117,12 @@ bool Enemy::IsReadyToAttack()
 
 
 // PURPLE CRYSTAL
-PurpleCrystal::PurpleCrystal(const SDL_Rect& dest_rect)
+IceCrystal::IceCrystal(const SDL_Rect& dest_rect)
 	: Enemy(dest_rect, dest_rect, { {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64}},
 		{{ 0,0,64,64 }, { 64,0,64,64 }, { 128,0,64,64 }, { 192,0,64,64 }, { 256,0,64,64 }, { 320,0,64,64 }, { 384,0,64,64 }, { 448,0,64,64 }, { 512,0,64,64 }, { 576,0,64,64 }, { 640,0,64,64 }, { 704,0,64,64 }}, 1.0, 100, 0, 35)
 {}
 
-void PurpleCrystal::Update()
+void IceCrystal::Update(Player *player)
 {
 	
 
@@ -135,7 +136,7 @@ void PurpleCrystal::Update()
 
 		current_texture_key = "purple_crystal_main";
 		current_frames = main_frames;
-		Move();
+		Move(player);
 	}
 
 
@@ -158,10 +159,13 @@ void PurpleCrystal::Update()
 	
 }
 
-void PurpleCrystal::Move()
+void IceCrystal::Move(Player* player)
 {
 	
-	enemy_dest_rect.x += movement_speed;
+	if (player->GetDstRect()->x < enemy_dest_rect.x)
+		enemy_dest_rect.x += (-1 * movement_speed);
+	else
+		enemy_dest_rect.x += movement_speed;
 
 	enemy_coll_rect.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (enemy_coll_rect.w / 2);
 	enemy_coll_rect.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (enemy_coll_rect.h / 2);

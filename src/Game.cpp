@@ -5,7 +5,7 @@
 
 
 int PIXEL_SCALE = 4;
-int WINDOW_WIDTH = 1920;
+int WINDOW_WIDTH = 1200;
 int WINDOW_HEIGHT = 1080;
 float MAX_FPS = 60.0;
 
@@ -51,7 +51,7 @@ void Game::RunGame()
     {
         if (enemies.size() == 0)
         {
-            enemies.emplace_back(new PurpleCrystal({ 400,70,64 * 3,64 * 3 }));
+            enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
         }
         
         Uint32 current_tick = SDL_GetTicks();
@@ -115,12 +115,11 @@ void Game::RunGame()
                     if (RectRectCollision(player.GetSecondaryFireHudColl(), &item_manager->GetItemList()->at(i).item_dest_rect, false))
                     {
                         std::cout << "[*] Player shot an item!\n";
-                        sound_manager->PlaySound("item_collection_sound");
+                        sound_manager->PlaySound("item_collection_sound", 55);
                     }
                 }
 
-                sound_manager->PlaySound("player_secondary_fire");
-                std::cout << "[*] SPACE CLICK  Pressed. \n";
+                sound_manager->PlaySound("player_secondary_fire", 55);
             }
         }
 
@@ -134,7 +133,7 @@ void Game::RunGame()
                 // dest rect of the projectile: X: (player.x + player.w / 2) - (projectile.w / 2)
                 // Make collision rect of the projectile = dest rec for now
                 game_projectiles.emplace_back(new PrimaryFire(*player.GetDstRect(), 5.0, player.GetBaseDamage(), 2));
-                sound_manager->PlaySound("player_primary_fire");
+                sound_manager->PlaySound("player_primary_fire", 55);
                 std::cout << "[*] UP Pressed. \n";
             }
         }
@@ -168,7 +167,7 @@ void Game::RunGame()
 
         for (int i = 0; i < enemies.size();)
         {
-            enemies.at(i)->Update(); //proj->update() which calles movePRojectile and should ++animation sprite
+            enemies.at(i)->Update(&player); //proj->update() which calles movePRojectile and should ++animation sprite
             if (enemies.at(i)->GetState() == "main" &&  enemies.at(i)->IsReadyToAttack())
             {
                 game_projectiles.emplace_back(new IceShard(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage));
@@ -222,6 +221,7 @@ void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectil
         {
             if (player->GetPlayerState() == "main" && player->IsShieldReady())
             {
+                sound_manager->PlaySound("shield_activate", 70);
                 player->UpdatePlayerState("shield");
             }
         }
@@ -230,7 +230,7 @@ void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectil
         {
             if (player->GetPlayerState() == "main" && player->IsDashReady())
             {
-                sound_manager->PlaySound("dash_sound");
+                sound_manager->PlaySound("dash_sound", 60);
                 player->UpdatePlayerState("dash");
             }
         }
@@ -263,7 +263,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                         collided_with_item = true;
                         if (game_projectiles.at(i)->GetState() == "main")
                         {
-                            sound_manager->PlaySound("player_secondary_fire_impact");
+                            sound_manager->PlaySound("player_secondary_fire_impact", 45);
                             game_projectiles.at(i)->UpdateState("impact");
                         }
                     }
@@ -283,18 +283,18 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
             {
                 if (player->GetPlayerState() == "main" && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
                 {
-                    sound_manager->PlaySound("player_hit");
+                    sound_manager->PlaySound("player_hit", 70);
                     game_projectiles.at(i)->UpdateState("impact");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
                     player->ChangeHealth(-game_projectiles.at(i)->damage);
-                    sound_manager->PlaySound("ice_shard_impact");
+                    sound_manager->PlaySound("ice_shard_impact", 55);
                 }
 
                 if (player->GetPlayerState() == "shield" && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetShieldColl(), false))
                 {
-                    sound_manager->PlaySound("player_shield_hit");
+                    sound_manager->PlaySound("player_shield_hit", 80);
                     game_projectiles.at(i)->UpdateState("impact");
-                    sound_manager->PlaySound("ice_shard_impact");
+                    sound_manager->PlaySound("ice_shard_impact", 20);
                 }
             }
 
@@ -309,7 +309,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
                 if (game_projectiles.at(i)->GetState() == "main")
                 {
-                    sound_manager->PlaySound("player_hit");
+                    sound_manager->PlaySound("player_hit", 60);
                     game_projectiles.at(i)->UpdateState("impact");
                     enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage);
 
@@ -330,7 +330,7 @@ void Game::UpdateEnemies(std::vector<Enemy*> &enemies)
 {
     if (enemies.size() == 0)
     {
-        enemies.emplace_back(new PurpleCrystal({ 400,70,64 * 3,64 * 3 }));
+        enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
     }
 }
 

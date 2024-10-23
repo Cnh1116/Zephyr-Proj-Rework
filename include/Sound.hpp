@@ -2,12 +2,13 @@
 #include <map>
 #include <SDL_mixer.h>
 
+
 class SoundManager
 {
     public:
         SoundManager(); //Maybe give directory where sounds are ??
         ~SoundManager();
-        void PlaySound(const char* sound_key);
+        void PlaySound(const char* sound_key, int volume_percent);
         void PlayMusic(const char* song_key);
         void FadeOutMusic();
         

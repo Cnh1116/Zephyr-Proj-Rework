@@ -5,6 +5,8 @@
 #include <SDL.h>
 #include <string>
 
+#include "Player.hpp"
+
 
 class Enemy
 {
@@ -65,17 +67,17 @@ class Enemy
         bool invincible;
 
         // Override Functions
-        virtual void Update() = 0;
-        virtual void Move() = 0;
+        virtual void Update(Player *player) = 0;
+        virtual void Move(Player* player) = 0;
 
 
 };
 
-class PurpleCrystal : public Enemy {
+class IceCrystal : public Enemy {
 public:
-    PurpleCrystal(const SDL_Rect& rect);
-    void Update() override;
-    void Move() override;
+    IceCrystal(const SDL_Rect& rect);
+    void Update(Player *player) override;
+    void Move(Player* player) override;
 };
 
 
