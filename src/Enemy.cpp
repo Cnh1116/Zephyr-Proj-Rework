@@ -116,7 +116,7 @@ bool Enemy::IsReadyToAttack()
 
 
 
-// PURPLE CRYSTAL
+// ICE CRYSTAL
 IceCrystal::IceCrystal(const SDL_Rect& dest_rect)
 	: Enemy(dest_rect, dest_rect, { {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64}},
 		{{ 0,0,64,64 }, { 64,0,64,64 }, { 128,0,64,64 }, { 192,0,64,64 }, { 256,0,64,64 }, { 320,0,64,64 }, { 384,0,64,64 }, { 448,0,64,64 }, { 512,0,64,64 }, { 576,0,64,64 }, { 640,0,64,64 }, { 704,0,64,64 }}, 1.0, 100, 0, 35)
@@ -154,14 +154,69 @@ void IceCrystal::Update(Player *player)
 
 
 	}
-
-	
 	
 }
 
 void IceCrystal::Move(Player* player)
 {
 	
+	if (player->GetDstRect()->x < enemy_dest_rect.x)
+		enemy_dest_rect.x += (-1 * movement_speed);
+	else
+		enemy_dest_rect.x += movement_speed;
+
+	enemy_coll_rect.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (enemy_coll_rect.w / 2);
+	enemy_coll_rect.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (enemy_coll_rect.h / 2);
+	enemy_coll_rect.w = enemy_dest_rect.w / 2;
+	enemy_coll_rect.h = enemy_dest_rect.h / 2;
+}
+
+// STORM CLOUD
+StormCloud::StormCloud(const SDL_Rect& dest_rect)
+	: Enemy(dest_rect, dest_rect, { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32}, {160,0,32,32}, {192,0,32,32}, {224,0,32,32}, {256,0,32,32}, {288,0,32,32}, {320,0,32,32}, {352,0,32,32}, {384,0,32,32}, {416,0,32,32}, {448,0,32,32} },
+		{ {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32}, {160,0,32,32}, {192,0,32,32}, {224,0,32,32}, {256,0,32,32}, {288,0,32,32}, {320,0,32,32}, {352,0,32,32}, {384,0,32,32}, {416,0,32,32}, {448,0,32,32} }, 1.0, 100, 0, 35)
+{}
+
+void StormCloud::Update(Player* player)
+{
+
+
+	if (state == "main")
+	{
+
+		if (enemy_dest_rect.x == 0 || enemy_dest_rect.x + enemy_dest_rect.w == 2000) //Screen width
+		{
+			movement_speed *= -1;
+		}
+
+		current_texture_key = "storm_cloud_main";
+		current_frames = main_frames;
+		Move(player);
+	}
+
+
+
+	if (state == "death")
+	{
+		enemy_coll_rect = { 0,0,0,0 };
+		if (current_frame_index >= death_frames.size() - 1)
+		{
+			state = "delete";
+		}
+
+		current_texture_key = "storm_cloud_main";
+		current_frames = death_frames;
+
+
+	}
+
+
+
+}
+
+void StormCloud::Move(Player* player)
+{
+
 	if (player->GetDstRect()->x < enemy_dest_rect.x)
 		enemy_dest_rect.x += (-1 * movement_speed);
 	else

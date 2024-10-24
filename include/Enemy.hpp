@@ -73,10 +73,19 @@ class Enemy
 
 };
 
-class IceCrystal : public Enemy {
+class IceCrystal : public Enemy 
+{
+    public:
+        IceCrystal(const SDL_Rect& rect);
+        void Update(Player *player) override;
+        void Move(Player* player) override;
+};
+
+class StormCloud : public Enemy
+{
 public:
-    IceCrystal(const SDL_Rect& rect);
-    void Update(Player *player) override;
+    StormCloud(const SDL_Rect& rect);
+    void Update(Player* player) override;
     void Move(Player* player) override;
 };
 

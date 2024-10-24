@@ -106,6 +106,8 @@ void Graphics::LoadTextures()
     // Enemies
     texture_map["purple_crystal_main"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue.png");
     texture_map["purple_crystal_death"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue_destr.png");
+    texture_map["storm_cloud_main"] = GetTexture("../../assets/sprites/enemies-sprites/cloud_enemy-Sheet.png");
+    
 }
 
 void Graphics::HideWindow()

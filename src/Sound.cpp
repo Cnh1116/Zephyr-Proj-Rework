@@ -26,7 +26,7 @@ SoundManager::SoundManager()
     LoadSoundEffect("player_secondary_fire_impact", "../../assets/sounds/falling-on-foil-748.wav");
     LoadSoundEffect("player_hit", "../../assets/sounds/player_hit.wav");
     LoadSoundEffect("player_shield_activate", "../../assets/sounds/fast-air-zoom-2625.wav");
-    LoadSoundEffect("player_shield_hit", "../../assets/sounds/jade-drum.wav");
+    LoadSoundEffect("player_shield_hit", "../../assets/sounds/parry-sfx.wav");
     LoadSoundEffect("shield_activate", "../../assets/sounds/ending-wind-swoosh-1482.wav");
     
     LoadSoundEffect("dash_sound", "../../assets/sounds/whoosh-wind-sweep-2632.wav");
