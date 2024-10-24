@@ -221,7 +221,7 @@ void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectil
         {
             if (player->GetPlayerState() == "main" && player->IsShieldReady())
             {
-                sound_manager->PlaySound("shield_activate", 70);
+                sound_manager->PlaySound("shield_activate", 55);
                 player->UpdatePlayerState("shield");
             }
         }
@@ -283,7 +283,8 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
             {
                 if (player->GetPlayerState() == "main" && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
                 {
-                    sound_manager->PlaySound("player_hit", 70);
+                    sound_manager->PlaySound("player_hit", 100);
+
                     game_projectiles.at(i)->UpdateState("impact");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
                     player->ChangeHealth(-game_projectiles.at(i)->damage);
@@ -292,9 +293,9 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
                 if (player->GetPlayerState() == "shield" && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetShieldColl(), false))
                 {
-                    sound_manager->PlaySound("player_shield_hit", 80);
+                    sound_manager->PlaySound("player_shield_hit", 90);
                     game_projectiles.at(i)->UpdateState("impact");
-                    sound_manager->PlaySound("ice_shard_impact", 20);
+                    sound_manager->PlaySound("ice_shard_impact", 25);
                 }
             }
 
