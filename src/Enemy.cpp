@@ -184,6 +184,7 @@ StormCloud::StormCloud(int screen_width, int screen_height, int player_x, int pl
 {
 	
 
+
 	std::cout << "[*] Goal x and y: " << goal_x << " " << goal_y << std::endl;
 	
 	std::random_device rd;

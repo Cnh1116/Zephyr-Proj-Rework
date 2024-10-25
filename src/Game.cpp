@@ -300,14 +300,14 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     game_projectiles.at(i)->UpdateState("impact");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
                     player->ChangeHealth(-game_projectiles.at(i)->damage);
-                    sound_manager->PlaySound("ice_shard_impact", 55);
+                    sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 55); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
                 }
 
                 if (player->GetPlayerState() == "shield" && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetShieldColl(), false))
                 {
                     sound_manager->PlaySound("player_shield_hit", 90);
                     game_projectiles.at(i)->UpdateState("impact");
-                    sound_manager->PlaySound("ice_shard_impact", 25);
+                    sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 25);
                 }
             }
 

@@ -21,6 +21,7 @@ SoundManager::SoundManager()
     std::cout << "[*] Allocating 32 channels for sound!\n";
     Mix_AllocateChannels(32); //8 Player, 16 Enemies, 8 items
     
+    // Player Sounds
     LoadSoundEffect("player_primary_fire", "../../assets/sounds/cinematic-wind-swoosh-1471.wav");
     LoadSoundEffect("player_secondary_fire", "../../assets/sounds/fast-air-zoom-2625.wav");
     LoadSoundEffect("player_secondary_fire_impact", "../../assets/sounds/falling-on-foil-748.wav");
@@ -28,11 +29,13 @@ SoundManager::SoundManager()
     LoadSoundEffect("player_shield_activate", "../../assets/sounds/fast-air-zoom-2625.wav");
     LoadSoundEffect("player_shield_hit", "../../assets/sounds/parry-sfx.wav");
     LoadSoundEffect("shield_activate", "../../assets/sounds/ending-wind-swoosh-1482.wav");
-    
     LoadSoundEffect("dash_sound", "../../assets/sounds/whoosh-wind-sweep-2632.wav");
 
+    // Projectile Sounds
     LoadSoundEffect("ice_shard_impact", "../../assets/sounds/ice_breaking.wav");
+    LoadSoundEffect("lightning_ball_impact", "../../assets/sounds/electric-ball-impact.wav");
 
+    // Item S0unds
     LoadSoundEffect("item_collection_sound", "../../assets/sounds/unlock-new-item-game-notification-254.wav");
     
 

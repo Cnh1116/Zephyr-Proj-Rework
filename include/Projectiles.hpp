@@ -29,6 +29,7 @@ class Projectile
         int NumOfFrames();
         const char* GetState();
         SDL_Rect* GetCollisionRect();
+        const char* GetSoundEffectImpact();
 
         //Other Functions
         void AdvanceFrame();
@@ -55,6 +56,8 @@ class Projectile
         std::string main_texture_key;
         std::string impact_texture_key;
         std::string current_texture_key;
+
+        const char* sound_effect_impact;
         
         int current_frame_index;
         SDL_Rect dest_rect;
