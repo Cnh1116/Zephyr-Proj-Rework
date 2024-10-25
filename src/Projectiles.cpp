@@ -141,8 +141,6 @@ void PrimaryFire::Update()
             state = "delete";
         }
     }
-    
-
 }
 
 // SECONDARY FIRE
@@ -190,7 +188,7 @@ void SecondaryFire::MoveProjectile()
 }
 
 
-//PURPLE CRYSTAL FIRE
+// ICE SHARD
 
 IceShard::IceShard(const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage)
     : Projectile({ (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, "ice_shard", { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32}, {160,0,32,32}, {0,32,32,32}, {32,32,32,32}, {64,32,32,32}, {96,32,32,32}, {128,32,32,32}, {160,32,32,32}, {0,64,32,32}, {32,64,32,32}, {64,64,32,32} }, "ice_shard_impact", { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32} }, 120, true, false)
@@ -221,7 +219,55 @@ void IceShard::Update()
             state = "delete";
         }
     }
-    
-    
-    
+}
+
+// LIGHTNING BALL
+
+LightningBall::LightningBall(const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, int player_x, int player_y)
+    : Projectile({ (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, "lightning_ball", { {0,0,40,40}, {40,0,40,40}, {80,0,40,40}, {120,0,40,40}, {160,0,40,40}, {200,0,40,40}, {240,0,40,40}, {280,0,40,40}, {320,0,40,40}, {360,0,40,40} }, "lightning_ball_impact", { {0,0,40,40}, {40,0,40,40}, {80,0,40,40}, {120,0,40,40}, {160,0,40,40}, {200,0,40,40}, {240,0,40,40}, {280,0,40,40}, {320,0,40,40}, {360,0,40,40} } , 120, true, false)
+{
+    // Calculate the direction vector
+    delta_x = player_x - (dest_rect.x + dest_rect.w/2);
+    delta_y = player_y - (dest_rect.y + dest_rect.h/2);
+
+    // Normalize the direction vector
+    float length = std::sqrt(delta_x * delta_x + delta_y * delta_y);
+    if (length != 0) 
+    {
+        direction_x = delta_x / length;
+        direction_y = delta_y / length;
+    }
+    else 
+    {
+        direction_x = 0;
+        direction_y = 0;
+    }
+}
+void LightningBall::MoveProjectile()
+{
+    dest_rect.x += direction_x * speed;
+    dest_rect.y += direction_y * speed;
+}
+
+void LightningBall::Update()
+{
+    if (state == "main")
+    {
+        MoveProjectile();
+        collision_rect.w = dest_rect.w / 2;
+        collision_rect.h = dest_rect.h / 2;
+        collision_rect.x = dest_rect.x + (dest_rect.w / 2) - (collision_rect.w / 2);
+        collision_rect.y = dest_rect.y + (dest_rect.h / 2) - (collision_rect.h / 2);
+    }
+
+    if (state == "impact")
+    {
+        collision_rect = { 0,0,0,0 };
+        current_frames = impact_frames;
+        current_texture_key = "lightning_ball_impact";
+        if (current_frame_index >= impact_frames.size() - 1)
+        {
+            state = "delete";
+        }
+    }
 }

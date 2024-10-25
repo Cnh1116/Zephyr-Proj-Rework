@@ -170,7 +170,7 @@ class Player
             SDL_Rect coll_rect;
             std::string shield_texture_key = "player_shield";
             Uint32 last_shield_frame_time = 0;
-            Uint32 shield_frame_time_ms = 40;
+            Uint32 shield_frame_time_ms = 30;
             
             Uint32 last_time_used = 0;
             Uint32 shield_cooldown_ms = 1000;

@@ -73,26 +73,41 @@ class Projectile
         
 };
 
-class PrimaryFire : public Projectile {
-public:
-    PrimaryFire(const SDL_Rect& rect, float projectile_speed, float projectile_damage, int PIXEL_SCALE);
-    void MoveProjectile() override;
-    void Update() override;
+class PrimaryFire : public Projectile 
+{
+    public:
+        PrimaryFire(const SDL_Rect& rect, float projectile_speed, float projectile_damage, int PIXEL_SCALE);
+        void MoveProjectile() override;
+        void Update() override;
 };
 
-class SecondaryFire : public Projectile {
-public:
-    SecondaryFire(const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE);
-    void MoveProjectile() override;
-    void Update() override;
+class SecondaryFire : public Projectile 
+{
+    public:
+        SecondaryFire(const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE);
+        void MoveProjectile() override;
+        void Update() override;
     
 };
 
-class IceShard : public Projectile {
-public:
-    IceShard(const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage);
-    void MoveProjectile() override;
-    void Update() override;
+class IceShard : public Projectile 
+{
+    public:
+        IceShard(const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage);
+        void MoveProjectile() override;
+        void Update() override;
+
+};
+class LightningBall : public Projectile 
+{
+    public:
+        LightningBall(const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, int player_x, int player_y);
+        void MoveProjectile() override;
+        void Update() override;
+    private:
+        int delta_x, delta_y;
+        float direction_x, direction_y;
+
 
 };
 

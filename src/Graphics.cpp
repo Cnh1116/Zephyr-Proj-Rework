@@ -93,11 +93,12 @@ void Graphics::LoadTextures()
     texture_map["primary_fire_impact"] = GetTexture("../../assets/sprites/projectile-sprites/primary_fire_impact.png");
     texture_map["secondary_fire"] = GetTexture("../../assets/sprites/projectile-sprites/secondary_fire.png");
     texture_map["secondary_fire_impact"] = GetTexture("../../assets/sprites/projectile-sprites/secondary_fire_impact.png");
-    //texture_map["purple_crystal_projectile"] =  GetTexture("../../assets/sprites/projectile-sprites/purple_projectile.png");
-    //texture_map["purple_crystal_projectile_impact"] = GetTexture("../../assets/sprites/projectile-sprites/purple_crystal_impact.png");
+    
     texture_map["ice_shard_conjure"] = GetTexture("../../assets/sprites/projectile-sprites/Ice_Shard_Cast.png");
     texture_map["ice_shard"] = GetTexture("../../assets/sprites/projectile-sprites/Ice_shard.png");
     texture_map["ice_shard_impact"] = GetTexture("../../assets/sprites/projectile-sprites/Ice_Shard_Hit.png");
+    texture_map["lightning_ball"] = GetTexture("../../assets/sprites/projectile-sprites/small-spark-Sheet.png");
+    texture_map["lightning_ball_impact"] = GetTexture("../../assets/sprites/projectile-sprites/small-spark-Sheet.png"); //NEEDS TO BE UNIQUE
 
     // Items
     texture_map["item_cloud"] = GetTexture("../../assets/sprites/item-sprites/item_cloud.png");
@@ -107,6 +108,7 @@ void Graphics::LoadTextures()
     texture_map["purple_crystal_main"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue.png");
     texture_map["purple_crystal_death"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue_destr.png");
     texture_map["storm_cloud_main"] = GetTexture("../../assets/sprites/enemies-sprites/cloud_enemy-Sheet.png");
+    texture_map["storm_cloud_death"] = GetTexture("../../assets/sprites/enemies-sprites/cloud_enemy-Sheet.png"); //NEEDS UNIQUE
     
 }
 
@@ -184,7 +186,7 @@ SDL_Texture* Graphics::GetTexture(const char* png_path)
 void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies)
 {
     
-    bool draw_collision_boxes = false;
+    bool draw_collision_boxes = true;
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Black background
     SDL_RenderClear(renderer);
 
@@ -297,6 +299,26 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
                 std::cout << "[!] " << "TextureKey: " << enemies.at(i)->GetFrame()->x << enemies.at(i)->GetFrame()->y << enemies.at(i)->GetFrame()->w << enemies.at(i)->GetFrame()->h << std::endl;
                 std::cout << "[!] " << "TextureKey: " << enemies.at(i)->GetDstRect()->x << enemies.at(i)->GetDstRect()->y << enemies.at(i)->GetDstRect()->w << enemies.at(i)->GetDstRect()->h << std::endl;
                 std::cout << "[!] Enemy failed to render.\n"; 
+            }
+            if (StormCloud* stormCloud = dynamic_cast<StormCloud*>(enemies[i])) 
+            {
+                std::cout << "[*] This enemy is a StormCloud!\n";
+                SDL_Rect rect;
+                int size = 5;
+                rect.x = stormCloud->GetGoalX() - size / 2; // Center the point
+                rect.y = stormCloud->GetGoalY() - size / 2; // Center the point
+                rect.w = size;         // Width of the rectangle
+                rect.h = size;
+                // Now it's safe to call the special function
+                if (draw_collision_boxes)
+                {
+                    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                    if (0 != SDL_RenderFillRect(renderer, &rect))
+                    {
+                        std::cout << "[*] Error rendering point storm cloud goal point ...\n";
+                    }
+                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                }
             }
 
             if (draw_collision_boxes)

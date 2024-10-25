@@ -54,12 +54,12 @@ void Game::RunGame()
         {
             std::random_device rd;
             std::mt19937 gen(rd());
-            std::uniform_int_distribution<> distrib(0, 1);
+            std::uniform_int_distribution<> distrib(0, 1000);
             std::cout << "[*] Updating Enemies since size is 0\n";
-            if (distrib(gen) == 0)
+            if (distrib(gen) % 2 == 0)
                 enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
             else
-                enemies.emplace_back(new StormCloud({ 400,70,64 * 2,64 * 2 }));
+                enemies.emplace_back(new StormCloud(graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight(), player.GetDstRect()->x + (player.GetDstRect()->w/2), player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
         }
         
         Uint32 current_tick = SDL_GetTicks();
@@ -176,9 +176,13 @@ void Game::RunGame()
         for (int i = 0; i < enemies.size();)
         {
             enemies.at(i)->Update(&player); //proj->update() which calles movePRojectile and should ++animation sprite
-            if (enemies.at(i)->GetState() == "main" &&  enemies.at(i)->IsReadyToAttack())
+            if (enemies.at(i)->IsReadyToAttack())
             {
-                game_projectiles.emplace_back(new IceShard(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage));
+                if (dynamic_cast<IceCrystal*>(enemies.at(i)))
+                    game_projectiles.emplace_back(new IceShard(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage));
+                
+                if (dynamic_cast<StormCloud*>(enemies.at(i)))
+                    game_projectiles.emplace_back(new LightningBall(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage, (player.GetDstRect()->x + (player.GetDstRect()->w/2)), (player.GetDstRect()->y + (player.GetDstRect()->h / 2))));
             }
 
             if (enemies.at(i)->GetState() == "delete")
@@ -289,7 +293,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
             if (game_projectiles.at(i)->GetState() == "main")
             {
-                if (player->GetPlayerState() == "main" && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
+                if ( (player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
                 {
                     sound_manager->PlaySound("player_hit", 100);
 

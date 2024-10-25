@@ -32,7 +32,7 @@ class Enemy
         void UpdateState(std::string state);
         SDL_Rect* GetFrame();
         std::string GetState();
-        bool IsReadyToAttack();
+        
 
     
         //STATS
@@ -69,6 +69,7 @@ class Enemy
         // Override Functions
         virtual void Update(Player *player) = 0;
         virtual void Move(Player* player) = 0;
+        virtual bool IsReadyToAttack() = 0;
 
 
 };
@@ -79,14 +80,29 @@ class IceCrystal : public Enemy
         IceCrystal(const SDL_Rect& rect);
         void Update(Player *player) override;
         void Move(Player* player) override;
+        bool IsReadyToAttack() override;
 };
 
 class StormCloud : public Enemy
 {
-public:
-    StormCloud(const SDL_Rect& rect);
-    void Update(Player* player) override;
-    void Move(Player* player) override;
+    public:
+        StormCloud(int screen_width, int screen_height, int player_x, int player_y);
+        void Update(Player* player) override;
+        void Move(Player* player) override;
+        bool IsReadyToAttack() override;
+
+        int GetGoalX();
+        int GetGoalY();
+    private:
+        double direction_x, direction_y;
+        double position_x = enemy_dest_rect.x;
+        double position_y = enemy_dest_rect.y;
+
+        Uint32 time_to_wait_ms = 1500;
+        Uint32 start_of_wait_state;
+        int goal_x, goal_y;
+        bool shot_fired = false;
+        bool first_time_waiting = true;
 };
 
 
