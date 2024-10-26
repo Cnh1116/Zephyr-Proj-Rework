@@ -240,7 +240,7 @@ StormCloud::StormCloud(int screen_width, int screen_height, int player_x, int pl
 
 void StormCloud::Update(Player* player)
 {
-	float threshhold = 325;
+	float threshhold = 300;
 
 	if (state == "main")
 	{

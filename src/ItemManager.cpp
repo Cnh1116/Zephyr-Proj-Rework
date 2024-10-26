@@ -5,7 +5,7 @@
 
 
 
-ItemManager::ItemManager(Graphics* graphics_manager)
+ItemManager::ItemManager()
 {
     time_last_item_spawned = 0;
     item_list.reserve(5);

@@ -108,8 +108,9 @@ class LightningBall : public Projectile
         void MoveProjectile() override;
         void Update() override;
     private:
-        int delta_x, delta_y;
-        float direction_x, direction_y;
+        double direction_x, direction_y;
+        double position_x = dest_rect.x;
+        double position_y = dest_rect.y;
 
 
 };

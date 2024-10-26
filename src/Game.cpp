@@ -15,7 +15,7 @@ Game::Game() // Game constructor acts as my INIT function for the game.
       sound_manager(new SoundManager()),
       game_over(false),
       times_X_pressed(0),
-      item_manager(new ItemManager(graphics_manager)),
+      item_manager(new ItemManager()),
       player(Player(graphics_manager, PIXEL_SCALE))
 {
     // Load Player Sprite
@@ -56,9 +56,9 @@ void Game::RunGame()
             std::mt19937 gen(rd());
             std::uniform_int_distribution<> distrib(0, 1000);
             std::cout << "[*] Updating Enemies since size is 0\n";
-            if (distrib(gen) % 2 == 0)
-                enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
-            else
+            //if (distrib(gen) % 2 == 0)
+                //enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
+            //else
                 enemies.emplace_back(new StormCloud(graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight(), player.GetDstRect()->x + (player.GetDstRect()->w/2), player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
         }
         
@@ -123,6 +123,8 @@ void Game::RunGame()
                     if (RectRectCollision(player.GetSecondaryFireHudColl(), &item_manager->GetItemList()->at(i).item_dest_rect, false))
                     {
                         std::cout << "[*] Player shot an item!\n";
+                        // ADD PLAYER ITEMMMMMMMMM
+
                         sound_manager->PlaySound("item_collection_sound", 55);
                     }
                 }
@@ -182,7 +184,7 @@ void Game::RunGame()
                     game_projectiles.emplace_back(new IceShard(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage));
                 
                 if (dynamic_cast<StormCloud*>(enemies.at(i)))
-                    game_projectiles.emplace_back(new LightningBall(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage, (player.GetDstRect()->x + (player.GetDstRect()->w/2)), (player.GetDstRect()->y + (player.GetDstRect()->h / 2))));
+                    game_projectiles.emplace_back(new LightningBall(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage, (player.GetCollRect()->x + (player.GetCollRect()->w/2)), (player.GetCollRect()->y + (player.GetCollRect()->h / 2))));
             }
 
             if (enemies.at(i)->GetState() == "delete")
@@ -277,6 +279,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                         {
                             sound_manager->PlaySound("player_secondary_fire_impact", 45);
                             game_projectiles.at(i)->UpdateState("impact");
+                            (*item_list).at(j).destroyed = true;
                         }
                     }
                 }

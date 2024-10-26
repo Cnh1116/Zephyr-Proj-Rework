@@ -156,7 +156,7 @@ SecondaryFire::SecondaryFire(const SDL_Rect& dest_rect, float projectile_speed, 
 
 void SecondaryFire::Update()
 {
-    MoveProjectile();
+    MoveProjectile(); // Always move sec. fire down cause of hitting cloud
 
     if (state == "main")
     {
@@ -231,31 +231,41 @@ void IceShard::Update()
 // LIGHTNING BALL
 
 LightningBall::LightningBall(const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, int player_x, int player_y)
-    : Projectile({ (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, "lightning_ball", { {0,0,40,40}, {40,0,40,40}, {80,0,40,40}, {120,0,40,40}, {160,0,40,40}, {200,0,40,40}, {240,0,40,40}, {280,0,40,40}, {320,0,40,40}, {360,0,40,40} }, "lightning_ball_impact", { {0,0,40,40}, {40,0,40,40}, {80,0,40,40}, {120,0,40,40}, {160,0,40,40}, {200,0,40,40}, {240,0,40,40}, {280,0,40,40}, {320,0,40,40}, {360,0,40,40} } , 120, true, false)
+    : Projectile({ (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, "lightning_ball", { {0,0,40,40}, {40,0,40,40}, {80,0,40,40}, {120,0,40,40}, {160,0,40,40}, {200,0,40,40}, {240,0,40,40}, {280,0,40,40}, {320,0,40,40}, {360,0,40,40} }, "lightning_ball_impact", { {0,0,64,64}, {64,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64} } , 120, true, false)
 {
     sound_effect_impact = "lightning_ball_impact";
     
-    // Calculate the direction vector
-    delta_x = player_x - (dest_rect.x + dest_rect.w/2);
-    delta_y = player_y - (dest_rect.y + dest_rect.h/2);
+    float delta_x = static_cast<double>(player_x) - (dest_rect.x + (dest_rect.w / 2));
+    float delta_y = static_cast<double>(player_y) - (dest_rect.y + (dest_rect.h / 2));
+    std::cout << "Delta x: " << delta_x << " Delta Y: " << delta_y << std::endl;
 
     // Normalize the direction vector
     float length = std::sqrt(delta_x * delta_x + delta_y * delta_y);
-    if (length != 0) 
+    if (length != 0)
     {
         direction_x = delta_x / length;
         direction_y = delta_y / length;
     }
-    else 
+    else
     {
         direction_x = 0;
         direction_y = 0;
     }
+
+    position_x = dest_rect.x;
+    position_y = dest_rect.y;
 }
 void LightningBall::MoveProjectile()
 {
-    dest_rect.x += direction_x * speed;
-    dest_rect.y += direction_y * speed;
+    position_x += direction_x * speed;
+    position_y += direction_y * speed;
+
+    dest_rect.x = static_cast<int>(position_x) + (dest_rect.w / 2) - (dest_rect.w / 2);
+    dest_rect.y = static_cast<int>(position_y) + (dest_rect.h / 2) - (dest_rect.h / 2);
+    collision_rect.x = static_cast<int>(position_x) + (dest_rect.w / 2) - (collision_rect.w / 2);
+    collision_rect.y = static_cast<int>(position_y) + (dest_rect.h / 2) - (collision_rect.h / 2);
+    collision_rect.w = dest_rect.w / 2;
+    collision_rect.h = dest_rect.h / 2;
 }
 
 void LightningBall::Update()

@@ -98,7 +98,7 @@ void Graphics::LoadTextures()
     texture_map["ice_shard"] = GetTexture("../../assets/sprites/projectile-sprites/Ice_shard.png");
     texture_map["ice_shard_impact"] = GetTexture("../../assets/sprites/projectile-sprites/Ice_Shard_Hit.png");
     texture_map["lightning_ball"] = GetTexture("../../assets/sprites/projectile-sprites/small-spark-Sheet.png");
-    texture_map["lightning_ball_impact"] = GetTexture("../../assets/sprites/projectile-sprites/small-spark-Sheet.png"); //NEEDS TO BE UNIQUE
+    texture_map["lightning_ball_impact"] = GetTexture("../../assets/sprites/projectile-sprites/small-spark-impact.png"); //NEEDS TO BE UNIQUE
 
     // Items
     texture_map["item_cloud"] = GetTexture("../../assets/sprites/item-sprites/item_cloud.png");
@@ -258,11 +258,11 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
                 {
                     std::cout << "[!] Item failed to render.\n";
                 }
-            
-            if ( 0 != SDL_RenderCopy(renderer, texture_map["glass_toucan"], NULL, &(*item_list).at(i).item_dest_rect)) //Second arg NULL means use whole png.
-                {
-                    std::cout << "[!] Item failed to render.\n";
-                }
+            if ((*item_list).at(i).destroyed == false)
+                if ( 0 != SDL_RenderCopy(renderer, texture_map["glass_toucan"], NULL, &(*item_list).at(i).item_dest_rect)) //Second arg NULL means use whole png.
+                    {
+                        std::cout << "[!] Item failed to render.\n";
+                    }
 
             if (draw_collision_boxes)
             {

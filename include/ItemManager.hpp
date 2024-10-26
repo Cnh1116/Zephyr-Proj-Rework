@@ -16,10 +16,11 @@ class ItemManager
             SDL_Rect item_dest_rect;
             SDL_Rect item_cloud_dest_rect;
             SDL_Rect item_cloud_coll_rect;
+            bool destroyed;
             // rarity?
         };
 
-        ItemManager(Graphics* graphics_manager);
+        ItemManager();
         std::vector<item>* GetItemList();
         void UpdateItemList(); // This is where the logic of when to spawn items occurs.
         SDL_Texture* GetItemCloudTexture();
@@ -36,6 +37,7 @@ class ItemManager
         std::string  glass_toucan_png = "/home/monkey-d-luffy/Cpp-Sdl2-Learning/assets/sprites/item-sprites/glass_toucan4.png";
 
         std::vector<item> item_list;
+
 
 
 
