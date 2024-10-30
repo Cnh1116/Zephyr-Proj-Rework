@@ -40,6 +40,8 @@ void Game::RunGame()
     std::vector<Enemy*> enemies;
     game_projectiles.reserve(30);
     enemies.reserve(10);
+
+    bool render_coll_boxes = false;
     
 
     // Play Starting Song
@@ -50,15 +52,16 @@ void Game::RunGame()
     
     while(false == game_over)
     {
+        std::cout << render_coll_boxes << std::endl;
         if (enemies.size() == 0)
         {
             std::random_device rd;
             std::mt19937 gen(rd());
             std::uniform_int_distribution<> distrib(0, 1000);
             std::cout << "[*] Updating Enemies since size is 0\n";
-            //if (distrib(gen) % 2 == 0)
-                //enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
-            //else
+            if (distrib(gen) % 2 == 0)
+                enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
+            else
                 enemies.emplace_back(new StormCloud(graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight(), player.GetDstRect()->x + (player.GetDstRect()->w/2), player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
         }
         
@@ -70,7 +73,7 @@ void Game::RunGame()
         SDL_Event event;
         while (SDL_PollEvent(&event)) 
         {
-            HandleKeyInput(event, &player, game_projectiles);
+            HandleKeyInput(event, &player, game_projectiles, render_coll_boxes);
         }
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -184,7 +187,7 @@ void Game::RunGame()
                     game_projectiles.emplace_back(new IceShard(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage));
                 
                 if (dynamic_cast<StormCloud*>(enemies.at(i)))
-                    game_projectiles.emplace_back(new LightningBall(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage, (player.GetCollRect()->x + (player.GetCollRect()->w/2)), (player.GetCollRect()->y + (player.GetCollRect()->h / 2))));
+                    game_projectiles.emplace_back(new LightningBall(enemies.at(i)->enemy_dest_rect, 6.0, 3, enemies.at(i)->base_damage, (player.GetCollRect()->x + (player.GetCollRect()->w/2)), (player.GetCollRect()->y + (player.GetCollRect()->h / 2))));
             }
 
             if (enemies.at(i)->GetState() == "delete")
@@ -207,7 +210,7 @@ void Game::RunGame()
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~  RENDER Player, Projectiles and Enemies     ~
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        graphics_manager->RenderGameItems(&player, game_projectiles, item_manager->GetItemList(), enemies);
+        graphics_manager->RenderGameItems(&player, game_projectiles, item_manager->GetItemList(), enemies, render_coll_boxes);
 
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,7 +223,7 @@ void Game::RunGame()
     }
 }
 
-void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectile*>& game_projectiles) //item_vector pointer to spawn item
+void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectile*>& game_projectiles, bool &render_coll_boxes) //item_vector pointer to spawn item
 {
         
         if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) // ESC //
@@ -229,6 +232,12 @@ void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectil
             game_over = true;
             graphics_manager->DeactivateWindow();
             SDL_Quit(); 
+        }
+
+        if (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_COMMA) // , //
+        {
+            std::cout << "[*] , Key Pressed.\n";
+            render_coll_boxes = !render_coll_boxes;
         }
 
         if (event.key.keysym.scancode == SDL_SCANCODE_SPACE) // SPACE //
@@ -299,6 +308,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                 if ( (player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
                 {
                     sound_manager->PlaySound("player_hit", 100);
+                    player->UpdatePlayerState("iframes");
 
                     game_projectiles.at(i)->UpdateState("impact");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
@@ -311,6 +321,11 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     sound_manager->PlaySound("player_shield_hit", 90);
                     game_projectiles.at(i)->UpdateState("impact");
                     sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 25);
+                }
+
+                if (player->GetPlayerState() == "iframes" && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
+                {
+                    game_projectiles.at(i)->UpdateState("impact");
                 }
             }
 

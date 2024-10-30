@@ -105,7 +105,9 @@ void Enemy::ChangeHealth(int health_diff)
 IceCrystal::IceCrystal(const SDL_Rect& dest_rect)
 	: Enemy(dest_rect, dest_rect, { {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64}},
 		{{ 0,0,64,64 }, { 64,0,64,64 }, { 128,0,64,64 }, { 192,0,64,64 }, { 256,0,64,64 }, { 320,0,64,64 }, { 384,0,64,64 }, { 448,0,64,64 }, { 512,0,64,64 }, { 576,0,64,64 }, { 640,0,64,64 }, { 704,0,64,64 }}, 1.0, 100, 0, 35)
-{}
+{
+	fire_cooldown_ms = 300;
+}
 
 void IceCrystal::Update(Player *player)
 {
@@ -180,7 +182,7 @@ bool IceCrystal::IsReadyToAttack()
 // STORM CLOUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StormCloud::StormCloud(int screen_width, int screen_height, int player_x, int player_y)
 	: Enemy({-32,-32,32,32}, { -32,-32,32,32 }, { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32}, {160,0,32,32}, {192,0,32,32}, {224,0,32,32}, {256,0,32,32}, {288,0,32,32}, {320,0,32,32}, {352,0,32,32}, {384,0,32,32}, {416,0,32,32}, {448,0,32,32} },
-		{ {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32}, {160,0,32,32}, {192,0,32,32}, {224,0,32,32}, {256,0,32,32}, {288,0,32,32}, {320,0,32,32}, {352,0,32,32}, {384,0,32,32}, {416,0,32,32}, {448,0,32,32} }, 4.0, 35, 0, 35)
+		{ {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32}, {160,0,32,32}, {192,0,32,32}, {224,0,32,32}, {256,0,32,32}, {288,0,32,32}, {320,0,32,32}, {352,0,32,32}, {384,0,32,32}, {416,0,32,32}, {448,0,32,32} }, 4.7, 30, 0, 35)
 {
 	
 
@@ -190,32 +192,18 @@ StormCloud::StormCloud(int screen_width, int screen_height, int player_x, int pl
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> location_zone(0,1000);
-	std::uniform_int_distribution<> within_screen_y(0, screen_height * 0.55);
+	std::uniform_int_distribution<> within_land_position_y(screen_height * 0.25, screen_height * 0.40);
 	std::uniform_int_distribution<> within_screen_x(0, screen_width);
+	std::uniform_int_distribution<> within_land_position_x(screen_width * 0.25, screen_width * 0.75);
 
-	if (location_zone(gen) % 3 == 0) //LEFT
-	{
-		enemy_dest_rect = { -32, within_screen_y(gen), 32 * 2, 32 * 2 };
-		goal_x = player_x - 100;
-		goal_y = player_y;
-	}
-	
-	else if (location_zone(gen) % 3 == 1) //RIGHT
-	{
-		enemy_dest_rect = { screen_width + 32, within_screen_y(gen), 32 * 2, 32 * 2 };
-		goal_x = player_x + 100;
-		goal_y = player_y;
-	}
-	else //UP
-	{
-		enemy_dest_rect = { within_screen_x(gen), -32, 32 * 2, 32 * 2 };
-		goal_x = player_x;
-		goal_y = player_y - 100;
-	}
+
+	enemy_dest_rect = { within_screen_x(gen), -32, 32 * 2, 32 * 2 };
+	goal_x = within_land_position_x(gen);
+	goal_y = within_land_position_y(gen);
 
 	// Calculate the direction vector
-	float delta_x = player_x - enemy_dest_rect.x + (enemy_dest_rect.w / 2);
-	float delta_y = player_y - enemy_dest_rect.y + (enemy_dest_rect.h/2);
+	float delta_x = goal_x - enemy_dest_rect.x + (enemy_dest_rect.w / 2);
+	float delta_y = goal_y - enemy_dest_rect.y + (enemy_dest_rect.h/2);
 	std::cout << "Delta x: " << delta_x << " Delta Y: " << delta_y << std::endl;
 
 	// Normalize the direction vector
@@ -240,11 +228,10 @@ StormCloud::StormCloud(int screen_width, int screen_height, int player_x, int pl
 
 void StormCloud::Update(Player* player)
 {
-	float threshhold = 300;
+	float threshhold = 50;
 
 	if (state == "main")
 	{
-		std::cout << "[*] Main\n";
 		Move(player);
 		if ((std::abs(enemy_dest_rect.x - goal_x) < threshhold) && (std::abs(enemy_dest_rect.y - goal_y) < threshhold))
 		{
@@ -298,14 +285,14 @@ void StormCloud::Update(Player* player)
 			state = "delete";
 		}
 
-		current_texture_key = "storm_cloud_main";
+		current_texture_key = "storm_cloud_death";
 		current_frames = death_frames;
 	}
 }
 
 void StormCloud::Move(Player* player)
 {
-	std::cout << "[*] Speed: " << movement_speed << " " << direction_x << " " << direction_y << std::endl;
+	
 
 	
 	position_x += direction_x * movement_speed;

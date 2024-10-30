@@ -40,7 +40,7 @@ class Enemy
         int base_damage;
         int base_health;
         float crit_percent = 0;
-        Uint32 fire_cooldown_ms = 2000;
+        Uint32 fire_cooldown_ms = 2000; 
         Uint32 last_fire_time = 0;
 
         //IMAGE STUFF
@@ -98,6 +98,7 @@ class StormCloud : public Enemy
         double position_x = enemy_dest_rect.x;
         double position_y = enemy_dest_rect.y;
 
+        Uint32 fire_cooldown_ms = 300;
         Uint32 time_to_wait_ms = 1500;
         Uint32 start_of_wait_state;
         int goal_x, goal_y;

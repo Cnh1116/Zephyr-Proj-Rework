@@ -1,4 +1,4 @@
-#include "Player.hpp"
+ #include "Player.hpp"
 #include <iostream>
 #include "Graphics.hpp"
 
@@ -43,6 +43,16 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
     {
         shield.coll_rect = { 0,0,0,0 };
         current_speed = base_speed;
+    }
+
+    if (state == "iframes")
+    {
+        current_texture_key = "player_hurt";
+
+        if (current_iframe_index >= i_frames.size() - 1)
+        {
+            state = "main";
+        }
     }
 
     if (state == "shield")
@@ -142,6 +152,7 @@ void Player::SetImageScale(int scale)
 
 void Player::SetPosition(int x, int y, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
+    
     // Update position with boundary checks.
     if (player_dest_rect.x + x >= 0 && player_dest_rect.x + x <= SCREEN_WIDTH - player_dest_rect.w) 
     {
@@ -262,6 +273,7 @@ void Player::UpdatePlayerState(std::string new_state)
     state = new_state;
     current_frame_index = 0;
     shield.shield_frame_index = 0;
+    current_iframe_index = 0;
 }
 
 SDL_Rect* Player::GetShieldFrame()
@@ -370,4 +382,22 @@ void Player::SetFrameIndex(int index)
 void Player::ChangeHealth(float health_modifier)
 {
     base_health += health_modifier;
+}
+
+Uint32 Player::GetIframeTime()
+{
+    return i_frame_time_ms;
+}
+Uint32 Player::GetLastIFrameStart()
+{
+    return last_i_frame_time;
+}
+
+void Player::AdvanceIFrame()
+{
+    current_iframe_index++;
+}
+void Player::SetLastIFrameTime(Uint32 last_time)
+{
+    last_i_frame_time = last_time;
 }

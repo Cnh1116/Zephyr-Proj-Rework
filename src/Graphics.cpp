@@ -87,6 +87,7 @@ void Graphics::LoadTextures()
     texture_map["player_secondary_fire_hud_texture"] = GetTexture("../../assets/sprites/player-sprites/secondary_fire_hud.png");
     texture_map["player_secondary_fire_marker_texture"] =  GetTexture("../../assets/sprites/player-sprites/secondary_fire_marker.png");
     texture_map["player_shield"] = GetTexture("../../assets/sprites/player-sprites/player_shield2.png");
+    texture_map["player_hurt"] = GetTexture("../../assets/sprites/player-sprites/zephyr-iframes.png");
 
     // Projectiles
     texture_map["primary_fire"] = GetTexture("../../assets/sprites/projectile-sprites/primary_fire.png");
@@ -108,7 +109,7 @@ void Graphics::LoadTextures()
     texture_map["purple_crystal_main"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue.png");
     texture_map["purple_crystal_death"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue_destr.png");
     texture_map["storm_cloud_main"] = GetTexture("../../assets/sprites/enemies-sprites/cloud_enemy-Sheet.png");
-    texture_map["storm_cloud_death"] = GetTexture("../../assets/sprites/enemies-sprites/cloud_enemy-Sheet.png"); //NEEDS UNIQUE
+    texture_map["storm_cloud_death"] = GetTexture("../../assets/sprites/enemies-sprites/storm-cloud-death.png"); //NEEDS UNIQUE
     
 }
 
@@ -183,10 +184,9 @@ SDL_Texture* Graphics::GetTexture(const char* png_path)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies)
+void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies, bool render_coll_boxes)
 {
     
-    bool draw_collision_boxes = true;
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Black background
     SDL_RenderClear(renderer);
 
@@ -264,7 +264,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
                         std::cout << "[!] Item failed to render.\n";
                     }
 
-            if (draw_collision_boxes)
+            if (render_coll_boxes)
             {
          
                 SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
@@ -302,7 +302,6 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
             }
             if (StormCloud* stormCloud = dynamic_cast<StormCloud*>(enemies[i])) 
             {
-                std::cout << "[*] This enemy is a StormCloud!\n";
                 SDL_Rect rect;
                 int size = 5;
                 rect.x = stormCloud->GetGoalX() - size / 2; // Center the point
@@ -310,7 +309,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
                 rect.w = size;         // Width of the rectangle
                 rect.h = size;
                 // Now it's safe to call the special function
-                if (draw_collision_boxes)
+                if (render_coll_boxes)
                 {
                     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
                     if (0 != SDL_RenderFillRect(renderer, &rect))
@@ -321,7 +320,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
                 }
             }
 
-            if (draw_collision_boxes)
+            if (render_coll_boxes)
             {
                 SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
                 SDL_RenderDrawRect(renderer, enemies.at(i)->GetCollRect());
@@ -351,7 +350,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
                     std::cout << "[!] " << game_projectiles.at(i)->GetFrame()->x << game_projectiles.at(i)->GetFrame()->y << game_projectiles.at(i)->GetFrame()->w << game_projectiles.at(i)->GetFrame()->h << std::endl;
                     std::cout << "[!] Texture Key: " << game_projectiles.at(i)->GetTextureKey() << std::endl;
                 }
-            if (draw_collision_boxes)
+            if (render_coll_boxes)
             {
                 SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
                 SDL_RenderDrawRect(renderer, game_projectiles.at(i)->GetCollisionRect());
@@ -370,10 +369,21 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
 
     // PLAYER //
                     // Main Player Render
-    if ( 0 != SDL_RenderCopy(renderer, texture_map["player_main_texture"], player->GetFrame(), player->GetDstRect())) //Second arg NULL means use whole png.
+    if (player->GetPlayerState() == "iframes")
     {
-        std::cout << "[!] Player failed to render.\n";
+        if (0 != SDL_RenderCopy(renderer, texture_map["player_hurt"], player->GetFrame(), player->GetDstRect())) //Second arg NULL means use whole png.
+        {
+            std::cout << "[!] Player iframes failed to render.\n";
+        }
     }
+    else
+    {
+        if (0 != SDL_RenderCopy(renderer, texture_map["player_main_texture"], player->GetFrame(), player->GetDstRect())) //Second arg NULL means use whole png.
+        {
+            std::cout << "[!] Player failed to render.\n";
+        }
+    }
+    
                     // Render the secondary fire hud
     if ( 0 != SDL_RenderCopy(renderer, texture_map["player_secondary_fire_hud_texture"], NULL, player->GetSecondaryFirePosition())) //Second arg NULL means use whole png.
     {
@@ -390,7 +400,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
         SDL_RenderCopy(renderer, texture_map["player_shield"], player->GetShieldFrame(), player->GetShieldDstRect());
     }
 
-    if (draw_collision_boxes)
+    if (render_coll_boxes)
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); 
         SDL_RenderDrawRect(renderer, player->GetCollRect());
@@ -470,6 +480,12 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
         std::cout << "[*] Shield Frame is done !\n";
         player->AdvanceShieldFrame();
         player->SetShieldLastFrameTime(SDL_GetTicks());
+    }
+
+    if (player->GetPlayerState() == "iframes" && IsFrameDone(player->GetIframeTime(), player->GetLastIFrameStart()))
+    {
+        player->AdvanceIFrame();
+        player->SetLastIFrameTime(SDL_GetTicks());
     }
 
     // ENEMEY INCREMENT FRAME

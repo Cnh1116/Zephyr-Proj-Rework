@@ -18,7 +18,7 @@ class Game
         Game();
         ~Game();
         void RunGame();
-        void HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectile*> &game_projectile);
+        void HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectile*> &game_projectile, bool &render_coll_boxes);
         void FPSLogic(Uint32 current_tick);
 
         // Collision Functions

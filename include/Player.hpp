@@ -69,6 +69,10 @@ class Player
         void AdvanceFrame();
         void SetFrameIndex(int index);
         //const char* GetState();
+        Uint32 GetIframeTime();
+        Uint32 GetLastIFrameStart();
+        void AdvanceIFrame();
+        void SetLastIFrameTime(Uint32 last_time);
         
         
         
@@ -102,8 +106,6 @@ class Player
         int base_damage;
         int base_health;
         float crit_percent;
-        Uint32 i_frames_ms = 300;
-        Uint32 last_iframe_time = 0;
         
         //IMAGE STUFF
         int BASE_SPRITE_SIZE = 32;
@@ -126,7 +128,11 @@ class Player
         std::string state;
         bool invincible;
         
-        
+        // I FRAMES
+        std::vector<SDL_Rect> i_frames = { {0,0,64,64}, {0,64,64,64}, {0,128,64,64}, {0,192,64,64} };
+        Uint32 i_frame_time_ms = 240;
+        Uint32 last_i_frame_time = 0;
+        int current_iframe_index = 0;
 
         struct Primary_fire
         {
