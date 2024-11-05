@@ -92,6 +92,7 @@ void Graphics::LoadTextures()
     // Projectiles
     texture_map["primary_fire"] = GetTexture("../../assets/sprites/projectile-sprites/primary_fire.png");
     texture_map["primary_fire_impact"] = GetTexture("../../assets/sprites/projectile-sprites/primary_fire_impact.png");
+    texture_map["primary_fire_crit_impact"] = GetTexture("../../assets/sprites/projectile-sprites/primary_fire_crit_impact.png");
     texture_map["secondary_fire"] = GetTexture("../../assets/sprites/projectile-sprites/secondary_fire.png");
     texture_map["secondary_fire_impact"] = GetTexture("../../assets/sprites/projectile-sprites/secondary_fire_impact.png");
     

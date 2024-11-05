@@ -126,6 +126,7 @@ void Game::RunGame()
                     if (RectRectCollision(player.GetSecondaryFireHudColl(), &item_manager->GetItemList()->at(i).item_dest_rect, false))
                     {
                         std::cout << "[*] Player shot an item!\n";
+                        player.AddItem(item_manager->GetItemList()->at(i).name);
                         // ADD PLAYER ITEMMMMMMMMM
 
                         sound_manager->PlaySound("item_collection_sound", 55);
@@ -145,8 +146,22 @@ void Game::RunGame()
                 // IN ORDER TO MAKE DIFF SIZES WORK, PROJECTILES SHOULD GET ENTIRE SDL REC OT PLAYER / ENEMY. Make the 
                 // dest rect of the projectile: X: (player.x + player.w / 2) - (projectile.w / 2)
                 // Make collision rect of the projectile = dest rec for now
-                game_projectiles.emplace_back(new PrimaryFire(*player.GetDstRect(), 5.0, player.GetBaseDamage(), 2));
-                sound_manager->PlaySound("player_primary_fire", 55);
+
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<> distrib(0, 100);
+                if (distrib(gen) <= player.GetCrit())
+                {
+                    sound_manager->PlaySound("player_crit", 45);
+                    sound_manager->PlaySound("player_primary_fire", 55);
+                    game_projectiles.emplace_back(new PrimaryFire(*player.GetDstRect(), 5.0, player.GetBaseDamage(), 2, true));
+                }
+                else
+                {
+                    sound_manager->PlaySound("player_primary_fire", 55);
+                    game_projectiles.emplace_back(new PrimaryFire(*player.GetDstRect(), 5.0, player.GetBaseDamage(), 2, false));
+                }
+                
                 std::cout << "[*] UP Pressed. \n";
             }
         }
@@ -162,6 +177,8 @@ void Game::RunGame()
         graphics_manager->BackgroundUpdate(loop);
 
         player.Update(dx * player.GetSpeed(), dy * player.GetSpeed(), WINDOW_WIDTH, WINDOW_HEIGHT, loop);
+        if (player.GetHealth() <= 0)
+            game_over = true;
 
         for (int i = 0; i < game_projectiles.size();)
         {
@@ -187,7 +204,7 @@ void Game::RunGame()
                     game_projectiles.emplace_back(new IceShard(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage));
                 
                 if (dynamic_cast<StormCloud*>(enemies.at(i)))
-                    game_projectiles.emplace_back(new LightningBall(enemies.at(i)->enemy_dest_rect, 6.0, 3, enemies.at(i)->base_damage, (player.GetCollRect()->x + (player.GetCollRect()->w/2)), (player.GetCollRect()->y + (player.GetCollRect()->h / 2))));
+                    game_projectiles.emplace_back(new LightningBall(enemies.at(i)->enemy_dest_rect, 7.5, 3, enemies.at(i)->base_damage, (player.GetCollRect()->x + (player.GetCollRect()->w/2)), (player.GetCollRect()->y + (player.GetCollRect()->h / 2))));
             }
 
             if (enemies.at(i)->GetState() == "delete")
@@ -296,13 +313,10 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     game_projectiles.at(i)->UpdateState("delete");  
             }
         }
-        // ENEMY PROJEC HURTING PLAYER
 
-
+        // ENEMY PROJECTILES HURTING PLAYER
         if (!game_projectiles.at(i)->player_projectile)
         {
-            
-
             if (game_projectiles.at(i)->GetState() == "main")
             {
                 if ( (player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
@@ -332,29 +346,64 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
         }
 
+        // ENEMY COLLISIONS
         for (int k = 0; k < enemies.size(); k++)
         {
-            // PLAYER PROJ HURTING ENEMIES
+            // PLAYER PROJECTILES HURTING ENEMIES
             if (game_projectiles.at(i)->player_projectile && RectRectCollision(game_projectiles.at(i)->GetDstRect(), enemies.at(k)->GetCollRect(), false))
             {
 
-                if (game_projectiles.at(i)->GetState() == "main")
+                if (auto* primary_projectile = dynamic_cast<PrimaryFire*>(game_projectiles.at(i)))
                 {
-                    sound_manager->PlaySound("player_hit", 60);
-                    game_projectiles.at(i)->UpdateState("impact");
-                    enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage);
-
-                    if (enemies.at(k)->GetHealth() <= 0)
+                    if (primary_projectile->critical)
                     {
-                        enemies.at(k)->UpdateState("death");
+                        if (game_projectiles.at(i)->GetState() == "main")
+                        {
+                            sound_manager->PlaySound("jade_drum", 90);
+                            game_projectiles.at(i)->UpdateState("impact");
+
+
+                            enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage);
+
+                            if (enemies.at(k)->GetHealth() <= 0)
+                            {
+                                enemies.at(k)->UpdateState("death");
+                            }
+                        }
                     }
+
+                    else
+                    {
+                        if (game_projectiles.at(i)->GetState() == "main")
+                        {
+                            sound_manager->PlaySound("player_hit", 60);
+                            game_projectiles.at(i)->UpdateState("impact");
+
+
+                            enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage);
+
+                            if (enemies.at(k)->GetHealth() <= 0)
+                            {
+                                enemies.at(k)->UpdateState("death");
+                            }
+                        }
+                    }
+                    
+                    
                 }
                 
-                
-                
+            }
+
+            if (RectRectCollision(enemies.at(k)->GetCollRect(), player->GetCollRect(), false) && (player->GetPlayerState() != "iframes"))
+            {
+                sound_manager->PlaySound("player_hit", 80);
+                player->ChangeHealth(-20);
+                player->UpdatePlayerState("iframes");
             }
         }
-    }
+    } // GAME PROJECTILE LOOP END
+
+
 }
 
 void Game::UpdateEnemies(std::vector<Enemy*> &enemies)

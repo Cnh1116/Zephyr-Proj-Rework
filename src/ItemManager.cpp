@@ -34,7 +34,7 @@ void ItemManager::UpdateItemList() // This is where the logic of when to spawn i
         SDL_Rect tmp_item_cloud_dest_rect = {tmp_item_dest_rect.x - (tmp_item_dest_rect.w / 2), tmp_item_dest_rect.y - (tmp_item_dest_rect.h / 2), tmp_item_dest_rect.w * 2, tmp_item_dest_rect.h * 2};
         SDL_Rect tmp_item_cloud_coll_rect = { tmp_item_cloud_dest_rect.x + (tmp_item_cloud_dest_rect.w / 2) - (64 / 2), tmp_item_cloud_dest_rect.y + (tmp_item_cloud_dest_rect.h / 2) - (64 / 2) , 64, 64 };
 
-        item_list.push_back({tmp_item_dest_rect, tmp_item_cloud_dest_rect, tmp_item_cloud_coll_rect });
+        item_list.push_back({tmp_item_dest_rect, tmp_item_cloud_dest_rect, tmp_item_cloud_coll_rect, "glass_toucan"});
         time_last_item_spawned = current_time;
     }
 

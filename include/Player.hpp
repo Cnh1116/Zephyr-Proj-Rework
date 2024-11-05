@@ -25,6 +25,8 @@ class Player
         //UPDATE
         void Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop);
 
+        void AddItem(std::string item_name);
+
        
         
         // Setters and Getters
@@ -105,7 +107,7 @@ class Player
         float current_speed;
         int base_damage;
         int base_health;
-        float crit_percent;
+        float crit_percent = 0;
         
         //IMAGE STUFF
         int BASE_SPRITE_SIZE = 32;
@@ -185,10 +187,12 @@ class Player
         };
         Shield shield;
 
-        //ITEMS
-        //glass_toucans;
-        //wooden_owls
-        //
+        struct Player_Items
+        {
+            int num_glass_toucans = 0;
+            int num_leeching_shield = 0;
+        };
+        Player_Items player_items;
 };
 
 #endif

@@ -110,12 +110,25 @@ const char* Projectile::GetSoundEffectImpact()
 
 // PRIMARY FIRE
 
-PrimaryFire::PrimaryFire(const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, int PIXEL_SCALE)
+PrimaryFire::PrimaryFire(const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, int PIXEL_SCALE, bool critical_flag)
     : Projectile({(dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE}
         , projectile_speed, projectile_damage, true, "primary_fire", { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32} }, "primary_fire_impact", { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32} }, 120, true, true)
 {
     current_texture_key = "primary_fire";
     current_frames = main_frames;
+    critical = critical_flag;
+
+    if (critical)
+    {
+        projectile_damage *= 2;
+        impact_texture_key = "primary_fire_crit_impact";
+        impact_frames = { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32}, {160,0,32,32} };
+    }
+    else
+    {
+        impact_texture_key = "primary_fire_impact";
+        impact_frames = { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32} };
+    }
 }
 
 void PrimaryFire::MoveProjectile() 
@@ -140,7 +153,7 @@ void PrimaryFire::Update()
         collision_rect = { 0,0,0,0 };
         
         current_frames = impact_frames;
-        current_texture_key = "primary_fire_impact";
+        current_texture_key = impact_texture_key;
         if (current_frame_index >= impact_frames.size() - 1)
         {
             state = "delete";

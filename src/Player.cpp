@@ -79,6 +79,9 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
     }
     // Set animatino state.
     //if  idle_animation_index == idle_animation vector.size(), idle_animation_index == 0; else idle_animation_index ++
+
+    // ITEM STATS UPDATE
+    crit_percent = player_items.num_glass_toucans * 2 + 1;
 }
 
 void Player::SetSecondaryFireMarkerActive(bool flag)
@@ -173,6 +176,12 @@ void Player::SetPosition(int x, int y, int SCREEN_WIDTH, int SCREEN_HEIGHT)
     {
         secondary_fire.marker_dest_rect.y += 1;
     }
+}
+
+void Player::AddItem(std::string item_name)
+{
+    if (item_name == "glass_toucan")
+        player_items.num_glass_toucans++;
 }
 
 // Getters and Setters:

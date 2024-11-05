@@ -79,9 +79,10 @@ class Projectile
 class PrimaryFire : public Projectile 
 {
     public:
-        PrimaryFire(const SDL_Rect& rect, float projectile_speed, float projectile_damage, int PIXEL_SCALE);
+        PrimaryFire(const SDL_Rect& rect, float projectile_speed, float projectile_damage, int PIXEL_SCALE, bool critical);
         void MoveProjectile() override;
         void Update() override;
+        bool critical;
 };
 
 class SecondaryFire : public Projectile 

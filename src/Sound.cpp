@@ -30,6 +30,8 @@ SoundManager::SoundManager()
     LoadSoundEffect("player_shield_hit", "../../assets/sounds/parry-sfx.wav");
     LoadSoundEffect("shield_activate", "../../assets/sounds/ending-wind-swoosh-1482.wav");
     LoadSoundEffect("dash_sound", "../../assets/sounds/whoosh-wind-sweep-2632.wav");
+    LoadSoundEffect("player_crit", "../../assets/sounds/hawk_screech_crit.wav");
+    
 
     // Projectile Sounds
     LoadSoundEffect("ice_shard_impact", "../../assets/sounds/ice_breaking.wav");
@@ -37,6 +39,7 @@ SoundManager::SoundManager()
 
     // Item S0unds
     LoadSoundEffect("item_collection_sound", "../../assets/sounds/unlock-new-item-game-notification-254.wav");
+    LoadSoundEffect("jade_drum", "../../assets/sounds/jade-drum.wav");
     
 
     music_map["first_level_song"] = "../../assets/soundsmusic/ChrisChristodoulou-TheyMightAsWellBeDeadROR2_SurvivorsoftheVoid(2022).mp3";

@@ -16,6 +16,7 @@ class ItemManager
             SDL_Rect item_dest_rect;
             SDL_Rect item_cloud_dest_rect;
             SDL_Rect item_cloud_coll_rect;
+            std::string name;
             bool destroyed;
             // rarity?
         };
