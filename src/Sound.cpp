@@ -31,7 +31,7 @@ SoundManager::SoundManager()
     LoadSoundEffect("shield_activate", "../../assets/sounds/ending-wind-swoosh-1482.wav");
     LoadSoundEffect("dash_sound", "../../assets/sounds/whoosh-wind-sweep-2632.wav");
     LoadSoundEffect("player_crit", "../../assets/sounds/hawk_screech_crit.wav");
-    
+    LoadSoundEffect("player_heal", "../../assets/sounds/healing.wav");    
 
     // Projectile Sounds
     LoadSoundEffect("ice_shard_impact", "../../assets/sounds/ice_breaking.wav");

@@ -39,6 +39,7 @@ class Player
         Uint32 GetLastShieldFrameStart();
         Uint32 GetShieldLastTimeUsed();
         Uint32 GetShieldCooldown();
+        void SetShieldLastTimeUsed(Uint32 last_time_used);
         void SetShieldLastFrameTime(Uint32 current_time);
         bool IsShieldReady();
         void AdvanceShieldFrame();
@@ -53,8 +54,33 @@ class Player
         float GetDashSpeed();
         bool IsDashReady();
         bool IsDashDone();
+        int GetNumItem(std::string item_name);
         
-        
+        //Effects Functions
+        bool IsHealingEffectsActive();
+        void SetHealingEffectsActive(bool flag);
+        SDL_Rect* GetHealEffectsFrame();
+        Uint32 GetHealEffectsFrameTime();
+        Uint32 GetHealEffectsLastFrameTime();
+        void SetHealEffectsLastFrameTime(Uint32 last_time);
+        int GetHealEffectsFrameIndex();
+        int NumHealEffectsFrames();
+        void AdvanceHealEffectFrame();
+        void SetHealEffectsFrame(int frame_index);
+
+
+        bool IsShieldEffectsActive();
+        void SetShieldReadyEffectsActive(bool flag);
+        SDL_Rect* GetShieldEffectsFrame();
+        Uint32 GetShieldReadyEffectsFrameTime();
+        Uint32 GetShieldReadyEffectsLastFrameTime();
+        void SetShieldReadyEffectsLastFrameTime(Uint32 last_time);
+        int GetShieldReadyEffectsFrameIndex();
+        int NumShieldReadyEffectsFrames();
+        void AdvanceShieldReadyEffectFrame();
+        void SetShieldReadyEffectsFrame(int frame_index);
+
+
         void SetPosition(int x, int y, int SCREEN_WIDTH, int SCREEN_HEIGHT);
         void SetImageScale(int image_scale);
 
@@ -181,7 +207,9 @@ class Player
             Uint32 shield_frame_time_ms = 30;
             
             Uint32 last_time_used = 0;
-            Uint32 shield_cooldown_ms = 1000;
+            Uint32 shield_cooldown_ms = 5000;
+
+            bool shield_ready = true; // Bool var is used for trakcing when to play the ready animation after a state transistion. IsShieldReady is the function game.cpp uses to check
 
             int shield_frame_index = 0;
         };
@@ -190,9 +218,22 @@ class Player
         struct Player_Items
         {
             int num_glass_toucans = 0;
-            int num_leeching_shield = 0;
+            int num_garnet_shields = 0;
         };
         Player_Items player_items;
+
+        // EFFECTS
+        bool show_healing_effects = false;
+        int heal_effect_frame_index = 0;
+        std::vector<SDL_Rect> heal_effect_frames = { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32} };
+        Uint32 last_heal_effect_frame_time = 0;
+        Uint32 heal_effect_frame_time = 100;
+
+        bool show_shield_ready_effects = false;
+        int shield_ready_effect_frame_index = 0;
+        std::vector<SDL_Rect> shield_ready_effect_frames = { {0,0,32,32}, {0,0,32,32}, {0,0,32,32}, {0,0,32,32} };
+        Uint32 shield_ready_last_frame_time = 0;
+        Uint32 shield_ready_frame_time = 100;
 };
 
 #endif

@@ -112,8 +112,15 @@ class LightningBall : public Projectile
         double direction_x, direction_y;
         double position_x = dest_rect.x;
         double position_y = dest_rect.y;
+};
 
-
+class LightningStrike : public Projectile
+{
+public:
+    LightningStrike(const SDL_Rect& dest_rect, int PIXEL_SCALE, float damage, bool right_flag);
+    void MoveProjectile() override;
+    void Update() override;
+    bool right_flag;
 };
 
 #endif

@@ -303,3 +303,42 @@ void LightningBall::Update()
         }
     }
 }
+
+// Lightning Strike ===============================================
+
+LightningStrike::LightningStrike(const SDL_Rect& dest_rect, int PIXEL_SCALE, float damage, bool right_flag_arg)
+    : Projectile(dest_rect, 0, damage, false,
+        "lightning_strike", { {0,0,111,48}, {0,48,111,48}, {0,96,111,48}, {0,144,111,48}, {0,192,111,48}, {0,240,111,48} },
+        "lightning_strike_impact", { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32} }, 
+        115, false, false)
+{
+    sound_effect_impact = "lightning_ball_impact";
+    right_flag = right_flag_arg;
+    if (right_flag)
+        current_texture_key = "lightning_strike_right";
+    else
+        current_texture_key = "lightning_strike_left";
+
+    current_frame_index = 0;
+    last_frame_time = 0;
+}
+void LightningStrike::MoveProjectile()
+{
+    return;
+}
+
+void LightningStrike::Update()
+{
+    if (current_frame_index == current_frames.size() - 1)
+        state = "delete";
+
+    if (state == "main")
+    {
+        collision_rect = dest_rect;
+    }
+
+    if (state == "impact")
+        collision_rect = { 0,0,0,0 };
+
+
+}

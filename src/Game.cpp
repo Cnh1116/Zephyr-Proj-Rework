@@ -6,8 +6,8 @@
 
 
 int PIXEL_SCALE = 4;
-int WINDOW_WIDTH = 1200;
-int WINDOW_HEIGHT = 1080;
+int WINDOW_WIDTH = 1300;
+int WINDOW_HEIGHT = 700;
 float MAX_FPS = 60.0;
 
 Game::Game() // Game constructor acts as my INIT function for the game.
@@ -52,17 +52,41 @@ void Game::RunGame()
     
     while(false == game_over)
     {
-        std::cout << render_coll_boxes << std::endl;
+        
         if (enemies.size() == 0)
         {
             std::random_device rd;
             std::mt19937 gen(rd());
             std::uniform_int_distribution<> distrib(0, 1000);
             std::cout << "[*] Updating Enemies since size is 0\n";
-            if (distrib(gen) % 2 == 0)
-                enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
-            else
-                enemies.emplace_back(new StormCloud(graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight(), player.GetDstRect()->x + (player.GetDstRect()->w/2), player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
+            int enemy_index = distrib(gen) % 3;
+
+            
+ 
+            switch (enemy_index)
+            {
+                case 0:
+                {
+                    enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
+                    break;
+                }
+
+                case 1:
+                {
+                    enemies.emplace_back(new StormCloud(graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight(), player.GetDstRect()->x + (player.GetDstRect()->w / 2), player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
+                    break;
+                }
+                case 2:
+                {
+                    enemies.emplace_back(new StormGenie({ 400,70,64 * 3,64 * 3 }));
+                    break;
+                }
+                default:
+                {
+                    std::cout << "[!] ERROR Default hit for enemy switch statement\n";
+                }
+            }
+            
         }
         
         Uint32 current_tick = SDL_GetTicks();
@@ -127,7 +151,6 @@ void Game::RunGame()
                     {
                         std::cout << "[*] Player shot an item!\n";
                         player.AddItem(item_manager->GetItemList()->at(i).name);
-                        // ADD PLAYER ITEMMMMMMMMM
 
                         sound_manager->PlaySound("item_collection_sound", 55);
                     }
@@ -205,6 +228,14 @@ void Game::RunGame()
                 
                 if (dynamic_cast<StormCloud*>(enemies.at(i)))
                     game_projectiles.emplace_back(new LightningBall(enemies.at(i)->enemy_dest_rect, 7.5, 3, enemies.at(i)->base_damage, (player.GetCollRect()->x + (player.GetCollRect()->w/2)), (player.GetCollRect()->y + (player.GetCollRect()->h / 2))));
+                
+                if (dynamic_cast<StormGenie*>(enemies.at(i)))
+                {
+                    const SDL_Rect left_bolt_dst = { 0, enemies.at(i)->enemy_dest_rect.y, enemies.at(i)->enemy_dest_rect.x, 48};
+                    const SDL_Rect right_bolt_dst = { enemies.at(i)->enemy_dest_rect.x + enemies.at(i)->enemy_dest_rect.w, enemies.at(i)->enemy_dest_rect.y, (WINDOW_WIDTH - (enemies.at(i)->enemy_dest_rect.x + enemies.at(i)->enemy_dest_rect.w)), 48 };
+                    game_projectiles.emplace_back(new LightningStrike(right_bolt_dst, 3, enemies.at(i)->base_damage, true));
+                    game_projectiles.emplace_back(new LightningStrike(left_bolt_dst, 3, enemies.at(i)->base_damage, false));
+                }
             }
 
             if (enemies.at(i)->GetState() == "delete")
@@ -263,6 +294,7 @@ void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectil
             {
                 sound_manager->PlaySound("shield_activate", 55);
                 player->UpdatePlayerState("shield");
+                player->SetShieldLastTimeUsed(SDL_GetTicks());
             }
         }
 
@@ -335,6 +367,13 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     sound_manager->PlaySound("player_shield_hit", 90);
                     game_projectiles.at(i)->UpdateState("impact");
                     sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 25);
+
+                    if (player->GetNumItem("garnet_shield") > 0)
+                    {
+                        sound_manager->PlaySound("player_heal", 80);
+                        player->ChangeHealth(player->GetNumItem("garnet_shield") * 5); // Heal 5HP for every stack of garnet shield
+                        player->SetHealingEffectsActive(true);
+                    }
                 }
 
                 if (player->GetPlayerState() == "iframes" && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))

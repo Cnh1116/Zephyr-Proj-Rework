@@ -35,9 +35,17 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
 {
     SetPosition(x_pos, y_pos, SCREEN_WIDTH, SCREEN_HEIGHT);
 
+
+
     if (!secondary_fire.marker_active)
         secondary_fire.marker_col_rect = { 0,0,0,0 };
     
+    
+    if (state != "shield" && shield.shield_ready == false && IsShieldReady())
+    {
+        show_shield_ready_effects = true;
+        shield.shield_ready = true;
+    }
     
     if (state == "main")
     {
@@ -57,6 +65,7 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
 
     if (state == "shield")
     {
+        shield.shield_ready = false;
         current_speed = base_speed;
         int shield_width = 125;
         int shield_height = 125;
@@ -137,7 +146,6 @@ bool Player::IsShieldReady()
     if ((current_time - shield.last_time_used) >= shield.shield_cooldown_ms)
     {
         std::cout << "[*] SHIELD IS SHIELDING !\n";
-        shield.last_time_used = current_time;
         return(true);
     }
 
@@ -182,6 +190,8 @@ void Player::AddItem(std::string item_name)
 {
     if (item_name == "glass_toucan")
         player_items.num_glass_toucans++;
+    if (item_name == "garnet_shield")
+        player_items.num_garnet_shields++;
 }
 
 // Getters and Setters:
@@ -277,6 +287,11 @@ void Player::SetShieldLastFrameTime(Uint32 current_time)
     shield.last_shield_frame_time = current_time;
 }
 
+void Player::SetShieldLastTimeUsed(Uint32 last_time_used)
+{
+    shield.last_time_used = last_time_used;
+}
+
 void Player::UpdatePlayerState(std::string new_state)
 {
     state = new_state;
@@ -363,6 +378,14 @@ bool Player::IsDashDone()
     }
 }
 
+int Player::GetNumItem(std::string item_name)
+{
+    if (item_name == "glass_toucan")
+        return player_items.num_glass_toucans;
+    if (item_name == "garnet_shield")
+        return player_items.num_garnet_shields;
+}
+
 int Player::NumOfFrames()
 {
     return current_frames.size();
@@ -409,4 +432,87 @@ void Player::AdvanceIFrame()
 void Player::SetLastIFrameTime(Uint32 last_time)
 {
     last_i_frame_time = last_time;
+}
+
+bool Player::IsHealingEffectsActive()
+{
+    return show_healing_effects;
+}
+void Player::SetHealingEffectsActive(bool flag)
+{
+    show_healing_effects = flag;
+}
+bool Player::IsShieldEffectsActive()
+{
+    return show_shield_ready_effects;
+}
+void Player::SetShieldReadyEffectsActive(bool flag)
+{
+    show_shield_ready_effects = flag;
+}
+
+SDL_Rect* Player::GetHealEffectsFrame()
+{
+    return &heal_effect_frames.at(heal_effect_frame_index);
+}
+SDL_Rect* Player::GetShieldEffectsFrame()
+{
+    return &shield_ready_effect_frames.at(shield_ready_effect_frame_index);
+}
+
+Uint32 Player::GetShieldReadyEffectsFrameTime()
+{
+    return shield_ready_frame_time;
+}
+Uint32 Player::GetShieldReadyEffectsLastFrameTime()
+{
+    return shield_ready_last_frame_time;
+}
+Uint32 Player::GetHealEffectsFrameTime()
+{
+    return heal_effect_frame_time;
+}
+Uint32 Player::GetHealEffectsLastFrameTime()
+{
+    return last_heal_effect_frame_time;
+}
+void Player::SetHealEffectsLastFrameTime(Uint32 last_time)
+{
+    last_heal_effect_frame_time = last_time;
+}
+int Player::GetHealEffectsFrameIndex()
+{
+    return heal_effect_frame_index;
+}
+int Player::NumHealEffectsFrames()
+{
+    return heal_effect_frames.size();
+}
+void Player::AdvanceHealEffectFrame()
+{
+    heal_effect_frame_index++;
+}
+void Player::SetHealEffectsFrame(int frame_index)
+{
+    heal_effect_frame_index = frame_index;
+}
+void Player::SetShieldReadyEffectsLastFrameTime(Uint32 last_time)
+{
+    shield_ready_last_frame_time = last_time;
+}
+int Player::GetShieldReadyEffectsFrameIndex()
+{
+    return shield_ready_effect_frame_index;
+}
+int Player::NumShieldReadyEffectsFrames()
+{
+    return shield_ready_effect_frames.size();
+}
+void Player::AdvanceShieldReadyEffectFrame()
+{
+    shield_ready_effect_frame_index++;
+}
+void Player::SetShieldReadyEffectsFrame(int frame_index)
+{
+    shield_ready_effect_frame_index = frame_index;
 }

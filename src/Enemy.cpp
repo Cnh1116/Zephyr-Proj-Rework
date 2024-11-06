@@ -6,11 +6,13 @@
 #include "Enemy.hpp"
 #include "Player.hpp"
 
-Enemy::Enemy(const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, std::vector<SDL_Rect> main_frames_arg, std::vector<SDL_Rect> death_frames_arg,  float move_speed, int health_arg, float crit, float start_damage)
+Enemy::Enemy(const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, std::vector<SDL_Rect> spawn_frames_arg, std::vector<SDL_Rect> main_frames_arg, std::vector<SDL_Rect> attack_frames_arg, std::vector<SDL_Rect> death_frames_arg,  float move_speed, int health_arg, float crit, float start_damage)
 {
 	enemy_dest_rect = dest_rect;
 	enemy_coll_rect = coll_rect;
+	spawn_frames = spawn_frames_arg;
 	main_frames = main_frames_arg;
+	attack_frames = attack_frames_arg;
 	death_frames = death_frames_arg;
 	last_frame_time = 0;
 	
@@ -103,8 +105,12 @@ void Enemy::ChangeHealth(int health_diff)
 
 // ICE CRYSTAL ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 IceCrystal::IceCrystal(const SDL_Rect& dest_rect)
-	: Enemy(dest_rect, dest_rect, { {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64}},
-		{{ 0,0,64,64 }, { 64,0,64,64 }, { 128,0,64,64 }, { 192,0,64,64 }, { 256,0,64,64 }, { 320,0,64,64 }, { 384,0,64,64 }, { 448,0,64,64 }, { 512,0,64,64 }, { 576,0,64,64 }, { 640,0,64,64 }, { 704,0,64,64 }}, 1.0, 100, 0, 35)
+	: Enemy(dest_rect, dest_rect, 
+		{ {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64} }, // Spawn frame
+		{ {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64}}, // Main frames
+		{ {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64} }, // Attack Frames
+		{{ 0,0,64,64 }, { 64,0,64,64 }, { 128,0,64,64 }, { 192,0,64,64 }, { 256,0,64,64 }, { 320,0,64,64 }, { 384,0,64,64 }, { 448,0,64,64 }, { 512,0,64,64 }, { 576,0,64,64 }, { 640,0,64,64 }, { 704,0,64,64 }}, // Death frames 
+		1.0, 100, 0, 35)
 {
 	fire_cooldown_ms = 300;
 }
@@ -181,8 +187,12 @@ bool IceCrystal::IsReadyToAttack()
 
 // STORM CLOUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StormCloud::StormCloud(int screen_width, int screen_height, int player_x, int player_y)
-	: Enemy({-32,-32,32,32}, { -32,-32,32,32 }, { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32}, {160,0,32,32}, {192,0,32,32}, {224,0,32,32}, {256,0,32,32}, {288,0,32,32}, {320,0,32,32}, {352,0,32,32}, {384,0,32,32}, {416,0,32,32}, {448,0,32,32} },
-		{ {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32}, {160,0,32,32}, {192,0,32,32}, {224,0,32,32}, {256,0,32,32}, {288,0,32,32}, {320,0,32,32}, {352,0,32,32}, {384,0,32,32}, {416,0,32,32}, {448,0,32,32} }, 4.7, 30, 0, 35)
+	: Enemy({ -32,-32,48 * 4 ,32 * 4 }, { -32,-32,48 * 4,32 * 4 }, 
+		{ {0,0,48,32} }, // Spawn Frames
+		{ {0,0,48,32} }, // Main Frames
+		{ {0, 0, 48, 32}, {48, 0, 48, 32}, {96, 0, 48, 32}, {144, 0, 48, 32 }, {192, 0, 48, 32 }, {240, 0, 48, 32}, {288, 0, 48, 32} }, // Attack Frames
+		{ {{0, 0, 48, 32}, {48, 0, 48, 32}, {96, 0, 48, 32}, {144, 0, 48, 32 }, {192, 0, 48, 32 }, {240, 0, 48, 32}, {288, 0, 48, 32}} }, // Death Frames
+		4.7, 30, 0, 35)
 {
 	
 
@@ -197,7 +207,7 @@ StormCloud::StormCloud(int screen_width, int screen_height, int player_x, int pl
 	std::uniform_int_distribution<> within_land_position_x(screen_width * 0.25, screen_width * 0.75);
 
 
-	enemy_dest_rect = { within_screen_x(gen), -32, 32 * 2, 32 * 2 };
+	enemy_dest_rect = { within_screen_x(gen), -32, 48 * 3, 32 * 3 };
 	goal_x = within_land_position_x(gen);
 	goal_y = within_land_position_y(gen);
 
@@ -228,7 +238,7 @@ StormCloud::StormCloud(int screen_width, int screen_height, int player_x, int pl
 
 void StormCloud::Update(Player* player)
 {
-	float threshhold = 50;
+	float threshhold = 85;
 
 	if (state == "main")
 	{
@@ -240,7 +250,7 @@ void StormCloud::Update(Player* player)
 		}
 
 
-		current_texture_key = "storm_cloud_main";
+		current_texture_key = "storm_cloud_attack"; //Still image of the first frame for the main image
 		current_frames = main_frames;
 	}
 
@@ -251,6 +261,8 @@ void StormCloud::Update(Player* player)
 			if (first_time_waiting)
 			{
 				state = "shoot";
+
+				
 				first_time_waiting = false;
 			}
 			else
@@ -260,9 +272,14 @@ void StormCloud::Update(Player* player)
 
 	if (state == "shoot")
 	{
+		if (!shot_fired)
+			current_frames = attack_frames;
+
 		std::cout << "[*] Storm cloud shooting\n";
 		if (shot_fired)
 		{
+			current_frame_index = 0;
+			current_frames = main_frames;
 			direction_x *= -1;
 			direction_y *= -1;
 			start_of_wait_state = SDL_GetTicks();
@@ -272,9 +289,9 @@ void StormCloud::Update(Player* player)
 
 	if (state == "retreat")
 	{
+		current_frame_index = 0;
+		current_frames = main_frames;
 		Move(player);
-		
-		
 	}
 
 	if (state == "death")
@@ -308,7 +325,7 @@ void StormCloud::Move(Player* player)
 
 bool StormCloud::IsReadyToAttack()
 {
-	if (state == "shoot" && !shot_fired)
+	if (state == "shoot" && !shot_fired && current_frame_index == 3)
 	{
 		shot_fired = true;
 		return true;
@@ -325,4 +342,112 @@ int StormCloud::GetGoalX()
 int StormCloud::GetGoalY()
 {
 	return goal_y;
+}
+
+// STORM GENIE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+StormGenie::StormGenie(const SDL_Rect& dest_rect)
+	: Enemy(dest_rect, dest_rect,
+		{ {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64}, {768,0,64,64}, {832,0,64,64}, {896,0,64,64}, {960,0,64,64} }, // Spawn frame
+		{ {1024,0,64,64}, {1088,0,64,64}, {1152,0,64,64}, {1216,0,64,64} }, // Main frames
+		{ {1280,0,64,64}, {1344,0,64,64}, {1408,0,64,64}, {1472,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1600,0,64,64} }, // Attack Frames
+		{ {0, 0, 48, 32}, {48, 0, 48, 32}, {96, 0, 48, 32}, {144, 0, 48, 32 }, {192, 0, 48, 32 }, {240, 0, 48, 32}, {288, 0, 48, 32} }, // Death frames 
+		5, 100, 0, 10)
+{
+	fire_cooldown_ms = 4000;
+	frame_time_ms = 120;
+	state = "spawn";
+	current_texture_key = "storm_genie";
+	current_frame_index = 0;
+}
+
+void StormGenie::Update(Player* player)
+{
+	if (state == "spawn")
+	{
+		current_frames = spawn_frames;
+		if (current_frame_index == spawn_frames.size() - 1)
+		{
+			state = "main";
+			current_frame_index = 0;
+		}
+	}
+
+	if (state == "main")
+	{
+
+		if (enemy_dest_rect.y == 0 || enemy_dest_rect.y + enemy_dest_rect.y == 2000) //Screen width
+		{
+			movement_speed *= -1;
+		}
+		current_frames = main_frames;
+		Move(player);
+		
+		Uint32 current_time = SDL_GetTicks();
+		if ((current_time - last_fire_time) >= fire_cooldown_ms)
+		{
+			last_fire_time = current_time;
+			state = "attacking";
+		}
+
+	}
+
+	if (state == "attacking")
+	{
+		current_frames = attack_frames;
+		if (current_frame_index == attack_frames.size() - 1)
+		{
+			current_frame_index = 0;
+			state = "main";
+			// MAKE GENIE GO UP for some Time, then go back towards the player, like the Mario3 angry sun
+		}
+	}
+
+	if (state == "death")
+	{
+		enemy_coll_rect = { 0,0,0,0 };
+		current_texture_key = "storm_cloud_death";
+		if (current_frame_index >= death_frames.size() - 1)
+		{
+			state = "delete";
+		}
+
+		
+		current_frames = death_frames;
+
+
+	}
+
+}
+
+void StormGenie::Move(Player* player)
+{
+
+	int vertical_difference = enemy_dest_rect.y - player->GetDstRect()->y;
+	if (abs(vertical_difference) > 30)
+	{
+		if (vertical_difference > 0)
+		{
+			enemy_dest_rect.y += movement_speed;
+		}
+
+		else
+		{
+			enemy_dest_rect.y -= movement_speed;
+		}
+	}
+
+	enemy_coll_rect.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (enemy_coll_rect.w / 2);
+	enemy_coll_rect.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (enemy_coll_rect.h / 2);
+	enemy_coll_rect.w = enemy_dest_rect.w / 2;
+	enemy_coll_rect.h = enemy_dest_rect.h / 2;
+}
+
+bool StormGenie::IsReadyToAttack()
+{
+
+	if (state == "attacking" && current_frame_index == 4)
+		return true;
+	else
+		return false;
+
 }

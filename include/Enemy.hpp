@@ -12,7 +12,12 @@ class Enemy
 {
 
     public:
-        Enemy(const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, std::vector<SDL_Rect> main_frames, std::vector<SDL_Rect> death_frames, float move_speed, int health_arg, float crit, float start_damage);
+        Enemy(const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, 
+            std::vector<SDL_Rect> spawn_frames,
+            std::vector<SDL_Rect> main_frames, 
+            std::vector<SDL_Rect> attack_frames, 
+            std::vector<SDL_Rect> death_frames, 
+            float move_speed, int health_arg, float crit, float start_damage);
 
         // Setters and Getters
         SDL_Rect* GetCollRect();
@@ -50,8 +55,10 @@ class Enemy
         std::string main_texture_key;
         std::string death_texture_key;
 
+        std::vector<SDL_Rect> spawn_frames;
         std::vector<SDL_Rect> main_frames;
         std::vector<SDL_Rect> death_frames;
+        std::vector<SDL_Rect> attack_frames;
         std::vector<SDL_Rect> current_frames;
 
         int current_frame_index = 0;
@@ -106,5 +113,12 @@ class StormCloud : public Enemy
         bool first_time_waiting = true;
 };
 
-
+class StormGenie: public Enemy
+{
+public:
+    StormGenie(const SDL_Rect& rect);
+    void Update(Player* player) override;
+    void Move(Player* player) override;
+    bool IsReadyToAttack() override;
+};
 #endif

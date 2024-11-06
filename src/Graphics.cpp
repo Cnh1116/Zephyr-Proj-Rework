@@ -88,6 +88,7 @@ void Graphics::LoadTextures()
     texture_map["player_secondary_fire_marker_texture"] =  GetTexture("../../assets/sprites/player-sprites/secondary_fire_marker.png");
     texture_map["player_shield"] = GetTexture("../../assets/sprites/player-sprites/player_shield2.png");
     texture_map["player_hurt"] = GetTexture("../../assets/sprites/player-sprites/zephyr-iframes.png");
+    texture_map["player_heal_effects"] = GetTexture("../../assets/sprites/player-sprites/heal.png");
 
     // Projectiles
     texture_map["primary_fire"] = GetTexture("../../assets/sprites/projectile-sprites/primary_fire.png");
@@ -100,17 +101,21 @@ void Graphics::LoadTextures()
     texture_map["ice_shard"] = GetTexture("../../assets/sprites/projectile-sprites/Ice_shard.png");
     texture_map["ice_shard_impact"] = GetTexture("../../assets/sprites/projectile-sprites/Ice_Shard_Hit.png");
     texture_map["lightning_ball"] = GetTexture("../../assets/sprites/projectile-sprites/small-spark-Sheet.png");
-    texture_map["lightning_ball_impact"] = GetTexture("../../assets/sprites/projectile-sprites/small-spark-impact.png"); //NEEDS TO BE UNIQUE
+    texture_map["lightning_ball_impact"] = GetTexture("../../assets/sprites/projectile-sprites/small-spark-impact.png");
+    texture_map["lightning_strike_left"] = GetTexture("../../assets/sprites/projectile-sprites/lightning_strike_left.png");
+    texture_map["lightning_strike_right"] = GetTexture("../../assets/sprites/projectile-sprites/lightning_strike_right.png");
 
     // Items
     texture_map["item_cloud"] = GetTexture("../../assets/sprites/item-sprites/item_cloud.png");
     texture_map["glass_toucan"] = GetTexture("../../assets/sprites/item-sprites/glass_toucan.png");
+    texture_map["garnet_shield"] = GetTexture("../../assets/sprites/item-sprites/garnet-shield1.png");
 
     // Enemies
     texture_map["purple_crystal_main"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue.png");
     texture_map["purple_crystal_death"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue_destr.png");
-    texture_map["storm_cloud_main"] = GetTexture("../../assets/sprites/enemies-sprites/cloud_enemy-Sheet.png");
+    texture_map["storm_cloud_attack"] = GetTexture("../../assets/sprites/enemies-sprites/storm-cloud-attack.png");
     texture_map["storm_cloud_death"] = GetTexture("../../assets/sprites/enemies-sprites/storm-cloud-death.png"); //NEEDS UNIQUE
+    texture_map["storm_genie"] = GetTexture("../../assets/sprites/enemies-sprites/storm_genie_sheet.png"); //NEEDS UNIQUE
     
 }
 
@@ -260,7 +265,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
                     std::cout << "[!] Item failed to render.\n";
                 }
             if ((*item_list).at(i).destroyed == false)
-                if ( 0 != SDL_RenderCopy(renderer, texture_map["glass_toucan"], NULL, &(*item_list).at(i).item_dest_rect)) //Second arg NULL means use whole png.
+                if ( 0 != SDL_RenderCopy(renderer, texture_map[(*item_list).at(i).name], NULL, &(*item_list).at(i).item_dest_rect)) //Second arg NULL means use whole png.
                     {
                         std::cout << "[!] Item failed to render.\n";
                     }
@@ -338,7 +343,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
     // PROJECTILES //
     for (int i = 0; i < game_projectiles.size(); i++)
     {
-        
+        // IF PROJ IS INSIDE SCREEN
         if (game_projectiles.at(i)->GetDstRect()->x >= 0 && 
         game_projectiles.at(i)->GetDstRect()->x  <= screen_width - game_projectiles.at(i)->GetDstRect()->w &&
         game_projectiles.at(i)->GetDstRect()->y + game_projectiles.at(i)->GetDstRect()->h >= 0 && 
@@ -346,11 +351,12 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
         {   
 
             if (0 != SDL_RenderCopy(renderer, texture_map[game_projectiles.at(i)->GetTextureKey()], game_projectiles.at(i)->GetFrame(), game_projectiles.at(i)->GetDstRect())) //Second arg NULL means use whole png.
-                {
-                    std::cout << "[!] Proj failed to render.\n";
-                    std::cout << "[!] " << game_projectiles.at(i)->GetFrame()->x << game_projectiles.at(i)->GetFrame()->y << game_projectiles.at(i)->GetFrame()->w << game_projectiles.at(i)->GetFrame()->h << std::endl;
-                    std::cout << "[!] Texture Key: " << game_projectiles.at(i)->GetTextureKey() << std::endl;
-                }
+            {
+                std::cout << "[!] Proj failed to render.\n";
+                std::cout << "[!] " << game_projectiles.at(i)->GetFrame()->x << game_projectiles.at(i)->GetFrame()->y << game_projectiles.at(i)->GetFrame()->w << game_projectiles.at(i)->GetFrame()->h << std::endl;
+                std::cout << "[!] Texture Key: " << game_projectiles.at(i)->GetTextureKey() << std::endl;
+            }
+
             if (render_coll_boxes)
             {
                 SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
@@ -399,6 +405,18 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
     if (player->GetPlayerState() == "shield")
     {
         SDL_RenderCopy(renderer, texture_map["player_shield"], player->GetShieldFrame(), player->GetShieldDstRect());
+    }
+
+                // Render Effects
+    if (player->IsHealingEffectsActive())
+    {
+        SDL_RenderCopy(renderer, texture_map["player_heal_effects"], player->GetHealEffectsFrame(), player->GetDstRect());
+    }
+
+    if (player->IsShieldEffectsActive())
+    {
+        SDL_Rect shield_effect_dest = { (player->GetDstRect()->x + player->GetDstRect()->w / 4),((player->GetDstRect()->y + player->GetDstRect()->h / 4)),(player->GetDstRect()->w / 2),((player->GetDstRect()->h / 2)) };
+        SDL_RenderCopy(renderer, texture_map["garnet_shield"], player->GetShieldEffectsFrame(), &shield_effect_dest);
     }
 
     if (render_coll_boxes)
@@ -487,6 +505,40 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
     {
         player->AdvanceIFrame();
         player->SetLastIFrameTime(SDL_GetTicks());
+    }
+
+    if (player->IsHealingEffectsActive())
+    {
+        if (IsFrameDone(player->GetHealEffectsFrameTime(), player->GetHealEffectsLastFrameTime()))
+        {
+            player->SetHealEffectsLastFrameTime(SDL_GetTicks());
+
+            if (player->GetHealEffectsFrameIndex() < player->NumHealEffectsFrames() - 1)
+                player->AdvanceHealEffectFrame();
+            else
+            {
+                player->SetHealingEffectsActive(false);
+                player->SetHealEffectsFrame(0);
+            }
+
+        }
+    }
+
+    if (player->IsShieldEffectsActive())
+    {
+        if (IsFrameDone(player->GetShieldReadyEffectsFrameTime(), player->GetShieldReadyEffectsLastFrameTime()))
+        {
+            player->SetShieldReadyEffectsLastFrameTime(SDL_GetTicks());
+
+            if (player->GetShieldReadyEffectsFrameIndex() < player->NumShieldReadyEffectsFrames() - 1)
+                player->AdvanceShieldReadyEffectFrame();
+            else
+            {
+                player->SetShieldReadyEffectsActive(false);
+                player->SetShieldReadyEffectsFrame(0);
+            }
+
+        }
     }
 
     // ENEMEY INCREMENT FRAME
