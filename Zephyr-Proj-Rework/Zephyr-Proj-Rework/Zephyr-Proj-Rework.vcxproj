@@ -141,6 +141,8 @@
     <ClCompile Include="..\..\src\Player.cpp" />
     <ClCompile Include="..\..\src\Projectiles.cpp" />
     <ClCompile Include="..\..\src\Sound.cpp" />
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="AnimationManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Enemy.hpp" />
@@ -150,6 +152,8 @@
     <ClInclude Include="..\..\include\Player.hpp" />
     <ClInclude Include="..\..\include\Projectiles.hpp" />
     <ClInclude Include="..\..\include\Sound.hpp" />
+    <ClInclude Include="Animation.hpp" />
+    <ClInclude Include="AnimationManager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

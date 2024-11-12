@@ -31,7 +31,7 @@ Player::Player(Graphics* graphics_manager, int PIXEL_SCALE)
 }
 
 
-void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop)
+void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag)
 {
     SetPosition(x_pos, y_pos, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -266,11 +266,11 @@ std::string Player::GetTextureKey()
 }
 Uint32 Player::GetFrameTime()
 {
-    return frame_time_ms;
+    return frame_time_ms_ms;
 }
 Uint32 Player::GetLastFrameStart()
 {
-    return last_frame_time;
+    return last_frame_time_ms;
 }
 SDL_Rect* Player::GetFrame()
 {
@@ -284,7 +284,7 @@ std::string Player::GetPlayerState()
 
 void Player::SetShieldLastFrameTime(Uint32 current_time)
 {
-    shield.last_shield_frame_time = current_time;
+    shield.last_shield_frame_time_ms = current_time;
 }
 
 void Player::SetShieldLastTimeUsed(Uint32 last_time_used)
@@ -319,11 +319,11 @@ int Player::GetShieldNumFrames()
 
 Uint32 Player::GetShieldFrameTime()
 {
-    return shield.shield_frame_time_ms;
+    return shield.shield_frame_time_ms_ms;
 }
 Uint32 Player::GetLastShieldFrameStart()
 {
-    return shield.last_shield_frame_time;
+    return shield.last_shield_frame_time_ms;
 }
 Uint32 Player::GetShieldLastTimeUsed()
 {
@@ -393,7 +393,7 @@ int Player::NumOfFrames()
 
 void Player::SetLastFrameTime(Uint32 current_time)
 {
-    last_frame_time = current_time;
+    last_frame_time_ms = current_time;
 }
 
 int Player::GetFrameIndex()
@@ -418,11 +418,11 @@ void Player::ChangeHealth(float health_modifier)
 
 Uint32 Player::GetIframeTime()
 {
-    return i_frame_time_ms;
+    return i_frame_time_ms_ms;
 }
 Uint32 Player::GetLastIFrameStart()
 {
-    return last_i_frame_time;
+    return last_i_frame_time_ms;
 }
 
 void Player::AdvanceIFrame()
@@ -431,7 +431,7 @@ void Player::AdvanceIFrame()
 }
 void Player::SetLastIFrameTime(Uint32 last_time)
 {
-    last_i_frame_time = last_time;
+    last_i_frame_time_ms = last_time;
 }
 
 bool Player::IsHealingEffectsActive()
@@ -462,23 +462,23 @@ SDL_Rect* Player::GetShieldEffectsFrame()
 
 Uint32 Player::GetShieldReadyEffectsFrameTime()
 {
-    return shield_ready_frame_time;
+    return shield_ready_frame_time_ms;
 }
 Uint32 Player::GetShieldReadyEffectsLastFrameTime()
 {
-    return shield_ready_last_frame_time;
+    return shield_ready_last_frame_time_ms;
 }
 Uint32 Player::GetHealEffectsFrameTime()
 {
-    return heal_effect_frame_time;
+    return heal_effect_frame_time_ms;
 }
 Uint32 Player::GetHealEffectsLastFrameTime()
 {
-    return last_heal_effect_frame_time;
+    return last_heal_effect_frame_time_ms;
 }
 void Player::SetHealEffectsLastFrameTime(Uint32 last_time)
 {
-    last_heal_effect_frame_time = last_time;
+    last_heal_effect_frame_time_ms = last_time;
 }
 int Player::GetHealEffectsFrameIndex()
 {
@@ -498,7 +498,7 @@ void Player::SetHealEffectsFrame(int frame_index)
 }
 void Player::SetShieldReadyEffectsLastFrameTime(Uint32 last_time)
 {
-    shield_ready_last_frame_time = last_time;
+    shield_ready_last_frame_time_ms = last_time;
 }
 int Player::GetShieldReadyEffectsFrameIndex()
 {

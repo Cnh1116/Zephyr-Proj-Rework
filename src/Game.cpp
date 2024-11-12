@@ -6,8 +6,8 @@
 
 
 int PIXEL_SCALE = 4;
-int WINDOW_WIDTH = 1300;
-int WINDOW_HEIGHT = 700;
+int WINDOW_WIDTH = 1920;
+int WINDOW_HEIGHT = 1080;
 float MAX_FPS = 60.0;
 
 Game::Game() // Game constructor acts as my INIT function for the game.
@@ -34,8 +34,8 @@ Game::~Game()
 void Game::RunGame()
 {
 
-    // Game LOOP Specific Pieces
-    long loop = 0;
+    // Game loop_flag Specific Pieces
+    long loop_flag = 0;
     std::vector<Projectile*> game_projectiles;
     std::vector<Enemy*> enemies;
     game_projectiles.reserve(30);
@@ -53,43 +53,11 @@ void Game::RunGame()
     while(false == game_over)
     {
         
-        if (enemies.size() == 0)
-        {
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<> distrib(0, 1000);
-            std::cout << "[*] Updating Enemies since size is 0\n";
-            int enemy_index = distrib(gen) % 3;
-
-            
- 
-            switch (enemy_index)
-            {
-                case 0:
-                {
-                    enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
-                    break;
-                }
-
-                case 1:
-                {
-                    enemies.emplace_back(new StormCloud(graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight(), player.GetDstRect()->x + (player.GetDstRect()->w / 2), player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
-                    break;
-                }
-                case 2:
-                {
-                    enemies.emplace_back(new StormGenie({ 400,70,64 * 3,64 * 3 }));
-                    break;
-                }
-                default:
-                {
-                    std::cout << "[!] ERROR Default hit for enemy switch statement\n";
-                }
-            }
-            
-        }
+        
         
         Uint32 current_tick = SDL_GetTicks();
+
+		SpawnEnemies(enemies);
         
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~  HANDLE Discrete EVENTS    ~
@@ -197,9 +165,9 @@ void Game::RunGame()
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~  UPDATE Players, Projectiles and Enemies     ~
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        graphics_manager->BackgroundUpdate(loop);
+        graphics_manager->BackgroundUpdate(loop_flag);
 
-        player.Update(dx * player.GetSpeed(), dy * player.GetSpeed(), WINDOW_WIDTH, WINDOW_HEIGHT, loop);
+        player.Update(dx * player.GetSpeed(), dy * player.GetSpeed(), WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag);
         if (player.GetHealth() <= 0)
             game_over = true;
 
@@ -267,7 +235,7 @@ void Game::RunGame()
         FPSLogic(current_tick);
 
 
-        loop++;
+        loop_flag++;
     }
 }
 
@@ -440,24 +408,47 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                 player->UpdatePlayerState("iframes");
             }
         }
-    } // GAME PROJECTILE LOOP END
+    } // GAME PROJECTILE loop_flag END
 
 
 }
 
-void Game::UpdateEnemies(std::vector<Enemy*> &enemies)
+void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
 {
-    if (enemies.size() == 0)
+    if (enemies.size() == 0 or enemies.size() == 1)
     {
-        
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_int_distribution<> distrib(0, 1);
+        std::uniform_int_distribution<> distrib(0, 1000);
         std::cout << "[*] Updating Enemies since size is 0\n";
-        if (distrib(gen) == 0)
-            enemies.emplace_back(new StormCloud({ 400,70,64 * 3,64 * 3 }));
-        else
-            enemies.emplace_back(new StormCloud({ 400,70,64 * 3,64 * 3 }));
+        int enemy_index = distrib(gen) % 3;
+
+
+
+        switch (enemy_index)
+        {
+        case 0:
+        {
+            enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
+            break;
+        }
+
+        case 1:
+        {
+            enemies.emplace_back(new StormCloud(graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight(), player.GetDstRect()->x + (player.GetDstRect()->w / 2), player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
+            break;
+        }
+        case 2:
+        {
+            enemies.emplace_back(new StormGenie({ 400,70,64 * 3,64 * 3 }));
+            break;
+        }
+        default:
+        {
+            std::cout << "[!] ERROR Default hit for enemy switch statement\n";
+        }
+        }
+
     }
 }
 
@@ -490,9 +481,9 @@ bool Game::CircleCircleCollision(int circle1_x, int circle1_y, int circle1_r, in
 
 void Game::FPSLogic(Uint32 current_tick)
 {
-    Uint32 frame_time = SDL_GetTicks() - current_tick;
-    if ( (frame_time - current_tick) < ( 1000.0 / MAX_FPS ) )
+    Uint32 frame_time_ms = SDL_GetTicks() - current_tick;
+    if ( (frame_time_ms - current_tick) < ( 1000.0 / MAX_FPS ) )
     {
-        SDL_Delay( (1000.0 / MAX_FPS ) - frame_time);
+        SDL_Delay( (1000.0 / MAX_FPS ) - frame_time_ms);
     }
 }

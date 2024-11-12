@@ -7,6 +7,7 @@
 #include "Projectiles.hpp"
 #include "Player.hpp"
 #include "ItemManager.hpp"
+#include "AnimationManager.hpp"
 
 class Projectile;
 
@@ -28,6 +29,7 @@ class Game
         bool CircleCircleCollision(int circle1_x, int circle1_y, int circle1_r, int circle2_x, int circle2_y, int circle2_r);
 
         //Spawning Enemies
+        void SpawnEnemies(std::vector<Enemy*>& enemies);
         void UpdateEnemies(std::vector<Enemy*>& enemies);
 
     
@@ -35,6 +37,7 @@ class Game
         Graphics* graphics_manager;
         SoundManager* sound_manager;
         ItemManager* item_manager;
+		AnimationManager* animation_manager;
         // player
         // enemy spawner
         // item spawner

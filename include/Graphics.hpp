@@ -38,7 +38,7 @@ public:
 
     void RenderText(const std::string& text, const SDL_Rect& rect, SDL_Color color);
     void RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies, bool render_coll_boxes);
-    void BackgroundUpdate(Uint32 loop);
+    void BackgroundUpdate(Uint32 loop_flag);
 
 
     int GetScreenHeight();
@@ -79,7 +79,7 @@ private:
     // Initialize SDL, create window and renderer
     bool init(const char* title, int width, int height);
 
-    bool IsFrameDone(Uint32 frame_time_ms, Uint32 last_frame_time);
+    bool IsFrameDone(Uint32 frame_time_ms_ms, Uint32 last_frame_time_ms);
 
     
 

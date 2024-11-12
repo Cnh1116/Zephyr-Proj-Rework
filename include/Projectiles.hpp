@@ -62,8 +62,8 @@ class Projectile
         int current_frame_index;
         SDL_Rect dest_rect;
         SDL_Rect collision_rect;
-        Uint32 frame_time_ms;
-        Uint32 last_frame_time;
+        Uint32 frame_time_ms_ms;
+        Uint32 last_frame_time_ms;
         
         int BASE_SPRITE_SIZE = 32;
         int pixel_scale;

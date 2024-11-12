@@ -62,8 +62,8 @@ class Enemy
         std::vector<SDL_Rect> current_frames;
 
         int current_frame_index = 0;
-        Uint32 frame_time_ms = 150; // Might need seperate frame cool downs per animation type.
-        Uint32 last_frame_time = 0;
+        Uint32 frame_time_ms_ms = 150; // Might need seperate frame cool downs per animation type.
+        Uint32 last_frame_time_ms = 0;
 
 
         SDL_Rect enemy_dest_rect;
@@ -113,7 +113,8 @@ class StormCloud : public Enemy
         bool first_time_waiting = true;
 };
 
-class StormGenie: public Enemy
+class 
+    StormGenie: public Enemy
 {
 public:
     StormGenie(const SDL_Rect& rect);

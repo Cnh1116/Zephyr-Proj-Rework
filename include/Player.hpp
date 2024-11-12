@@ -23,7 +23,7 @@ class Player
         // void UseShield();
 
         //UPDATE
-        void Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop);
+        void Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag);
 
         void AddItem(std::string item_name);
 
@@ -145,8 +145,8 @@ class Player
         std::vector<SDL_Rect> main_frames = { {0,0,64,64}, {0,64,64,64}, {0,128,64,64}, {0,192,64,64} };
         int current_frame_index = 0;
         
-        Uint32 frame_time_ms = 230;
-        Uint32 last_frame_time = 0;
+        Uint32 frame_time_ms_ms = 230;
+        Uint32 last_frame_time_ms = 0;
 
 
         SDL_Rect player_dest_rect;
@@ -158,8 +158,8 @@ class Player
         
         // I FRAMES
         std::vector<SDL_Rect> i_frames = { {0,0,64,64}, {0,64,64,64}, {0,128,64,64}, {0,192,64,64} };
-        Uint32 i_frame_time_ms = 240;
-        Uint32 last_i_frame_time = 0;
+        Uint32 i_frame_time_ms_ms = 240;
+        Uint32 last_i_frame_time_ms = 0;
         int current_iframe_index = 0;
 
         struct Primary_fire
@@ -203,8 +203,8 @@ class Player
             SDL_Rect dest_rect;
             SDL_Rect coll_rect;
             std::string shield_texture_key = "player_shield";
-            Uint32 last_shield_frame_time = 0;
-            Uint32 shield_frame_time_ms = 30;
+            Uint32 last_shield_frame_time_ms = 0;
+            Uint32 shield_frame_time_ms_ms = 30;
             
             Uint32 last_time_used = 0;
             Uint32 shield_cooldown_ms = 5000;
@@ -226,14 +226,14 @@ class Player
         bool show_healing_effects = false;
         int heal_effect_frame_index = 0;
         std::vector<SDL_Rect> heal_effect_frames = { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32} };
-        Uint32 last_heal_effect_frame_time = 0;
-        Uint32 heal_effect_frame_time = 100;
+        Uint32 last_heal_effect_frame_time_ms = 0;
+        Uint32 heal_effect_frame_time_ms = 100;
 
         bool show_shield_ready_effects = false;
         int shield_ready_effect_frame_index = 0;
         std::vector<SDL_Rect> shield_ready_effect_frames = { {0,0,32,32}, {0,0,32,32}, {0,0,32,32}, {0,0,32,32} };
-        Uint32 shield_ready_last_frame_time = 0;
-        Uint32 shield_ready_frame_time = 100;
+        Uint32 shield_ready_last_frame_time_ms = 0;
+        Uint32 shield_ready_frame_time_ms = 100;
 };
 
 #endif

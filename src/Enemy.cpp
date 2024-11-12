@@ -14,7 +14,7 @@ Enemy::Enemy(const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, std::vector<S
 	main_frames = main_frames_arg;
 	attack_frames = attack_frames_arg;
 	death_frames = death_frames_arg;
-	last_frame_time = 0;
+	last_frame_time_ms = 0;
 	
 	movement_speed = move_speed;
 	base_health = health_arg;
@@ -68,16 +68,16 @@ void Enemy::UpdateState(std::string new_state)
 
 Uint32 Enemy::GetLastFrameStart()
 {
-	return last_frame_time;
+	return last_frame_time_ms;
 }
 Uint32 Enemy::GetFrameTime()
 {
-	return frame_time_ms;
+	return frame_time_ms_ms;
 }
 
 void Enemy::SetLastFrameTime(Uint32 current_time) 
 {
-	last_frame_time = current_time;
+	last_frame_time_ms = current_time;
 }
 
 void Enemy::SetFrameIndex(int index)
@@ -351,10 +351,10 @@ StormGenie::StormGenie(const SDL_Rect& dest_rect)
 		{ {1024,0,64,64}, {1088,0,64,64}, {1152,0,64,64}, {1216,0,64,64} }, // Main frames
 		{ {1280,0,64,64}, {1344,0,64,64}, {1408,0,64,64}, {1472,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1600,0,64,64} }, // Attack Frames
 		{ {0, 0, 48, 32}, {48, 0, 48, 32}, {96, 0, 48, 32}, {144, 0, 48, 32 }, {192, 0, 48, 32 }, {240, 0, 48, 32}, {288, 0, 48, 32} }, // Death frames 
-		5, 100, 0, 10)
+		2, 100, 0, 10)
 {
 	fire_cooldown_ms = 4000;
-	frame_time_ms = 120;
+	frame_time_ms_ms = 120;
 	state = "spawn";
 	current_texture_key = "storm_genie";
 	current_frame_index = 0;
@@ -383,7 +383,9 @@ void StormGenie::Update(Player* player)
 		Move(player);
 		
 		Uint32 current_time = SDL_GetTicks();
-		if ((current_time - last_fire_time) >= fire_cooldown_ms)
+		int vertical_difference = enemy_dest_rect.y - player->GetDstRect()->y;
+
+		if ((current_time - last_fire_time) >= fire_cooldown_ms && abs(vertical_difference) <  100)
 		{
 			last_fire_time = current_time;
 			state = "attacking";
@@ -423,6 +425,8 @@ void StormGenie::Move(Player* player)
 {
 
 	int vertical_difference = enemy_dest_rect.y - player->GetDstRect()->y;
+
+	// Only move if the difference is great enough.
 	if (abs(vertical_difference) > 30)
 	{
 		if (vertical_difference > 0)

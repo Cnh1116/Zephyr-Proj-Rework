@@ -13,8 +13,8 @@ Projectile::Projectile(const SDL_Rect& dest_rect, float projectile_speed, float 
     current_frame_index(0),
     main_frames(frames),
     impact_frames(imp_frames),
-    frame_time_ms(frame_cooldown_ms),
-    last_frame_time(0),
+    frame_time_ms_ms(frame_cooldown_ms),
+    last_frame_time_ms(0),
     animation_replayable(replayable),
     state("main"),
     collision_rect(dest_rect),
@@ -44,7 +44,7 @@ void Projectile::MoveProjectile()
 void Projectile::UpdateState(const char* state_str)
 {
     state = state_str;
-    last_frame_time = 0;
+    last_frame_time_ms = 0;
     current_frame_index = 0;
 
     if(state_str == "impact" && shift_impact)
@@ -76,11 +76,11 @@ SDL_Rect* Projectile::GetFrame()
 
 Uint32 Projectile::GetFrameTime()
 {
-    return frame_time_ms;
+    return frame_time_ms_ms;
 }
 Uint32 Projectile::GetLastFrameStart()
 {
-    return last_frame_time;
+    return last_frame_time_ms;
 }
 
 bool Projectile::IsReplayable()
@@ -320,7 +320,7 @@ LightningStrike::LightningStrike(const SDL_Rect& dest_rect, int PIXEL_SCALE, flo
         current_texture_key = "lightning_strike_left";
 
     current_frame_index = 0;
-    last_frame_time = 0;
+    last_frame_time_ms = 0;
 }
 void LightningStrike::MoveProjectile()
 {

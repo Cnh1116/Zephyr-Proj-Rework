@@ -83,12 +83,12 @@ void Graphics::LoadTextures()
     texture_map["clouds3_texture"] = GetTexture("../../assets/sprites/background-sprites/clouds3.png");
 
     // Player
-    texture_map["player_main_texture"] = GetTexture("../../assets/sprites/player-sprites/zephyr.png");
-    texture_map["player_secondary_fire_hud_texture"] = GetTexture("../../assets/sprites/player-sprites/secondary_fire_hud.png");
-    texture_map["player_secondary_fire_marker_texture"] =  GetTexture("../../assets/sprites/player-sprites/secondary_fire_marker.png");
-    texture_map["player_shield"] = GetTexture("../../assets/sprites/player-sprites/player_shield2.png");
-    texture_map["player_hurt"] = GetTexture("../../assets/sprites/player-sprites/zephyr-iframes.png");
-    texture_map["player_heal_effects"] = GetTexture("../../assets/sprites/player-sprites/heal.png");
+    texture_map["player_main_texture"] = GetTexture("../../assets/sprites/zephyr-sprites/zephyr-main.png");
+    texture_map["player_secondary_fire_hud_texture"] = GetTexture("../../assets/sprites/zephyr-sprites/zephyr-secondary-fire-hud.png");
+    texture_map["player_secondary_fire_marker_texture"] =  GetTexture("../../assets/sprites/zephyr-sprites/zephyr-secondary-fire-marker.png");
+    texture_map["player_shield"] = GetTexture("../../assets/sprites/zephyr-sprites/zephyr-shield.png");
+    texture_map["player_hurt"] = GetTexture("../../assets/sprites/zephyr-sprites/zephyr-iframes.png");
+    texture_map["player_heal_effects"] = GetTexture("../../assets/sprites/zephyr-sprites/heal.png");
 
     // Projectiles
     texture_map["primary_fire"] = GetTexture("../../assets/sprites/projectile-sprites/primary_fire.png");
@@ -106,9 +106,9 @@ void Graphics::LoadTextures()
     texture_map["lightning_strike_right"] = GetTexture("../../assets/sprites/projectile-sprites/lightning_strike_right.png");
 
     // Items
-    texture_map["item_cloud"] = GetTexture("../../assets/sprites/item-sprites/item_cloud.png");
-    texture_map["glass_toucan"] = GetTexture("../../assets/sprites/item-sprites/glass_toucan.png");
-    texture_map["garnet_shield"] = GetTexture("../../assets/sprites/item-sprites/garnet-shield1.png");
+    texture_map["item_cloud"] = GetTexture("../../assets/sprites/item-sprites/item-cloud.png");
+    texture_map["glass_toucan"] = GetTexture("../../assets/sprites/item-sprites/glass-toucan.png");
+    texture_map["garnet_shield"] = GetTexture("../../assets/sprites/item-sprites/garnet-shield.png");
 
     // Enemies
     texture_map["purple_crystal_main"] = GetTexture("../../assets/sprites/enemies-sprites/light_blue.png");
@@ -448,9 +448,9 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
     for (int i = 0; i < game_projectiles.size(); i++)
     {
         
-        if (IsFrameDone(game_projectiles.at(i)->frame_time_ms, game_projectiles.at(i)->last_frame_time))
+        if (IsFrameDone(game_projectiles.at(i)->frame_time_ms_ms, game_projectiles.at(i)->last_frame_time_ms))
         {
-            game_projectiles.at(i)->last_frame_time = SDL_GetTicks();
+            game_projectiles.at(i)->last_frame_time_ms = SDL_GetTicks();
             if (game_projectiles.at(i)->animation_replayable)
             {
                 if (game_projectiles.at(i)->current_frame_index == game_projectiles.at(i)->NumOfFrames() - 1)
@@ -473,7 +473,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
         //if ((*item_list).at(i).item_dest_rect.x >= 0 &&
     }
 
-    //player
+    // NEEDS TO BE IN PLAYER UPDATE METHOD
     if (IsFrameDone(player->GetFrameTime(), player->GetLastFrameStart()))
     {
         player->SetLastFrameTime(SDL_GetTicks());
@@ -494,19 +494,20 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
         //std::cout << "[*] Player frame index: " << player->GetFrameIndex() << std::endl;
         //}
     }
+    // NEEDS TO BE IN PLATER UPDATE METHODS (EFFECTS VECTOR ?)
     if ( player->GetPlayerState() == "shield" && IsFrameDone(player->GetShieldFrameTime(), player->GetLastShieldFrameStart()))
     {
         std::cout << "[*] Shield Frame is done !\n";
         player->AdvanceShieldFrame();
         player->SetShieldLastFrameTime(SDL_GetTicks());
     }
-
+    // NEEDS TP BE IN PLAYER UPDATE METHOD
     if (player->GetPlayerState() == "iframes" && IsFrameDone(player->GetIframeTime(), player->GetLastIFrameStart()))
     {
         player->AdvanceIFrame();
         player->SetLastIFrameTime(SDL_GetTicks());
     }
-
+    // NEEDS TO BE IN PLAYER UPDATE METHOD (EFFECTS VECTOR ?)
     if (player->IsHealingEffectsActive())
     {
         if (IsFrameDone(player->GetHealEffectsFrameTime(), player->GetHealEffectsLastFrameTime()))
@@ -523,7 +524,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
 
         }
     }
-
+    // NEEDS TO BE IN PLAYER UPDATE METHOD
     if (player->IsShieldEffectsActive())
     {
         if (IsFrameDone(player->GetShieldReadyEffectsFrameTime(), player->GetShieldReadyEffectsLastFrameTime()))
@@ -541,7 +542,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
         }
     }
 
-    // ENEMEY INCREMENT FRAME
+    // NEEDS TO BE IN ENEMY UPDATE METHOD
     for (int i = 0; i < enemies.size(); i++)
     {
         if (IsFrameDone(enemies.at(i)->GetFrameTime(), enemies.at(i)->GetLastFrameStart()))
@@ -596,11 +597,11 @@ int Graphics::GetScreenHeight()
     return screen_height;
 }
 
-bool Graphics::IsFrameDone(Uint32 frame_time_ms, Uint32 last_frame_start)
+bool Graphics::IsFrameDone(Uint32 frame_time_ms_ms, Uint32 last_frame_start)
 {
     Uint32 current_time = SDL_GetTicks();
 
-    if ((current_time - last_frame_start) >= frame_time_ms)
+    if ((current_time - last_frame_start) >= frame_time_ms_ms)
     {
         return(true);
     }
@@ -612,13 +613,13 @@ bool Graphics::IsFrameDone(Uint32 frame_time_ms, Uint32 last_frame_start)
     }
 }
 
-void Graphics::BackgroundUpdate(Uint32 loop)
+void Graphics::BackgroundUpdate(Uint32 loop_flag)
 {
     // CLOUD 1
     
     if (clouds1L_dest.y >= (screen_height)) 
     { 
-        std::cout << "[*] Looping cloud 1L back to the top\n";
+        std::cout << "[*] loop_flaging cloud 1L back to the top\n";
         clouds1L_dest.x = GenRandomNumber(-1200, -870);; //INSTEAD OF ALWAYS AT ORIGIN, 
         clouds1L_dest.y = 0 - (clouds1L_dest.h / 2);
         cloud1L_speed = GenRandomNumber(4, 8);
@@ -626,17 +627,17 @@ void Graphics::BackgroundUpdate(Uint32 loop)
 
     if (clouds1R_dest.y >= (screen_height))
     {
-        std::cout << "[*] Looping cloud 1R back to the top\n";
+        std::cout << "[*] loop_flaging cloud 1R back to the top\n";
         clouds1R_dest.x = GenRandomNumber(1050, 1400); //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
         clouds1R_dest.y = 0 - (clouds1R_dest.h / 2);
         cloud1R_speed = GenRandomNumber(4, 8);
     }
-    if (loop % cloud1L_speed == 0)
+    if (loop_flag % cloud1L_speed == 0)
     {
         clouds1L_dest.y += 1;
     }
 
-    if (loop % cloud1R_speed == 0)
+    if (loop_flag % cloud1R_speed == 0)
     {
     
         clouds1R_dest.y += 1;
@@ -645,7 +646,7 @@ void Graphics::BackgroundUpdate(Uint32 loop)
     // CLOUD 2
     if (clouds2L_dest.y >= (screen_height))
     {
-        std::cout << "[*] Looping cloud 1L back to the top\n";
+        std::cout << "[*] loop_flaging cloud 1L back to the top\n";
         clouds2L_dest.x = GenRandomNumber(-1200, -870);; //INSTEAD OF ALWAYS AT ORIGIN, 
         clouds2L_dest.y = 0 - (clouds2L_dest.h);
         cloud1L_speed = GenRandomNumber(2, 3);
@@ -653,18 +654,18 @@ void Graphics::BackgroundUpdate(Uint32 loop)
 
     if (clouds2R_dest.y >= (screen_height))
     {
-        std::cout << "[*] Looping cloud 1R back to the top\n";
+        std::cout << "[*] loop_flaging cloud 1R back to the top\n";
         clouds2R_dest.x = GenRandomNumber(450, 600); //INSTEAD OF ALWAYS AT ORIGIN, RANDOMIZE 
         clouds2R_dest.y = 0 - (clouds2R_dest.h);
         cloud1R_speed = GenRandomNumber(1, 3);
     }
 
-    if (loop % cloud2L_speed == 0)
+    if (loop_flag % cloud2L_speed == 0)
     {
         clouds2L_dest.y += 1;
     }
 
-    if (loop % cloud2R_speed == 0)
+    if (loop_flag % cloud2R_speed == 0)
     {
 
         clouds2R_dest.y += 1;

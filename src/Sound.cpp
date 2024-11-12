@@ -78,7 +78,7 @@ void SoundManager::PlaySound(const char* sound_map_key, int volume_percent)
     std::cout << "[*] Playing Sound Effect" << sound_effects_map[sound_map_key] << std::endl;
     // Play the WAV sound effect (channel -1 means the first free channel)
     Mix_VolumeChunk(sound_effects_map[sound_map_key], (volume_percent * MIX_MAX_VOLUME / 100));
-    int channel = Mix_PlayChannel(-1, sound_effects_map[sound_map_key], 0); // The third parameter is the loop count (0 means play once)
+    int channel = Mix_PlayChannel(-1, sound_effects_map[sound_map_key], 0); // The third parameter is the loop_flag count (0 means play once)
 
     if (channel == -1) 
     {
@@ -98,7 +98,7 @@ void SoundManager::PlayMusic(const char* music_key)
     }
 
     std::cout << "[*] Playing Music" << music_map[music_key] << std::endl;
-    // Check parameters ! Loop, how to pause, switch music ?
+    // Check parameters ! loop_flag, how to pause, switch music ?
     if (-1 == Mix_PlayMusic(music, 1)) 
     {
         std::cerr << "[!] Failed to play music: " << Mix_GetError() << std::endl;
