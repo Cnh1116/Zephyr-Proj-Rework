@@ -196,10 +196,12 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Black background
     SDL_RenderClear(renderer);
 
-    if (NULL == player->GetDstRect())
+    
+
+    /*if (NULL == player->GetDstRect()) // ===================================================================PLAYER
     {
         std::cerr << "[!] DstRect for the player is NULL.";
-    }
+    }*/
 
 
     // BACKGROUD //
@@ -229,6 +231,8 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
     {
         std::cout << "[!] Clouds2R failed to render.\n";
     }
+
+
  
 
     // cloud 3
@@ -374,7 +378,10 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
         
     }
 
-    // PLAYER //
+    player->Draw(renderer, render_coll_boxes);
+
+    // PLAYER // // ===================================================================PLAYER/*
+    /*
                     // Main Player Render
     if (player->GetPlayerState() == "iframes")
     {
@@ -434,7 +441,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
         SDL_RenderDrawRect(renderer, player->GetDstRect());
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); 
-    }
+    }*/
 
     // PLAYER UI //
     RenderPlayerText(player);
@@ -474,6 +481,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
     }
 
     // NEEDS TO BE IN PLAYER UPDATE METHOD
+    /*
     if (IsFrameDone(player->GetFrameTime(), player->GetLastFrameStart()))
     {
         player->SetLastFrameTime(SDL_GetTicks());
@@ -483,7 +491,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
                 game_projectiles.at(i)->current_frame_index = 0;
             else
                 game_projectiles.at(i)->AdvanceFrame();
-        }*/
+        }
 
         //else
         //{
@@ -540,7 +548,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
             }
 
         }
-    }
+    }*/
 
     // NEEDS TO BE IN ENEMY UPDATE METHOD
     for (int i = 0; i < enemies.size(); i++)

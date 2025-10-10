@@ -5,16 +5,18 @@
 #include <SDL.h>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 class Graphics;
-
+class Animation;
+class AnimationManager;
 
 class Player
 {
     public:
         
         // Constructor
-        Player(Graphics* graphics_manager, int PIXEL_SCALE);
+        Player(int PIXEL_SCALE, AnimationManager* animation_manager);
 
         // Actions
         // void FirePrimary();
@@ -23,11 +25,11 @@ class Player
         // void UseShield();
 
         //UPDATE
-        void Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag);
+        void Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick);
 
         void AddItem(std::string item_name);
 
-       
+        void Draw(SDL_Renderer* renderer, bool collision_box_flag);
         
         // Setters and Getters
         SDL_Rect* GetDstRect();
@@ -96,13 +98,15 @@ class Player
         int GetFrameIndex();
         void AdvanceFrame();
         void SetFrameIndex(int index);
+        
         //const char* GetState();
         Uint32 GetIframeTime();
         Uint32 GetLastIFrameStart();
         void AdvanceIFrame();
         void SetLastIFrameTime(Uint32 last_time);
         
-        
+
+        bool IsIframesDone();
         
         SDL_Rect* GetSecondaryFirePosition();
         float GetSecondaryFireSpeed();
@@ -158,9 +162,12 @@ class Player
         
         // I FRAMES
         std::vector<SDL_Rect> i_frames = { {0,0,64,64}, {0,64,64,64}, {0,128,64,64}, {0,192,64,64} };
-        Uint32 i_frame_time_ms_ms = 240;
+        Uint32 i_frame_time_ms = 240;
         Uint32 last_i_frame_time_ms = 0;
         int current_iframe_index = 0;
+
+        Uint32 last_iframes_start = 0;
+        Uint32 iframes_duration = 1000;
 
         struct Primary_fire
         {
@@ -234,6 +241,11 @@ class Player
         std::vector<SDL_Rect> shield_ready_effect_frames = { {0,0,32,32}, {0,0,32,32}, {0,0,32,32}, {0,0,32,32} };
         Uint32 shield_ready_last_frame_time_ms = 0;
         Uint32 shield_ready_frame_time_ms = 100;
+
+        // ANIMATIONS
+		std::unordered_map<std::string, Animation> animations;  //The State related animations to choose from
+		std::vector<Animation> overlay_animations;              //Animations that play over the base animation (like i-frames)
+        Animation* current_animation;
 };
 
 #endif

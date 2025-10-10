@@ -39,10 +39,10 @@
     <ClCompile Include="..\..\src\Sound.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Animation.cpp">
+    <ClCompile Include="..\..\src\Animation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AnimationManager.cpp">
+    <ClCompile Include="..\..\src\AnimationManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,11 +68,16 @@
     <ClInclude Include="..\..\include\Sound.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Animation.hpp">
+    <ClInclude Include="..\..\include\Animation.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AnimationManager.hpp">
+    <ClInclude Include="..\..\include\AnimationManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\configs\animations.json">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

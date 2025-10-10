@@ -31,6 +31,7 @@ class AnimationManager
 			int frame_time_ms;
 			bool loop_flag;
 			bool vertical;
+			std::string output_name;
 		};
 
 		std::unordered_map<std::string, std::unordered_map<std::string, Animation*>> animations;

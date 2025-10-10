@@ -1,7 +1,7 @@
 {
 	"zephyr": {
 		"main": {
-			"texture": "assets/sprites/zephyr-sprites/zephyr-main.png",
+			"texture": "..\\..\\assets\\sprites\\zephyr-sprites\\zephyr-main.png",
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 4,
@@ -10,25 +10,25 @@
 			"layout": "vertical"
 		},
 		"iframes": {
-			"texture": "assets/sprites/zephyr-sprites/zephyr-iframes.png",
+			"texture": "..\\..\\assets\\sprites\\zephyr-sprites\\zephyr-iframes.png",
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 4,
 			"frame_time_ms": 100,
-			"loop_flag": false,
+			"loop_flag": true,
 			"layout": "vertical"
 		},
 		"shield": {
-			"texture": "assets/sprites/zephyr-sprites/zephyr-shield.png",
+			"texture": "..\\..\\assets\\sprites\\zephyr-sprites\\zephyr-shield.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 9,
-			"frame_time_ms": 100,
+			"frame_time_ms": 35,
 			"loop_flag": false,
 			"layout": "horizontal"
 		},
 		"secondary_fire_hud": {
-			"texture": "assets/sprites/zephyr-sprites/zephyr-secondary-fire-hud.png",
+			"texture": "..\\..\\assets\\sprites\\zephyr-sprites\\zephyr-secondary-fire-hud.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 1,
@@ -37,7 +37,7 @@
 			"layout": "horizontal"
 		},
 		"secondary_fire_marker": {
-			"texture": "assets/sprites/zephyr-sprites/zephyr-secondary-fire-marker.png",
+			"texture": "..\\..\\assets\\sprites\\zephyr-sprites\\zephyr-secondary-fire-marker.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 1,
@@ -46,11 +46,9 @@
 			"layout": "horizontal"
 		}
 	},
-
-
 	"enemy-ice-crystal": {
 		"main": {
-			"texture": "assets/sprites/enemy-sprites/ice-crystal/ice-crysal-main.png",
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\ice-crystal\\ice-crystal-main.png",
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 12,
@@ -59,7 +57,7 @@
 			"layout": "horizontal"
 		},
 		"death": {
-			"texture": "assets/sprites/enemy-sprites/ice-crystal/ice-crysal-death.png",
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\ice-crystal\\ice-crystal-death.png",
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 12,
@@ -70,7 +68,7 @@
 	},
 	"enemy-storm-cloud": {
 		"main": {
-			"texture": "assets/sprites/enemy-sprites/storm-cloud/storm-cloud-main.png",
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-cloud\\storm-cloud-main.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 6,
@@ -79,7 +77,7 @@
 			"layout": "horizontal"
 		},
 		"attack": {
-			"texture": "assets/sprites/enemy-sprites/storm-cloud/storm-cloud-attack.png",
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-cloud\\storm-cloud-attack.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 7,
@@ -88,7 +86,7 @@
 			"layout": "horizontal"
 		},
 		"death": {
-			"texture": "assets/sprites/enemy-sprites/storm-cloud/storm-cloud-death.png",
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-cloud\\storm-cloud-death.png",
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 12,
@@ -99,7 +97,7 @@
 	},
 	"enemy-storm-genie": {
 		"main": {
-			"texture": "assets/sprites/enemy-sprites/storm-genie/storm-genie-main.png",
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-main.png",
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 5,
@@ -108,7 +106,7 @@
 			"layout": "horizontal"
 		},
 		"attack": {
-			"texture": "assets/sprites/enemy-sprites/storm-genie/storm-genie-attack.png",
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-attack.png",
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 6,
@@ -117,7 +115,7 @@
 			"layout": "horizontal"
 		},
 		"death": {
-			"texture": "assets/sprites/enemy-sprites/storm-genie/storm-genie-main.png",
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-main.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 7,
@@ -126,10 +124,9 @@
 			"layout": "horizontal"
 		}
 	},
-
 	"proj-zephyr-primary": {
 		"main": {
-			"texture": "assets/sprites/projectile-sprites/zephyr-primary-fire/zephyr-primary-fire-main.png",
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-primary-fire\\primary-fire-main.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 4,
@@ -138,7 +135,7 @@
 			"layout": "horizontal"
 		},
 		"impact": {
-			"texture": "assets/sprites/projectile-sprites/zephyr-primary-fire/zephyr-primary-fire-impact.png",
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-primary-fire\\primary-fire-impact.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 5,
@@ -147,7 +144,7 @@
 			"layout": "horizontal"
 		},
 		"impact-crit": {
-			"texture": "assets/sprites/projectile-sprites/zephyr-primary-fire/zephyr-primary-fire-impact-crit.png",
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-primary-fire\\primary-fire-impact-crit.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 6,
@@ -158,7 +155,7 @@
 	},
 	"proj-ice-crystal-attack": {
 		"spawn": {
-			"texture": "assets/sprites/projectile-sprites/ice-crystal-attack/ice-crystal-attack-spawn.png",
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\ice-crystal-attack\\ice-crystal-attack-spawn.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 8,
@@ -167,7 +164,7 @@
 			"layout": "horizontal"
 		},
 		"main": {
-			"texture": "assets/sprites/projectile-sprites/ice-crystal-attack/ice-crystal-attack-main.png",
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\ice-crystal-attack\\ice-crystal-attack-main.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 12,
@@ -176,7 +173,7 @@
 			"layout": "horizontal"
 		},
 		"impact": {
-			"texture": "assets/sprites/projectile-sprites/ice-crystal-attack/ice-crystal-attack-impact.png",
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\ice-crystal-attack\\ice-crystal-attack-impact.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 5,
@@ -187,7 +184,7 @@
 	},
 	"proj-storm-cloud-attack": {
 		"main": {
-			"texture": "assets/sprites/projectile-sprites/storm-cloud-attack/storm-cloud-attack-main.png",
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-cloud-attack\\storm-cloud-attack-main.png",
 			"frame_width": 40,
 			"frame_height": 40,
 			"frames": 12,
@@ -196,7 +193,7 @@
 			"layout": "horizontal"
 		},
 		"impact": {
-			"texture": "assets/sprites/projectile-sprites/storm-cloud-attack/storm-cloud-attack-impact.png",
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-cloud-attack\\storm-cloud-attack-impact.png",
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 5,
@@ -207,7 +204,7 @@
 	},
 	"proj-storm-genie-attack": {
 		"storm-genie-attack-left": {
-			"texture": "assets/sprites/projectile-sprites/storm-genie-attack/storm-genie-attack-left.png",
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-genie-attack\\storm-genie-attack-left.png",
 			"frame_width": 111,
 			"frame_height": 48,
 			"frames": 6,
@@ -216,7 +213,7 @@
 			"layout": "vertical"
 		},
 		"storm-genie-attack-right": {
-			"texture": "assets/sprites/projectile-sprites/storm-cloud-attack/storm-genie-attack-right.png",
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-genie-attack\\storm-genie-attack-right.png",
 			"frame_width": 111,
 			"frame_height": 48,
 			"frames": 5,
@@ -227,7 +224,7 @@
 	},
 	"overlays": {
 		"heal": {
-			"texture": "assets/sprites/overlay-sprites/overlay-heal.png",
+			"texture": "..\\..\\assets\\sprites\\overlay-sprites\\overlay-heal.png",
 			"frame_width": 33,
 			"frame_height": 32,
 			"frames": 5,
@@ -236,14 +233,13 @@
 			"layout": "horizontal"
 		},
 		"shield_ready": {
-			"texture": "assets/sprites/overlay-sprites/overlay-shield-ready.png",
+			"texture": "..\\..\\assets\\sprites\\overlay-sprites\\overlay-shield-ready.png",
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 1,
-			"frame_time_ms": 100,
+			"frame_time_ms": 1000,
 			"loop_flag": false,
 			"layout": "vertical"
 		}
 	}
-
 }

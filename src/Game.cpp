@@ -8,15 +8,16 @@
 int PIXEL_SCALE = 4;
 int WINDOW_WIDTH = 1920;
 int WINDOW_HEIGHT = 1080;
-float MAX_FPS = 60.0;
+float MAX_FPS = 120.0;
 
 Game::Game() // Game constructor acts as my INIT function for the game.
     : graphics_manager(new Graphics("Main Window", WINDOW_WIDTH, WINDOW_HEIGHT, PIXEL_SCALE)), //Screen name, dimensions and pixel scale
       sound_manager(new SoundManager()),
+	  animation_manager(new AnimationManager(graphics_manager->GetRenderer())),
       game_over(false),
       times_X_pressed(0),
       item_manager(new ItemManager()),
-      player(Player(graphics_manager, PIXEL_SCALE))
+      player(Player(PIXEL_SCALE, animation_manager))
 {
     // Load Player Sprite
     player.SetPosition( (WINDOW_WIDTH/2) - (player.GetDstRect()->w / 2), WINDOW_HEIGHT - (player.GetDstRect()->h), WINDOW_WIDTH, WINDOW_HEIGHT );
@@ -48,14 +49,14 @@ void Game::RunGame()
     //sound_manager->PlayMusic("first_level_song");
     
 
-
+    Uint32 last_tick = SDL_GetTicks();
     
     while(false == game_over)
     {
-        
-        
-        
         Uint32 current_tick = SDL_GetTicks();
+        Uint32 time_delta = current_tick - last_tick;
+        last_tick = current_tick;
+
 
 		SpawnEnemies(enemies);
         
@@ -167,7 +168,7 @@ void Game::RunGame()
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
         graphics_manager->BackgroundUpdate(loop_flag);
 
-        player.Update(dx * player.GetSpeed(), dy * player.GetSpeed(), WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag);
+        player.Update(dx * player.GetSpeed(), dy * player.GetSpeed(), WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag, time_delta);
         if (player.GetHealth() <= 0)
             game_over = true;
 
@@ -233,7 +234,6 @@ void Game::RunGame()
         ~  FPS Control Logic     ~
         ~~~~~~~~~~~~~~~~~~~~~~~~*/
         FPSLogic(current_tick);
-
 
         loop_flag++;
     }
@@ -319,7 +319,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
         {
             if (game_projectiles.at(i)->GetState() == "main")
             {
-                if ( (player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
+                if ((player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
                 {
                     sound_manager->PlaySound("player_hit", 100);
                     player->UpdatePlayerState("iframes");

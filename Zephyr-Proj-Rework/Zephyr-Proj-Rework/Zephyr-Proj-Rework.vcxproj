@@ -109,6 +109,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,6 +134,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\Animation.cpp" />
+    <ClCompile Include="..\..\src\AnimationManager.cpp" />
     <ClCompile Include="..\..\src\Enemy.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\Graphics.cpp" />
@@ -141,10 +144,10 @@
     <ClCompile Include="..\..\src\Player.cpp" />
     <ClCompile Include="..\..\src\Projectiles.cpp" />
     <ClCompile Include="..\..\src\Sound.cpp" />
-    <ClCompile Include="Animation.cpp" />
-    <ClCompile Include="AnimationManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\Animation.hpp" />
+    <ClInclude Include="..\..\include\AnimationManager.hpp" />
     <ClInclude Include="..\..\include\Enemy.hpp" />
     <ClInclude Include="..\..\include\Game.hpp" />
     <ClInclude Include="..\..\include\Graphics.hpp" />
@@ -152,8 +155,9 @@
     <ClInclude Include="..\..\include\Player.hpp" />
     <ClInclude Include="..\..\include\Projectiles.hpp" />
     <ClInclude Include="..\..\include\Sound.hpp" />
-    <ClInclude Include="Animation.hpp" />
-    <ClInclude Include="AnimationManager.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\configs\animations.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

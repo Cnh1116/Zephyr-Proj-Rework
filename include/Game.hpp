@@ -30,7 +30,6 @@ class Game
 
         //Spawning Enemies
         void SpawnEnemies(std::vector<Enemy*>& enemies);
-        void UpdateEnemies(std::vector<Enemy*>& enemies);
 
     
     private:

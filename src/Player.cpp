@@ -1,8 +1,9 @@
  #include "Player.hpp"
 #include <iostream>
 #include "Graphics.hpp"
+#include "AnimationManager.hpp"
 
-Player::Player(Graphics* graphics_manager, int PIXEL_SCALE)
+Player::Player(int PIXEL_SCALE, AnimationManager* animation_manager)
 {
     
     std::cout << "[*] I am a new player\n";
@@ -28,43 +29,60 @@ Player::Player(Graphics* graphics_manager, int PIXEL_SCALE)
     secondary_fire.hud_coll_rect = { player_dest_rect.x, player_dest_rect.y, BASE_SPRITE_SIZE, BASE_SPRITE_SIZE };
     secondary_fire.marker_active = false;
 
+
+
+    animations["main"] = *animation_manager->Get("zephyr", "main");
+    animations["iframes"] = *animation_manager->Get("zephyr", "iframes");
+    animations["shield"] = *animation_manager->Get("zephyr", "shield");
+    animations["secondary_fire_hud"] = *animation_manager->Get("zephyr", "secondary_fire_hud");
+    animations["secondary_fire_marker"] = *animation_manager->Get("zephyr", "secondary_fire_marker");
+    animations["shield_ready_effects"] = *animation_manager->Get("overlays", "shield_ready");
+
+    current_animation = &animations["main"];
+
+    
+    
+
 }
 
 
-void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag)
+void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick)
 {
     SetPosition(x_pos, y_pos, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-
-
-    if (!secondary_fire.marker_active)
-        secondary_fire.marker_col_rect = { 0,0,0,0 };
+	std::cout << "[*] Player STATE: " << state << std::endl;
+    
+    if (!secondary_fire.marker_active) secondary_fire.marker_col_rect = { 0,0,0,0 };
     
     
     if (state != "shield" && shield.shield_ready == false && IsShieldReady())
     {
-        show_shield_ready_effects = true;
         shield.shield_ready = true;
+		std::cout << "[*] SHIELD IS READY ! ===========================================================================================\n";
+		overlay_animations.push_back(animations["shield_ready_effects"]);
     }
     
     if (state == "main")
     {
+        current_animation = &animations["main"];
         shield.coll_rect = { 0,0,0,0 };
         current_speed = base_speed;
     }
 
     if (state == "iframes")
     {
-        current_texture_key = "player_hurt";
-
-        if (current_iframe_index >= i_frames.size() - 1)
+        if (IsIframesDone())
         {
             state = "main";
+			current_animation = &animations["main"];
+            last_iframes_start = SDL_GetTicks();
         }
+        current_animation = &animations["iframes"];
     }
 
     if (state == "shield")
     {
+        animations["shield"].Update(tick);
+
         shield.shield_ready = false;
         current_speed = base_speed;
         int shield_width = 125;
@@ -72,9 +90,10 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
         shield.coll_rect = { player_dest_rect.x + (player_dest_rect.w/2) - shield_width/2, player_dest_rect.y + (player_dest_rect.h / 2) - (shield_height / 2), shield_width, shield_height };
         shield.dest_rect = { player_dest_rect.x, player_dest_rect.y, player_dest_rect.w, player_dest_rect.h };
 
-        if (shield.shield_frame_index >= shield.shield_frames.size() - 1)
+        if (animations["shield"].IsFinished())
         {
             state = "main";
+			animations["shield"].Reset();
         }
     }
 
@@ -91,6 +110,17 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
 
     // ITEM STATS UPDATE
     crit_percent = player_items.num_glass_toucans * 2 + 1;
+
+    for (auto & animation : overlay_animations) 
+    { 
+        animation.Update(tick); std::cout << "UPDATING OVERLAY --------------------------------" << std::endl; 
+    }
+
+    
+
+	current_animation->Update(tick);
+
+
 }
 
 void Player::SetSecondaryFireMarkerActive(bool flag)
@@ -192,6 +222,21 @@ void Player::AddItem(std::string item_name)
         player_items.num_glass_toucans++;
     if (item_name == "garnet_shield")
         player_items.num_garnet_shields++;
+}
+
+bool Player::IsIframesDone()
+{
+    Uint32 current_time = SDL_GetTicks();
+
+    if ((current_time - last_iframes_start) >= iframes_duration)
+    {
+        return(true);
+    }
+
+    else
+    {
+        return(false);
+    }
 }
 
 // Getters and Setters:
@@ -378,6 +423,51 @@ bool Player::IsDashDone()
     }
 }
 
+void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
+{
+    
+    
+    current_animation->Draw(renderer, player_dest_rect, SDL_FLIP_NONE);
+    current_animation->OutputInformation();
+
+	animations["secondary_fire_hud"].Draw(renderer, secondary_fire.hud_dest_rect, SDL_FLIP_NONE);
+
+    if (secondary_fire.marker_active)
+    {
+        animations["secondary_fire_marker"].Draw(renderer, secondary_fire.marker_dest_rect, SDL_FLIP_NONE);
+    }
+
+    if (state == "shield")
+    {
+		animations["shield"].Draw(renderer, player_dest_rect, SDL_FLIP_NONE);
+    }
+    
+    
+    for (auto& animation : overlay_animations) 
+    {  
+		std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
+        animation.Draw(renderer, player_dest_rect, SDL_FLIP_NONE);  
+    }
+
+    if (collision_box_flag)
+    {
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderDrawRect(renderer, &player_coll_rect);
+        
+        SDL_SetRenderDrawColor(renderer, 255, 150, 0, 255);
+        SDL_RenderDrawRect(renderer, &shield.coll_rect);
+        SDL_RenderDrawRect(renderer, &secondary_fire.hud_coll_rect);
+       
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        SDL_RenderDrawRect(renderer, &secondary_fire.marker_col_rect);
+
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        SDL_RenderDrawRect(renderer, &player_dest_rect);
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    }
+}
+
 int Player::GetNumItem(std::string item_name)
 {
     if (item_name == "glass_toucan")
@@ -418,7 +508,7 @@ void Player::ChangeHealth(float health_modifier)
 
 Uint32 Player::GetIframeTime()
 {
-    return i_frame_time_ms_ms;
+    return i_frame_time_ms;
 }
 Uint32 Player::GetLastIFrameStart()
 {

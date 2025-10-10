@@ -3,14 +3,18 @@
 
 #include <SDL.h>
 #include <vector>
+#include <string>
 
 class Animation
 {
 public:
+
+	Animation();
 	Animation(	SDL_Texture* texture,
 				const std::vector<SDL_Rect>& frames,
 				int frame_time_ms,
-				bool loop_flag);
+				bool loop_flag,
+				std::string output_name);
 
 	~Animation();
 
@@ -24,11 +28,16 @@ public:
 	// Utilities
 	void Reset();
 	bool IsFinished() const;
+	void OutputInformation();
+	bool IsFrameDone();
+	
 	// Set loop_flag_flag false ? Player iframes?
 
 	// GETTERS
 	SDL_Texture* GetTexture() const { return texture; }
 	int GetCurrentFrameIndex() const { return current_frame; }
+	std::string GetName() const { return output_name; }
+	bool IsLooping() const { return loop_flag; }
 
 private:
 	SDL_Texture* texture;
@@ -37,7 +46,9 @@ private:
 	bool loop_flag;
 
 	int current_frame;
-	int time_accumulator_ms;
 	bool finished;
+	std::string output_name;
+
+	Uint32 last_update_time;
 };
 #endif
