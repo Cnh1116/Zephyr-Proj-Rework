@@ -1,46 +1,49 @@
- #include "Player.hpp"
 #include <iostream>
+#include <random>
+
+#include "Player.hpp"
 #include "Graphics.hpp"
 #include "AnimationManager.hpp"
+#include "Collisions.hpp"
+#include "Sound.hpp"
 
 Player::Player(int PIXEL_SCALE, AnimationManager* animation_manager)
 {
     
     std::cout << "[*] I am a new player\n";
     image_scale = PIXEL_SCALE;
-    player_dest_rect = {0, 0, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
-    player_coll_rect = { 0, 0, BASE_SPRITE_SIZE*3, BASE_SPRITE_SIZE };
-
-    base_speed = 5.0;
-    dash_speed = 10.2;
-    base_damage = 10;
-    base_health = 150;
-    crit_percent = 1.0; // Percentage
-
-    state = "main";
-    current_frames = main_frames;
-    bool invincible = false;
-
-   
     
-    secondary_fire.source_rect = {32, 32, 32, 32}; 
-    secondary_fire.hud_dest_rect  = {player_dest_rect.x, player_dest_rect.y, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
-    //secondary_fire.hud_coll_rect = { (player_dest_rect.x + (player_dest_rect.w / 2) - (32 / 2)), player_dest_rect.y, 32, 32 };
-    secondary_fire.hud_coll_rect = { player_dest_rect.x, player_dest_rect.y, BASE_SPRITE_SIZE, BASE_SPRITE_SIZE };
-    secondary_fire.marker_active = false;
-
-
-
     animations["main"] = *animation_manager->Get("zephyr", "main");
     animations["iframes"] = *animation_manager->Get("zephyr", "iframes");
     animations["shield"] = *animation_manager->Get("zephyr", "shield");
     animations["secondary_fire_hud"] = *animation_manager->Get("zephyr", "secondary_fire_hud");
     animations["secondary_fire_marker"] = *animation_manager->Get("zephyr", "secondary_fire_marker");
     animations["shield_ready_effects"] = *animation_manager->Get("overlays", "shield_ready");
-
     current_animation = &animations["main"];
+    
+    state = "main";
+    bool invincible = false;
+
+    player_dest_rect = {0, 0, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
+    player_coll_rect = { 0, 0, BASE_SPRITE_SIZE*3, BASE_SPRITE_SIZE };
+
+    // BASE STATS
+    base_speed = 5.0;
+    dash_speed = 10.2;
+    base_damage = 10;
+    base_health = 150;
+    crit_percent = 1.0; // Percentage
 
     
+    secondary_fire.source_rect = {32, 32, 32, 32}; 
+    secondary_fire.hud_dest_rect  = {player_dest_rect.x, player_dest_rect.y, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
+    secondary_fire.hud_coll_rect = { player_dest_rect.x, player_dest_rect.y, BASE_SPRITE_SIZE, BASE_SPRITE_SIZE };
+    secondary_fire.marker_active = false;
+    secondary_fire.ready = true;
+    
+
+
+
     
 
 }
@@ -57,8 +60,11 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
     if (state != "shield" && shield.shield_ready == false && IsShieldReady())
     {
         shield.shield_ready = true;
-		std::cout << "[*] SHIELD IS READY ! ===========================================================================================\n";
-		overlay_animations.push_back(animations["shield_ready_effects"]);
+		std::cout << "[*] SHIELD IS READY !\n";
+        animations["shield_ready_effects"].OutputInformation();
+        animations["shield_ready_effects"].Reset();
+        animations["shield"].Reset();
+        overlay_animations.push_back(std::make_unique<Animation>(animations["shield_ready_effects"]));
     }
     
     if (state == "main")
@@ -93,7 +99,7 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
         if (animations["shield"].IsFinished())
         {
             state = "main";
-			animations["shield"].Reset();
+			
         }
     }
 
@@ -111,9 +117,23 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
     // ITEM STATS UPDATE
     crit_percent = player_items.num_glass_toucans * 2 + 1;
 
-    for (auto & animation : overlay_animations) 
-    { 
-        animation.Update(tick); std::cout << "UPDATING OVERLAY --------------------------------" << std::endl; 
+    for (auto it = overlay_animations.begin(); it != overlay_animations.end();)
+    {
+        // Update the animation
+        (*it)->Update(tick);
+
+        // Check if the animation is finished and not looping
+        if ((*it)->IsFinished() && !(*it)->IsLooping())
+        {
+            // Erase the animation and update the iterator
+            std::cout << "[*] Removing overlay animation\n";
+            it = overlay_animations.erase(it);
+        }
+        else
+        {
+            // Move to the next animation
+            ++it;
+        }
     }
 
     
@@ -148,6 +168,30 @@ bool Player::IsFireSecondaryReady()
     {
         //std::cout << "[*] Secondary Fire on cooldown\n";
         return(false);
+    }
+}
+
+void Player::ShootPrimaryFire(std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, ItemManager* item_manager)
+{
+    if (this->IsFirePrimaryReady())
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distrib(0, 100);
+
+        // CRIT
+        if (distrib(gen) <= this->GetCrit())
+        {
+            sound_manager.PlaySound("player_crit", 45);
+            sound_manager.PlaySound("player_primary_fire", 55);
+            game_projectiles.emplace_back(new PrimaryFire(player_dest_rect, 5.0, base_damage, 2, true));
+        }
+        // NORMAL
+        else
+        {
+            sound_manager.PlaySound("player_primary_fire", 55);
+            game_projectiles.emplace_back(new PrimaryFire(player_dest_rect, 5.0, base_damage, 2, false));
+        }
     }
 }
 
@@ -260,6 +304,29 @@ void Player::SetSpeed(float speed) //NOT NEEDED?? SPEED IS MANAGED IN STATE MACH
     current_speed = speed;
 }
 
+void Player::ShootSecondaryFire(std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, ItemManager* item_manager)
+{
+    if (this->IsFireSecondaryReady())
+    {
+        this->SetSecondaryFireMarkerActive(true);
+        this->SetSecondaryFireMarkerPosition();
+        game_projectiles.emplace_back(new SecondaryFire(player_dest_rect, secondary_fire.speed, 4));
+
+        for (int i = 0; i < item_manager->GetItemList()->size(); i++)
+        {
+            if (Collisions::RectRectCollision(&secondary_fire.hud_coll_rect, &item_manager->GetItemList()->at(i).item_dest_rect, false))
+            {
+                std::cout << "[*] Player shot an item!\n";
+                this->AddItem(item_manager->GetItemList()->at(i).name);
+
+                sound_manager.PlaySound("item_collection_sound", 55);
+            }
+        }
+
+        sound_manager.PlaySound("player_secondary_fire", 55);
+    }
+}
+
 SDL_Rect* Player::GetSecondaryFirePosition()
 {
     return &secondary_fire.hud_dest_rect;
@@ -291,6 +358,8 @@ SDL_Rect* Player::GetSecondaryFireHudColl()
     return &secondary_fire.hud_coll_rect;
 }
 
+
+// STAT GETTERS ==================================
 float Player::GetBaseDamage()
 {
     return(base_damage);
@@ -305,32 +374,12 @@ float Player::GetCrit()
     return crit_percent;
 }
 
-std::string Player::GetTextureKey()
-{
-    return current_texture_key;
-}
-Uint32 Player::GetFrameTime()
-{
-    return frame_time_ms_ms;
-}
-Uint32 Player::GetLastFrameStart()
-{
-    return last_frame_time_ms;
-}
-SDL_Rect* Player::GetFrame()
-{
-    return &current_frames.at(current_frame_index);
-}
 
 std::string Player::GetPlayerState()
 {
     return state;
 }
 
-void Player::SetShieldLastFrameTime(Uint32 current_time)
-{
-    shield.last_shield_frame_time_ms = current_time;
-}
 
 void Player::SetShieldLastTimeUsed(Uint32 last_time_used)
 {
@@ -340,15 +389,9 @@ void Player::SetShieldLastTimeUsed(Uint32 last_time_used)
 void Player::UpdatePlayerState(std::string new_state)
 {
     state = new_state;
-    current_frame_index = 0;
-    shield.shield_frame_index = 0;
-    current_iframe_index = 0;
 }
 
-SDL_Rect* Player::GetShieldFrame()
-{
-    return &shield.shield_frames[shield.shield_frame_index];
-}
+
 SDL_Rect* Player::GetShieldColl()
 {
     return &shield.coll_rect;
@@ -357,19 +400,8 @@ SDL_Rect* Player::GetShieldDstRect()
 {
     return &shield.dest_rect;
 }
-int Player::GetShieldNumFrames()
-{
-    return shield.shield_frames.size();
-}
 
-Uint32 Player::GetShieldFrameTime()
-{
-    return shield.shield_frame_time_ms_ms;
-}
-Uint32 Player::GetLastShieldFrameStart()
-{
-    return shield.last_shield_frame_time_ms;
-}
+
 Uint32 Player::GetShieldLastTimeUsed()
 {
     return shield.last_time_used;
@@ -377,11 +409,6 @@ Uint32 Player::GetShieldLastTimeUsed()
 Uint32 Player::GetShieldCooldown()
 {
     return shield.shield_cooldown_ms;
-}
-
-void Player::AdvanceShieldFrame()
-{
-    shield.shield_frame_index++;
 }
 
 float Player::GetDashSpeed()
@@ -446,7 +473,12 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     for (auto& animation : overlay_animations) 
     {  
 		std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
-        animation.Draw(renderer, player_dest_rect, SDL_FLIP_NONE);  
+        SDL_Rect* current_frame = animation->GetCurrentFrame();
+        SDL_Rect temp = {   (player_dest_rect.x + player_dest_rect.w / 2) - current_frame->w * animation->GetScale() / 2, 
+                            (player_dest_rect.y + player_dest_rect.h / 2) - current_frame->h * animation->GetScale() / 2,
+                            current_frame->w,
+                            current_frame->h };
+        animation->Draw(renderer, temp, SDL_FLIP_NONE);
     }
 
     if (collision_box_flag)
@@ -476,133 +508,8 @@ int Player::GetNumItem(std::string item_name)
         return player_items.num_garnet_shields;
 }
 
-int Player::NumOfFrames()
-{
-    return current_frames.size();
-}
-
-void Player::SetLastFrameTime(Uint32 current_time)
-{
-    last_frame_time_ms = current_time;
-}
-
-int Player::GetFrameIndex()
-{
-    return current_frame_index;
-}
-
-void Player::AdvanceFrame()
-{
-    current_frame_index++;
-}
-
-void Player::SetFrameIndex(int index)
-{
-    current_frame_index = 0;
-}
 
 void Player::ChangeHealth(float health_modifier)
 {
     base_health += health_modifier;
-}
-
-Uint32 Player::GetIframeTime()
-{
-    return i_frame_time_ms;
-}
-Uint32 Player::GetLastIFrameStart()
-{
-    return last_i_frame_time_ms;
-}
-
-void Player::AdvanceIFrame()
-{
-    current_iframe_index++;
-}
-void Player::SetLastIFrameTime(Uint32 last_time)
-{
-    last_i_frame_time_ms = last_time;
-}
-
-bool Player::IsHealingEffectsActive()
-{
-    return show_healing_effects;
-}
-void Player::SetHealingEffectsActive(bool flag)
-{
-    show_healing_effects = flag;
-}
-bool Player::IsShieldEffectsActive()
-{
-    return show_shield_ready_effects;
-}
-void Player::SetShieldReadyEffectsActive(bool flag)
-{
-    show_shield_ready_effects = flag;
-}
-
-SDL_Rect* Player::GetHealEffectsFrame()
-{
-    return &heal_effect_frames.at(heal_effect_frame_index);
-}
-SDL_Rect* Player::GetShieldEffectsFrame()
-{
-    return &shield_ready_effect_frames.at(shield_ready_effect_frame_index);
-}
-
-Uint32 Player::GetShieldReadyEffectsFrameTime()
-{
-    return shield_ready_frame_time_ms;
-}
-Uint32 Player::GetShieldReadyEffectsLastFrameTime()
-{
-    return shield_ready_last_frame_time_ms;
-}
-Uint32 Player::GetHealEffectsFrameTime()
-{
-    return heal_effect_frame_time_ms;
-}
-Uint32 Player::GetHealEffectsLastFrameTime()
-{
-    return last_heal_effect_frame_time_ms;
-}
-void Player::SetHealEffectsLastFrameTime(Uint32 last_time)
-{
-    last_heal_effect_frame_time_ms = last_time;
-}
-int Player::GetHealEffectsFrameIndex()
-{
-    return heal_effect_frame_index;
-}
-int Player::NumHealEffectsFrames()
-{
-    return heal_effect_frames.size();
-}
-void Player::AdvanceHealEffectFrame()
-{
-    heal_effect_frame_index++;
-}
-void Player::SetHealEffectsFrame(int frame_index)
-{
-    heal_effect_frame_index = frame_index;
-}
-void Player::SetShieldReadyEffectsLastFrameTime(Uint32 last_time)
-{
-    shield_ready_last_frame_time_ms = last_time;
-}
-int Player::GetShieldReadyEffectsFrameIndex()
-{
-    return shield_ready_effect_frame_index;
-}
-int Player::NumShieldReadyEffectsFrames()
-{
-    return shield_ready_effect_frames.size();
-}
-void Player::AdvanceShieldReadyEffectFrame()
-{
-    shield_ready_effect_frame_index++;
-}
-void Player::SetShieldReadyEffectsFrame(int frame_index)
-{
-    shield_ready_effect_frame_index = frame_index;
 }

@@ -108,54 +108,14 @@ void Game::RunGame()
         if (keystates[SDL_SCANCODE_DOWN]) // DOWN //
         {
             
-            if(player.IsFireSecondaryReady())
-            {
-                player.SetSecondaryFireMarkerActive(true);
-                player.SetSecondaryFireMarkerPosition();
-                game_projectiles.emplace_back(new SecondaryFire(*player.GetDstRect(),  player.GetSecondaryFireSpeed(), 4));
-
-                for(int i = 0; i < item_manager->GetItemList()->size(); i++)
-                {
-                    if (RectRectCollision(player.GetSecondaryFireHudColl(), &item_manager->GetItemList()->at(i).item_dest_rect, false))
-                    {
-                        std::cout << "[*] Player shot an item!\n";
-                        player.AddItem(item_manager->GetItemList()->at(i).name);
-
-                        sound_manager->PlaySound("item_collection_sound", 55);
-                    }
-                }
-
-                sound_manager->PlaySound("player_secondary_fire", 55);
-            }
+			player.ShootSecondaryFire(game_projectiles, *sound_manager, item_manager);
         }
 
 
         if (keystates[SDL_SCANCODE_UP]) // UP ARROW //
         {
-            
-            if(player.IsFirePrimaryReady())
-            {
-                // IN ORDER TO MAKE DIFF SIZES WORK, PROJECTILES SHOULD GET ENTIRE SDL REC OT PLAYER / ENEMY. Make the 
-                // dest rect of the projectile: X: (player.x + player.w / 2) - (projectile.w / 2)
-                // Make collision rect of the projectile = dest rec for now
+            player.ShootPrimaryFire(game_projectiles, *sound_manager, item_manager);
 
-                std::random_device rd;
-                std::mt19937 gen(rd());
-                std::uniform_int_distribution<> distrib(0, 100);
-                if (distrib(gen) <= player.GetCrit())
-                {
-                    sound_manager->PlaySound("player_crit", 45);
-                    sound_manager->PlaySound("player_primary_fire", 55);
-                    game_projectiles.emplace_back(new PrimaryFire(*player.GetDstRect(), 5.0, player.GetBaseDamage(), 2, true));
-                }
-                else
-                {
-                    sound_manager->PlaySound("player_primary_fire", 55);
-                    game_projectiles.emplace_back(new PrimaryFire(*player.GetDstRect(), 5.0, player.GetBaseDamage(), 2, false));
-                }
-                
-                std::cout << "[*] UP Pressed. \n";
-            }
         }
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~
@@ -291,14 +251,14 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
         // ITEM COLLECTION
         if ( dynamic_cast<SecondaryFire*>( game_projectiles.at(i) ) )
         {
-            if (RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetSecondaryFireMarkerCollision(), false))
+            if (Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetSecondaryFireMarkerCollision(), false))
             {
                 player->SetSecondaryFireMarkerActive(false);
 
                 bool collided_with_item = false;
                 for (int j = 0; j < (*item_list).size(); j++)
                 {
-                    if (RectRectCollision(&(*item_list).at(j).item_cloud_coll_rect, game_projectiles.at(i)->GetCollisionRect(), false))
+                    if (Collisions::RectRectCollision(&(*item_list).at(j).item_cloud_coll_rect, game_projectiles.at(i)->GetCollisionRect(), false))
                     {
                         collided_with_item = true;
                         if (game_projectiles.at(i)->GetState() == "main")
@@ -319,7 +279,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
         {
             if (game_projectiles.at(i)->GetState() == "main")
             {
-                if ((player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
+                if ((player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
                 {
                     sound_manager->PlaySound("player_hit", 100);
                     player->UpdatePlayerState("iframes");
@@ -330,7 +290,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 55); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
                 }
 
-                if (player->GetPlayerState() == "shield" && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetShieldColl(), false))
+                if (player->GetPlayerState() == "shield" && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetShieldColl(), false))
                 {
                     sound_manager->PlaySound("player_shield_hit", 90);
                     game_projectiles.at(i)->UpdateState("impact");
@@ -338,13 +298,15 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
                     if (player->GetNumItem("garnet_shield") > 0)
                     {
+                        
+                        //player->Heal()
                         sound_manager->PlaySound("player_heal", 80);
                         player->ChangeHealth(player->GetNumItem("garnet_shield") * 5); // Heal 5HP for every stack of garnet shield
-                        player->SetHealingEffectsActive(true);
+                        //player->SetHealingEffectsActive(true);
                     }
                 }
 
-                if (player->GetPlayerState() == "iframes" && RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
+                if (player->GetPlayerState() == "iframes" && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
                 {
                     game_projectiles.at(i)->UpdateState("impact");
                 }
@@ -357,7 +319,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
         for (int k = 0; k < enemies.size(); k++)
         {
             // PLAYER PROJECTILES HURTING ENEMIES
-            if (game_projectiles.at(i)->player_projectile && RectRectCollision(game_projectiles.at(i)->GetDstRect(), enemies.at(k)->GetCollRect(), false))
+            if (game_projectiles.at(i)->player_projectile && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), enemies.at(k)->GetCollRect(), false))
             {
 
                 if (auto* primary_projectile = dynamic_cast<PrimaryFire*>(game_projectiles.at(i)))
@@ -401,7 +363,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                 
             }
 
-            if (RectRectCollision(enemies.at(k)->GetCollRect(), player->GetCollRect(), false) && (player->GetPlayerState() != "iframes"))
+            if (Collisions::RectRectCollision(enemies.at(k)->GetCollRect(), player->GetCollRect(), false) && (player->GetPlayerState() != "iframes"))
             {
                 sound_manager->PlaySound("player_hit", 80);
                 player->ChangeHealth(-20);
@@ -452,32 +414,6 @@ void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
     }
 }
 
-bool Game::RectRectCollision(SDL_Rect* rect_1, SDL_Rect* rect_2, bool print_flag)
-{
-    if (print_flag)
-    {
-        std::cout << "X: " << rect_1->x << "Y: " << rect_1->y << "W: " << rect_1->w << "H: " << rect_1->h << " VERSUS " 
-            << "X: " << rect_2->x << "Y: " << rect_2->y << "W: " << rect_2->w << "H: " << rect_2->h << std::endl;
-
-        std::cout << (rect_1->x < rect_2->x + rect_2->w &&
-            rect_1->x + rect_1->w > rect_2->x &&
-            rect_1->y < rect_2->y + rect_2->h &&
-            rect_1->y + rect_1->h > rect_2->y) << std::endl;
-    }
-    return (rect_1->x < rect_2->x + rect_2->w &&
-            rect_1->x + rect_1->w > rect_2->x &&
-            rect_1->y < rect_2->y + rect_2->h &&
-            rect_1->y + rect_1->h > rect_2->y);
-}
-
-bool Game::RectCircleCollision(SDL_Rect* rect_1, int circle_x, int circle_y, int circle_r)
-{
-    return true;
-}
-bool Game::CircleCircleCollision(int circle1_x, int circle1_y, int circle1_r, int circle2_x, int circle2_y, int circle2_r)
-{
-    return true;
-}
 
 void Game::FPSLogic(Uint32 current_tick)
 {

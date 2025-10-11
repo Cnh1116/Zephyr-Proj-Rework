@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\Animation.cpp" />
     <ClCompile Include="..\..\src\AnimationManager.cpp" />
+    <ClCompile Include="..\..\src\Collisions.cpp" />
     <ClCompile Include="..\..\src\Enemy.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\Graphics.cpp" />
@@ -148,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\Animation.hpp" />
     <ClInclude Include="..\..\include\AnimationManager.hpp" />
+    <ClInclude Include="..\..\include\Collisions.hpp" />
     <ClInclude Include="..\..\include\Enemy.hpp" />
     <ClInclude Include="..\..\include\Game.hpp" />
     <ClInclude Include="..\..\include\Graphics.hpp" />

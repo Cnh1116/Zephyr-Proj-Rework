@@ -14,7 +14,8 @@ public:
 				const std::vector<SDL_Rect>& frames,
 				int frame_time_ms,
 				bool loop_flag,
-				std::string output_name);
+				std::string output_name,
+				float scale);
 
 	~Animation();
 
@@ -35,16 +36,18 @@ public:
 
 	// GETTERS
 	SDL_Texture* GetTexture() const { return texture; }
+	SDL_Rect* GetCurrentFrame() { return &frames[current_frame]; }
 	int GetCurrentFrameIndex() const { return current_frame; }
 	std::string GetName() const { return output_name; }
 	bool IsLooping() const { return loop_flag; }
+	float GetScale() const { return scale; }
 
 private:
 	SDL_Texture* texture;
 	std::vector<SDL_Rect> frames;
 	int frame_time_ms;
 	bool loop_flag;
-
+	float scale = 1.0f;
 	int current_frame;
 	bool finished;
 	std::string output_name;

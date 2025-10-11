@@ -32,6 +32,7 @@ class AnimationManager
 			bool loop_flag;
 			bool vertical;
 			std::string output_name;
+			float scale;
 		};
 
 		std::unordered_map<std::string, std::unordered_map<std::string, Animation*>> animations;

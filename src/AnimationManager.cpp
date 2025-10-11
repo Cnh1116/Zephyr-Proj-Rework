@@ -52,7 +52,7 @@ bool AnimationManager::LoadFromFile(const std::string& jsonPath) {
            a.vertical = (layout == "vertical");
            //a.vertical = d.value("vertical", false);  
 		   a.output_name = categoryName + "-" + a.name;
-
+           a.scale = d.value("scale", 1.0f);
 
 
            std::cout << "    Texture Path: " << a.texture_path << "\n";  
@@ -62,6 +62,7 @@ bool AnimationManager::LoadFromFile(const std::string& jsonPath) {
            std::cout << "    Frame Time (ms): " << a.frame_time_ms << "\n";  
            std::cout << "    Loop Flag: " << a.loop_flag << "\n";  
            std::cout << "    Vertical: " << (a.vertical ? "true" : "false") << "\n";  
+
 
            animations[categoryName][a.name] = CreateAnimation(a);  
        }  
@@ -98,7 +99,7 @@ Animation* AnimationManager::CreateAnimation(const AnimationData& data)
         frames.push_back(rect);
     }
     std::cout << "Created animation: " << data.output_name << " LOOP FLAG: " << data.loop_flag << std::endl;
-    return new Animation(texture, frames, data.frame_time_ms, data.loop_flag, data.output_name);
+    return new Animation(texture, frames, data.frame_time_ms, data.loop_flag, data.output_name, data.scale);
 }
 
 Animation* AnimationManager::Get(const std::string& category, const std::string& name) 

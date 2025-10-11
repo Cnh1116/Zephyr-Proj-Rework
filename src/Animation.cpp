@@ -11,21 +11,24 @@ Animation::Animation()
 	current_frame(0),
 	last_update_time(0),
 	finished(false),
-	output_name("BLANK") {}
+	output_name("BLANK"),
+	scale(1.0){}
 
 Animation::Animation(SDL_Texture* texture,
 					 const std::vector<SDL_Rect>& frames,
 					 int frame_time_ms,
 					 bool loop_flag,
-					 std::string output_name)
+					 std::string output_name,
+					 float scale)
 	  : texture(texture),
 		frames(frames),
 		frame_time_ms(frame_time_ms),
 		loop_flag(loop_flag),
 		current_frame(0),
-		last_update_time(0),
+		last_update_time(SDL_GetTicks()),
 		finished(false),
-		output_name(output_name){}
+		output_name(output_name),
+		scale(scale){}
 
 Animation::~Animation() {}
 
@@ -63,7 +66,7 @@ void Animation::Update(Uint32 time_delta) {
 }
 
 void Animation::Draw(SDL_Renderer* renderer,
-	const SDL_Rect& destRect,
+	const SDL_Rect& dest_rect,
 	SDL_RendererFlip flip)
 {
 	if (!texture || frames.empty())
@@ -78,8 +81,11 @@ void Animation::Draw(SDL_Renderer* renderer,
 		exit(1);
 	}
 	
-	const SDL_Rect& srcRect = frames[current_frame];
-	if (SDL_RenderCopy(renderer, texture, &srcRect, &destRect) != 0)
+	SDL_Rect scaled_dest_rect = dest_rect;
+	scaled_dest_rect.w = static_cast<int>(scaled_dest_rect.w * scale);
+	scaled_dest_rect.h = static_cast<int>(scaled_dest_rect.h * scale);
+
+	if (SDL_RenderCopy(renderer, texture, &frames[current_frame], &scaled_dest_rect) != 0)
 	{
 		std::cerr << "SDL_RenderCopyEx Error: " << SDL_GetError() << std::endl;
 
@@ -88,8 +94,10 @@ void Animation::Draw(SDL_Renderer* renderer,
 
 bool Animation::IsFrameDone()
 {
+	
+	
 	Uint32 current_time = SDL_GetTicks();
-
+	std::cout << "Last Update Time: " << last_update_time << " Frame Time (ms): " << frame_time_ms << " Current Time" << current_frame << std::endl;
 	if ((current_time - last_update_time) >= frame_time_ms)
 	{
 		return(true);
@@ -110,7 +118,7 @@ void Animation::OutputInformation()
 
 void Animation::Reset() {
 	current_frame = 0;
-	last_update_time = 0;
+	last_update_time = SDL_GetTicks();
 	finished = false;
 }
 
