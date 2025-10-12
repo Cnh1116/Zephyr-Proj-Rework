@@ -20,7 +20,7 @@ class Player
     public:
         
         // Constructor
-        Player(int PIXEL_SCALE, AnimationManager* animation_manager);
+        Player(int PIXEL_SCALE, AnimationManager& animation_manager);
 
         //UPDATE
         void Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager);
@@ -36,13 +36,16 @@ class Player
         void SetPosition(int x, int y, int SCREEN_WIDTH, int SCREEN_HEIGHT);
         void SetImageScale(int image_scale);
         
-        // STATS
+        //HEALTH
+        int GetCurrentHealth();
+        int GetMaxHealth();
         void Heal(int recovery_amount, SoundManager& sound_manager);
         void Hurt(int damage, SoundManager& sound_manager);
+
+        // STATS
         float GetCrit();
         float GetSpeed();
         void SetSpeed(float speed);
-		int GetHealth();
         bool CanParryHeal();
         float GetBaseDamage();
 
@@ -114,10 +117,12 @@ class Player
         float base_speed;
         float current_speed;
         int base_damage;
-        int base_health;
         float crit_percent = 0;
         Uint32 last_parry_heal_time = 0;
         Uint32 parry_heal_buffer = 500;
+
+        int max_health;
+        int current_health;
         
         //IMAGE STUFF --- NEEDS TO BE DEPRECIATED
         int BASE_SPRITE_SIZE = 32;
@@ -192,9 +197,9 @@ class Player
         
 
         // ANIMATIONS
-		std::unordered_map<std::string, Animation> animations;              //The State related animations to choose from
-        std::vector<std::unique_ptr<Animation>> overlay_animations;         //Animations that play over the base animation (like i-frames)
+        std::vector<std::unique_ptr<Animation>> overlay_animations;
         Animation* current_animation;
+        AnimationManager& animation_manager;
 };
 
 #endif

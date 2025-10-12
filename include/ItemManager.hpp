@@ -6,10 +6,13 @@
 #include <iostream>
 
 class Graphics;
+class Animation;
+class AnimationManager;
 
 class ItemManager
 {
-    
+protected:
+    AnimationManager* animation_manager;
     public:
        struct item
         {
@@ -17,33 +20,26 @@ class ItemManager
             SDL_Rect item_cloud_dest_rect;
             SDL_Rect item_cloud_coll_rect;
             std::string name;
+
+            std::vector<std::unique_ptr<Animation>> overlay_animations;
+            std::unique_ptr<Animation> item_cloud_animation;
+            std::unique_ptr<Animation> current_animation;
+
             bool destroyed;
             // rarity?
         };
 
-        ItemManager();
+        ItemManager(AnimationManager* animation_manager);
         std::vector<item>* GetItemList();
         void UpdateItemList(); // This is where the logic of when to spawn items occurs.
-        SDL_Texture* GetItemCloudTexture();
+		void DrawItems(SDL_Renderer* renderer, bool collision_box_flag, int screen_width, int screen_height);
 
     private:
-        std::string item_cloud_png = "/home/monkey-d-luffy/Cpp-Sdl2-Learning/assets/sprites/item-sprites/item-cloud.png";
-        SDL_Texture* item_cloud_texture;
 
         Uint32 time_last_item_spawned;
         Uint32 cooldown_item_spawn_ms = 3000;
 
-        //ITEMS
-        SDL_Texture* glass_toucan_texture;
-        std::string  glass_toucan_png = "/home/monkey-d-luffy/Cpp-Sdl2-Learning/assets/sprites/item-sprites/glass_toucan4.png";
-
         std::vector<item> item_list;
-
-
-
-
- 
-
 };
 
 #endif

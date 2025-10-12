@@ -107,15 +107,15 @@ Animation* AnimationManager::Get(const std::string& category, const std::string&
     auto catIt = animations.find(category);
     if (catIt == animations.end())
     {
-        std::cerr << "Category '" << category << "' not found.\n";
-        exit(1);
+        std::cerr << "[!] Category '" << category << "' not found.\n";
+        return nullptr;
     }
 
     auto animIt = catIt->second.find(name);
-    if (animIt == catIt->second.end()) 
+    if (animIt == catIt->second.end())
     {
-        std::cerr << "Category '" << category << "' not found.\n";
-        exit(1);
+        std::cerr << "[!] Animation '" << name << "' in category '" << category << "' not found.\n";
+        return nullptr;
     }
 
     return animIt->second;

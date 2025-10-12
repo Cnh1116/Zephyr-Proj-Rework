@@ -9,9 +9,10 @@
 
 class Enemy
 {
-
+    protected:
+        AnimationManager& animation_manager;
     public:
-        Enemy(const SDL_Rect& dest_rect, const SDL_Rect& coll_rect,
+        Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, const SDL_Rect& coll_rect,
             float move_speed, int health_arg, float crit, float start_damage);
 
        
@@ -38,9 +39,8 @@ class Enemy
         int image_scale;
 
         // ANIMATIONS
-        std::unordered_map<std::string, Animation> animations;
         std::vector<std::unique_ptr<Animation>> overlay_animations;         
-        Animation* current_animation;
+        std::unique_ptr<Animation> current_animation;
 
         //std::string current_texture_key;
         //std::string main_texture_key;
@@ -75,32 +75,32 @@ class Enemy
         bool invincible;
 
         // Override Functions
-        virtual void Update(Player *player) = 0;
+        virtual void Update(Player *player, std::vector<Projectile*>& game_projectiles) = 0;
+        virtual void Attack(std::vector<Projectile*>& game_projectiles, Player* player) = 0;
         virtual void Move(Player* player) = 0;
         virtual bool IsReadyToAttack() = 0;
         virtual void Draw(SDL_Renderer* renderer, bool collision_box_flag) = 0;
-
-
-
 };
 
 class IceCrystal : public Enemy 
 {
     public:
-        IceCrystal(AnimationManager* animation_manager, const SDL_Rect& rect);
-        void Update(Player *player) override;
+        IceCrystal(AnimationManager& animation_manager, const SDL_Rect& rect);
+        void Update(Player *player, std::vector<Projectile*>& game_projectiles) override;
         void Move(Player* player) override;
         bool IsReadyToAttack() override;
+        void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
 };
 
 class StormCloud : public Enemy
 {
     public:
-        StormCloud(AnimationManager* animation_manager, int screen_width, int screen_height, int player_x, int player_y);
-        void Update(Player* player) override;
+        StormCloud(AnimationManager& animation_manager, int screen_width, int screen_height, int player_x, int player_y);
+        void Update(Player* player, std::vector<Projectile*>& game_projectiles) override;
         void Move(Player* player) override;
         bool IsReadyToAttack() override;
+        void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
 
         int GetGoalX();
@@ -122,12 +122,16 @@ class
     StormGenie: public Enemy
 {
 public:
-    StormGenie(AnimationManager* animation_manager, const SDL_Rect& rect);
-    void Update(Player* player) override;
+    StormGenie(AnimationManager& animation_manager, const SDL_Rect& rect);
+    void Update(Player* player, std::vector<Projectile*>& game_projectiles) override;
     void Move(Player* player) override;
     bool IsReadyToAttack() override;
+    void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
     void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
 
+private:
+    bool shot_fired;
+    bool spawned_lightning;
 	
 };
 #endif

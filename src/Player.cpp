@@ -7,21 +7,15 @@
 #include "Collisions.hpp"
 #include "Sound.hpp"
 
-Player::Player(int PIXEL_SCALE, AnimationManager* animation_manager)
+Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
+    : animation_manager(animation_manager_arg)
 {
-    
     std::cout << "[*] I am a new player\n";
     image_scale = PIXEL_SCALE;
     
-    animations["main"] = *animation_manager->Get("zephyr", "main");
-    animations["iframes"] = *animation_manager->Get("zephyr", "iframes");
-    animations["shield"] = *animation_manager->Get("zephyr", "shield");
-    animations["secondary_fire_hud"] = *animation_manager->Get("zephyr", "secondary_fire_hud");
-    animations["secondary_fire_marker"] = *animation_manager->Get("zephyr", "secondary_fire_marker");
-    animations["shield_ready_effects"] = *animation_manager->Get("overlays", "shield_ready");
-    animations["heal"] = *animation_manager->Get("overlays", "heal");
-    current_animation = &animations["main"];
-    
+
+    current_animation = animation_manager_arg.Get("zephyr", "main");
+
     state = "main";
     bool invincible = false;
 
@@ -32,7 +26,8 @@ Player::Player(int PIXEL_SCALE, AnimationManager* animation_manager)
     base_speed = 5.0;
     dash_speed = 10.2;
     base_damage = 10;
-    base_health = 150;
+    max_health = 200;
+    current_health = max_health;
     crit_percent = 1.0; // Percentage
 
     
@@ -46,6 +41,7 @@ Player::Player(int PIXEL_SCALE, AnimationManager* animation_manager)
 
 void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager)
 {
+    std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << &animation_manager << std::endl;
     SetPosition(x_pos, y_pos, SCREEN_WIDTH, SCREEN_HEIGHT);
 	std::cout << "[*] Player STATE: " << state << std::endl;
     
@@ -57,17 +53,17 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
         shield.shield_ready = true;
 		std::cout << "[*] SHIELD IS READY !\n";
 
-        animations["shield_ready_effects"].OutputInformation();
-        animations["shield_ready_effects"].Reset();
-        animations["shield"].Reset();
-        overlay_animations.push_back(std::make_unique<Animation>(animations["shield_ready_effects"]));
+		
+        animation_manager.Get("zephyr", "shield")->Reset();
+        animation_manager.Get("overlays", "shield_ready")->Reset();
+        overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "shield_ready")));
 
 		sound_manager.PlaySound("jade_drum", 55);
     }
     
     if (state == "main")
     {
-        current_animation = &animations["main"];
+        current_animation = animation_manager.Get("zephyr", "main");
         shield.coll_rect = { 0,0,0,0 };
         current_speed = base_speed;
     }
@@ -77,15 +73,15 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
         if (IsIframesDone())
         {
             state = "main";
-			current_animation = &animations["main"];
+			current_animation = animation_manager.Get("zephyr", "main");
             last_iframes_start = SDL_GetTicks();
         }
-        current_animation = &animations["iframes"];
+        current_animation = animation_manager.Get("zephyr", "iframes");
     }
 
     if (state == "shield")
     {
-        animations["shield"].Update();
+        animation_manager.Get("zephyr","shield")->Update();
 
         shield.shield_ready = false;
         current_speed = base_speed;
@@ -94,7 +90,7 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
         shield.coll_rect = { player_dest_rect.x + (player_dest_rect.w/2) - shield_width/2, player_dest_rect.y + (player_dest_rect.h / 2) - (shield_height / 2), shield_width, shield_height };
         shield.dest_rect = { player_dest_rect.x, player_dest_rect.y, player_dest_rect.w, player_dest_rect.h };
 
-        if (animations["shield"].IsFinished())
+        if (animation_manager.Get("zephyr", "shield")->IsFinished())
         {
             state = "main";
 			
@@ -182,13 +178,13 @@ void Player::ShootPrimaryFire(std::vector<Projectile*>& game_projectiles, SoundM
         {
             sound_manager.PlaySound("player_crit", 45);
             sound_manager.PlaySound("player_primary_fire", 55);
-            game_projectiles.emplace_back(new PrimaryFire(player_dest_rect, 5.0, base_damage, 2, true));
+            game_projectiles.emplace_back(new PrimaryFire(animation_manager, player_dest_rect, 5.0, base_damage, 2, true));
         }
         // NORMAL
         else
         {
             sound_manager.PlaySound("player_primary_fire", 55);
-            game_projectiles.emplace_back(new PrimaryFire(player_dest_rect, 5.0, base_damage, 2, false));
+            game_projectiles.emplace_back(new PrimaryFire(animation_manager, player_dest_rect, 5.0, base_damage, 2, false));
         }
     }
 }
@@ -308,7 +304,7 @@ void Player::ShootSecondaryFire(std::vector<Projectile*>& game_projectiles, Soun
     {
         this->SetSecondaryFireMarkerActive(true);
         this->SetSecondaryFireMarkerPosition();
-        game_projectiles.emplace_back(new SecondaryFire(player_dest_rect, secondary_fire.speed, 4));
+        game_projectiles.emplace_back(new SecondaryFire(animation_manager, player_dest_rect, secondary_fire.speed, 4));
 
         //for (int i = 0; i < item_manager->GetItemList()->size(); i++)
         //{
@@ -373,9 +369,14 @@ bool Player::CanParryHeal()
     return false;
 }
 
-int Player::GetHealth()
+int Player::GetMaxHealth()
 {
-    return base_health;
+    return max_health;
+}
+
+int Player::GetCurrentHealth()
+{
+    return current_health;
 }
 float Player::GetCrit()
 {
@@ -465,16 +466,16 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     current_animation->Draw(renderer, player_dest_rect, SDL_FLIP_NONE);
     current_animation->OutputInformation();
 
-	animations["secondary_fire_hud"].Draw(renderer, secondary_fire.hud_dest_rect, SDL_FLIP_NONE);
+	animation_manager.Get("zephyr", "secondary_fire_hud")->Draw(renderer, secondary_fire.hud_dest_rect, SDL_FLIP_NONE);
 
     if (secondary_fire.marker_active)
     {
-        animations["secondary_fire_marker"].Draw(renderer, secondary_fire.marker_dest_rect, SDL_FLIP_NONE);
+        animation_manager.Get("zephyr", "secondary_fire_marker")->Draw(renderer, secondary_fire.marker_dest_rect, SDL_FLIP_NONE);
     }
 
     if (state == "shield")
     {
-		animations["shield"].Draw(renderer, player_dest_rect, SDL_FLIP_NONE);
+		animation_manager.Get("zephyr", "shield")->Draw(renderer, player_dest_rect, SDL_FLIP_NONE);
     }
     
     
@@ -482,10 +483,10 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     {  
 		std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
         SDL_Rect* current_frame = animation->GetCurrentFrame();
-        SDL_Rect temp = {   (player_dest_rect.x + player_dest_rect.w / 2) - current_frame->w * animation->GetScale() / 2, 
-                            (player_dest_rect.y + player_dest_rect.h / 2) - current_frame->h * animation->GetScale() / 2,
-                            current_frame->w,
-                            current_frame->h };
+        SDL_Rect temp = {   player_dest_rect.x + (player_dest_rect.w - current_frame->w *  animation->GetScale()) / 2, 
+                            player_dest_rect.y + (player_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
+                            current_frame->w * animation->GetScale(),
+                            current_frame->h * animation->GetScale() };
         animation->Draw(renderer, temp, SDL_FLIP_NONE);
     }
 
@@ -522,12 +523,12 @@ void Player::Heal(int recovery_amount, SoundManager& sound_manager)
 
     std::cout << "[*] Player healed for " << recovery_amount << " health points.============================================================================================================\n";
     sound_manager.PlaySound("player_heal", 80);
-    overlay_animations.push_back(std::make_unique<Animation>(animations["heal"]));
-    base_health += recovery_amount;
+    overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "heal")));
+    current_health += recovery_amount;
 
 }
 void Player::Hurt(int damage, SoundManager& sound_manager)
 {
     sound_manager.PlaySound("player_hurt", 80);
-    base_health -= damage;
+    current_health -= damage;
 }

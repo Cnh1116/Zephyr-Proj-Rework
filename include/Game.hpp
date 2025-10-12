@@ -29,10 +29,13 @@ class Game
 
     
     private:
+        // ORDER HERE MATTERS
         Graphics* graphics_manager;
         SoundManager* sound_manager;
+        AnimationManager* animation_manager;
         ItemManager* item_manager;
-		AnimationManager* animation_manager;
+        
+		
         // player
         // enemy spawner
         // item spawner

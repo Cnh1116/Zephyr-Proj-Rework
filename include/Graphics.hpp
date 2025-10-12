@@ -37,7 +37,7 @@ public:
     SDL_Texture* GetTexture(const char* png_path);
 
     void RenderText(const std::string& text, const SDL_Rect& rect, SDL_Color color);
-    void RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies, bool render_coll_boxes);
+    void RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, ItemManager& item_manager, std::vector<Enemy*>& enemies, bool render_coll_boxes);
     void BackgroundUpdate(Uint32 loop_flag);
 
 

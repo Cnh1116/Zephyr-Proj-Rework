@@ -82,8 +82,8 @@ void Animation::Draw(SDL_Renderer* renderer,
 	}
 	
 	SDL_Rect scaled_dest_rect = dest_rect;
-	scaled_dest_rect.w = static_cast<int>(scaled_dest_rect.w * scale);
-	scaled_dest_rect.h = static_cast<int>(scaled_dest_rect.h * scale);
+	scaled_dest_rect.w = static_cast<int>(scaled_dest_rect.w);
+	scaled_dest_rect.h = static_cast<int>(scaled_dest_rect.h);
 
 	if (SDL_RenderCopy(renderer, texture, &frames[current_frame], &scaled_dest_rect) != 0)
 	{

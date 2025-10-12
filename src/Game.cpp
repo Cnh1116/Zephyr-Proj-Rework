@@ -16,8 +16,8 @@ Game::Game() // Game constructor acts as my INIT function for the game.
 	  animation_manager(new AnimationManager(graphics_manager->GetRenderer())),
       game_over(false),
       times_X_pressed(0),
-      item_manager(new ItemManager()),
-      player(Player(PIXEL_SCALE, animation_manager))
+      item_manager(new ItemManager(animation_manager)),
+      player(Player(PIXEL_SCALE, *animation_manager))
 {
     // Load Player Sprite
     player.SetPosition( (WINDOW_WIDTH/2) - (player.GetDstRect()->w / 2), WINDOW_HEIGHT - (player.GetDstRect()->h), WINDOW_WIDTH, WINDOW_HEIGHT );
@@ -129,7 +129,7 @@ void Game::RunGame()
         graphics_manager->BackgroundUpdate(loop_flag);
 
         player.Update(dx * player.GetSpeed(), dy * player.GetSpeed(), WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag, time_delta, *sound_manager);
-        if (player.GetHealth() <= 0)
+        if (player.GetCurrentHealth() <= 0)
             game_over = true;
 
         for (int i = 0; i < game_projectiles.size();)
@@ -149,23 +149,23 @@ void Game::RunGame()
 
         for (int i = 0; i < enemies.size();)
         {
-            enemies.at(i)->Update(&player); //proj->update() which calles movePRojectile and should ++animation sprite
-            if (enemies.at(i)->IsReadyToAttack())
-            {
-                if (dynamic_cast<IceCrystal*>(enemies.at(i)))
-                    game_projectiles.emplace_back(new IceShard(enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage));
-                
-                if (dynamic_cast<StormCloud*>(enemies.at(i)))
-                    game_projectiles.emplace_back(new LightningBall(enemies.at(i)->enemy_dest_rect, 7.5, 3, enemies.at(i)->base_damage, (player.GetCollRect()->x + (player.GetCollRect()->w/2)), (player.GetCollRect()->y + (player.GetCollRect()->h / 2))));
-                
-                if (dynamic_cast<StormGenie*>(enemies.at(i)))
-                {
-                    const SDL_Rect left_bolt_dst = { 0, enemies.at(i)->enemy_dest_rect.y, enemies.at(i)->enemy_dest_rect.x, 48};
-                    const SDL_Rect right_bolt_dst = { enemies.at(i)->enemy_dest_rect.x + enemies.at(i)->enemy_dest_rect.w, enemies.at(i)->enemy_dest_rect.y, (WINDOW_WIDTH - (enemies.at(i)->enemy_dest_rect.x + enemies.at(i)->enemy_dest_rect.w)), 48 };
-                    game_projectiles.emplace_back(new LightningStrike(right_bolt_dst, 3, enemies.at(i)->base_damage, true));
-                    game_projectiles.emplace_back(new LightningStrike(left_bolt_dst, 3, enemies.at(i)->base_damage, false));
-                }
-            }
+            enemies.at(i)->Update(&player, game_projectiles); //proj->update() which calles movePRojectile and should ++animation sprite
+            //if (enemies.at(i)->IsReadyToAttack())
+            //{
+            //    if (dynamic_cast<IceCrystal*>(enemies.at(i)))
+            //        game_projectiles.emplace_back(new IceShard(*animation_manager, enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage));
+            //    
+            //    if (dynamic_cast<StormCloud*>(enemies.at(i)))
+            //        game_projectiles.emplace_back(new LightningBall(*animation_manager, enemies.at(i)->enemy_dest_rect, 7.5, 3, enemies.at(i)->base_damage, (player.GetCollRect()->x + (player.GetCollRect()->w/2)), (player.GetCollRect()->y + (player.GetCollRect()->h / 2))));
+            //    
+            //    /*if (dynamic_cast<StormGenie*>(enemies.at(i)))
+            //    {
+            //        const SDL_Rect left_bolt_dst = { 0, enemies.at(i)->enemy_dest_rect.y, enemies.at(i)->enemy_dest_rect.x, 48};
+            //        const SDL_Rect right_bolt_dst = { enemies.at(i)->enemy_dest_rect.x + enemies.at(i)->enemy_dest_rect.w, enemies.at(i)->enemy_dest_rect.y, (WINDOW_WIDTH - (enemies.at(i)->enemy_dest_rect.x + enemies.at(i)->enemy_dest_rect.w)), 48 };
+            //        game_projectiles.emplace_back(new LightningStrike(*animation_manager, right_bolt_dst, 3, enemies.at(i)->base_damage, true));
+            //        game_projectiles.emplace_back(new LightningStrike(*animation_manager, left_bolt_dst, 3, enemies.at(i)->base_damage, false));
+            //    }*/
+            //}
 
             if (enemies.at(i)->GetState() == "delete")
             {
@@ -187,7 +187,7 @@ void Game::RunGame()
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~  RENDER Player, Projectiles and Enemies     ~
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        graphics_manager->RenderGameItems(&player, game_projectiles, item_manager->GetItemList(), enemies, render_coll_boxes);
+        graphics_manager->RenderGameItems(&player, game_projectiles, *item_manager, enemies, render_coll_boxes);
 
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~
@@ -264,9 +264,14 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                         collided_with_item = true;
                         if (game_projectiles.at(i)->GetState() == "main")
                         {
-                            player->AddItem(item_list->at(j).name);
+                            if((*item_list).at(j).destroyed == false)
+                            
+                            {
+                                player->AddItem(item_list->at(j).name);
+                                sound_manager->PlaySound("item_collection_sound", 45);
+                            }
+                            
                             sound_manager->PlaySound("player_secondary_fire_impact", 45);
-                            sound_manager->PlaySound("item_collection_sound", 45);
                             game_projectiles.at(i)->UpdateState("impact");
                             (*item_list).at(j).destroyed = true;
                         }
@@ -381,30 +386,56 @@ void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
 {
     if (enemies.size() == 0 or enemies.size() == 1)
     {
+        
+        // PICK A RANDOM ENEMY
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_int_distribution<> distrib(0, 1000);
+        std::uniform_int_distribution<> distrib_enemy(0, 1000);
         std::cout << "[*] Updating Enemies since size is 0\n";
-        int enemy_index = distrib(gen) % 3;
+        int enemy_index = distrib_enemy(gen) % 3;
 
+        
 
         
         switch (enemy_index)
         {
             case 0:
             {
-                enemies.emplace_back(new IceCrystal(animation_manager, { 400,70,64 * 3,64 * 3 }));
+                std::uniform_int_distribution<> distrib_x(0, graphics_manager->GetScreenWidth());
+                int random_location_x = distrib_x(gen);
+
+                std::uniform_int_distribution<> distrib_y(0, 200);
+                int random_location_y = distrib_y(gen);
+                enemies.emplace_back(new IceCrystal(*animation_manager,
+                                                    { random_location_x,
+                                                      random_location_y,
+                                                      64 * 3,
+                                                      64 * 3 }));
                 break;
             }
 
             case 1:
             {
-                enemies.emplace_back(new StormCloud(animation_manager, graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight(), player.GetDstRect()->x + (player.GetDstRect()->w / 2), player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
+                enemies.emplace_back(new StormCloud(*animation_manager, 
+                                                    graphics_manager->GetScreenWidth(), 
+                                                    graphics_manager->GetScreenHeight(), 
+                                                    player.GetDstRect()->x + (player.GetDstRect()->w / 2), 
+                                                    player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
                 break;
             }
             case 2:
             {
-                enemies.emplace_back(new StormGenie(animation_manager, { 400,70,64 * 3,64 * 3 }));
+                std::uniform_int_distribution<> distrib_x(0, graphics_manager->GetScreenWidth() * 0.8);
+                int random_location_x = distrib_x(gen);
+
+                std::uniform_int_distribution<> distrib_y(0, graphics_manager->GetScreenHeight() * 0.8);
+                int random_location_y = distrib_y(gen);
+                
+                enemies.emplace_back(new StormGenie(*animation_manager, 
+                                                    { random_location_x,
+                                                      random_location_y,
+                                                      64 * 3,
+                                                      64 * 3 }));
                 break;
             }
             default:
