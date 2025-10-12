@@ -19,6 +19,7 @@ Player::Player(int PIXEL_SCALE, AnimationManager* animation_manager)
     animations["secondary_fire_hud"] = *animation_manager->Get("zephyr", "secondary_fire_hud");
     animations["secondary_fire_marker"] = *animation_manager->Get("zephyr", "secondary_fire_marker");
     animations["shield_ready_effects"] = *animation_manager->Get("overlays", "shield_ready");
+    animations["heal"] = *animation_manager->Get("overlays", "heal");
     current_animation = &animations["main"];
     
     state = "main";
@@ -40,16 +41,10 @@ Player::Player(int PIXEL_SCALE, AnimationManager* animation_manager)
     secondary_fire.hud_coll_rect = { player_dest_rect.x, player_dest_rect.y, BASE_SPRITE_SIZE, BASE_SPRITE_SIZE };
     secondary_fire.marker_active = false;
     secondary_fire.ready = true;
-    
-
-
-
-    
-
 }
 
 
-void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick)
+void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager)
 {
     SetPosition(x_pos, y_pos, SCREEN_WIDTH, SCREEN_HEIGHT);
 	std::cout << "[*] Player STATE: " << state << std::endl;
@@ -61,10 +56,13 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
     {
         shield.shield_ready = true;
 		std::cout << "[*] SHIELD IS READY !\n";
+
         animations["shield_ready_effects"].OutputInformation();
         animations["shield_ready_effects"].Reset();
         animations["shield"].Reset();
         overlay_animations.push_back(std::make_unique<Animation>(animations["shield_ready_effects"]));
+
+		sound_manager.PlaySound("jade_drum", 55);
     }
     
     if (state == "main")
@@ -87,7 +85,7 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
 
     if (state == "shield")
     {
-        animations["shield"].Update(tick);
+        animations["shield"].Update();
 
         shield.shield_ready = false;
         current_speed = base_speed;
@@ -120,7 +118,7 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
     for (auto it = overlay_animations.begin(); it != overlay_animations.end();)
     {
         // Update the animation
-        (*it)->Update(tick);
+        (*it)->Update();
 
         // Check if the animation is finished and not looping
         if ((*it)->IsFinished() && !(*it)->IsLooping())
@@ -138,7 +136,7 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
 
     
 
-	current_animation->Update(tick);
+	current_animation->Update();
 
 
 }
@@ -312,16 +310,16 @@ void Player::ShootSecondaryFire(std::vector<Projectile*>& game_projectiles, Soun
         this->SetSecondaryFireMarkerPosition();
         game_projectiles.emplace_back(new SecondaryFire(player_dest_rect, secondary_fire.speed, 4));
 
-        for (int i = 0; i < item_manager->GetItemList()->size(); i++)
-        {
-            if (Collisions::RectRectCollision(&secondary_fire.hud_coll_rect, &item_manager->GetItemList()->at(i).item_dest_rect, false))
-            {
-                std::cout << "[*] Player shot an item!\n";
-                this->AddItem(item_manager->GetItemList()->at(i).name);
+        //for (int i = 0; i < item_manager->GetItemList()->size(); i++)
+        //{
+        //    if (Collisions::RectRectCollision(&secondary_fire.hud_coll_rect, &item_manager->GetItemList()->at(i).item_dest_rect, false))
+        //    {
+        //        std::cout << "[*] Player shot an item!\n";
+        //        this->AddItem(item_manager->GetItemList()->at(i).name);
 
-                sound_manager.PlaySound("item_collection_sound", 55);
-            }
-        }
+        //        sound_manager.PlaySound("item_collection_sound", 55);
+        //    }
+        //}
 
         sound_manager.PlaySound("player_secondary_fire", 55);
     }
@@ -363,6 +361,16 @@ SDL_Rect* Player::GetSecondaryFireHudColl()
 float Player::GetBaseDamage()
 {
     return(base_damage);
+}
+
+bool Player::CanParryHeal()
+{
+    if (SDL_GetTicks() - last_parry_heal_time >= parry_heal_buffer) 
+    {
+        last_parry_heal_time = SDL_GetTicks();
+        return true;
+    }
+    return false;
 }
 
 int Player::GetHealth()
@@ -509,7 +517,17 @@ int Player::GetNumItem(std::string item_name)
 }
 
 
-void Player::ChangeHealth(float health_modifier)
+void Player::Heal(int recovery_amount, SoundManager& sound_manager)
 {
-    base_health += health_modifier;
+
+    std::cout << "[*] Player healed for " << recovery_amount << " health points.============================================================================================================\n";
+    sound_manager.PlaySound("player_heal", 80);
+    overlay_animations.push_back(std::make_unique<Animation>(animations["heal"]));
+    base_health += recovery_amount;
+
+}
+void Player::Hurt(int damage, SoundManager& sound_manager)
+{
+    sound_manager.PlaySound("player_hurt", 80);
+    base_health -= damage;
 }

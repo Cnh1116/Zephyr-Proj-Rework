@@ -32,7 +32,7 @@ Animation::Animation(SDL_Texture* texture,
 
 Animation::~Animation() {}
 
-void Animation::Update(Uint32 time_delta) {
+void Animation::Update() {
 	
 	if (finished || frames.empty()) 
 	{

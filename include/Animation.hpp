@@ -21,7 +21,7 @@ public:
 
 	
 	// Every Frame Updates ?
-	void Update(Uint32 time_delta);
+	void Update();
 	void Draw(	SDL_Renderer* renderer,
 				const SDL_Rect& dest_rect,
 				SDL_RendererFlip flip = SDL_FLIP_NONE);

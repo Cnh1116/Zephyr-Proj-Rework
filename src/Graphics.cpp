@@ -303,39 +303,41 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
             enemies.at(i)->GetDstRect()->y <= screen_height)
         {
 
-            if (0 != SDL_RenderCopy(renderer, texture_map[enemies.at(i)->GetTextureKey()], enemies.at(i)->GetFrame(), enemies.at(i)->GetDstRect())) //Second arg NULL means use whole png.
-            {
-                std::cout << "[!] " << "TextureKey: " << enemies.at(i)->GetTextureKey() << std::endl;
-                std::cout << "[!] " << "TextureKey: " << enemies.at(i)->GetFrame()->x << enemies.at(i)->GetFrame()->y << enemies.at(i)->GetFrame()->w << enemies.at(i)->GetFrame()->h << std::endl;
-                std::cout << "[!] " << "TextureKey: " << enemies.at(i)->GetDstRect()->x << enemies.at(i)->GetDstRect()->y << enemies.at(i)->GetDstRect()->w << enemies.at(i)->GetDstRect()->h << std::endl;
-                std::cout << "[!] Enemy failed to render.\n"; 
-            }
-            if (StormCloud* stormCloud = dynamic_cast<StormCloud*>(enemies[i])) 
-            {
-                SDL_Rect rect;
-                int size = 5;
-                rect.x = stormCloud->GetGoalX() - size / 2; // Center the point
-                rect.y = stormCloud->GetGoalY() - size / 2; // Center the point
-                rect.w = size;         // Width of the rectangle
-                rect.h = size;
-                // Now it's safe to call the special function
-                if (render_coll_boxes)
-                {
-                    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-                    if (0 != SDL_RenderFillRect(renderer, &rect))
-                    {
-                        std::cout << "[*] Error rendering point storm cloud goal point ...\n";
-                    }
-                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-                }
-            }
+            
+			enemies.at(i)->Draw(renderer, render_coll_boxes);
+            //if (0 != SDL_RenderCopy(renderer, texture_map[enemies.at(i)->GetTextureKey()], enemies.at(i)->GetFrame(), enemies.at(i)->GetDstRect())) //Second arg NULL means use whole png.
+            //{
+            //    std::cout << "[!] " << "TextureKey: " << enemies.at(i)->GetTextureKey() << std::endl;
+            //    std::cout << "[!] " << "TextureKey: " << enemies.at(i)->GetFrame()->x << enemies.at(i)->GetFrame()->y << enemies.at(i)->GetFrame()->w << enemies.at(i)->GetFrame()->h << std::endl;
+            //    std::cout << "[!] " << "TextureKey: " << enemies.at(i)->GetDstRect()->x << enemies.at(i)->GetDstRect()->y << enemies.at(i)->GetDstRect()->w << enemies.at(i)->GetDstRect()->h << std::endl;
+            //    std::cout << "[!] Enemy failed to render.\n"; 
+            //}
+            //if (StormCloud* stormCloud = dynamic_cast<StormCloud*>(enemies[i])) 
+            //{
+            //    SDL_Rect rect;
+            //    int size = 5;
+            //    rect.x = stormCloud->GetGoalX() - size / 2; // Center the point
+            //    rect.y = stormCloud->GetGoalY() - size / 2; // Center the point
+            //    rect.w = size;         // Width of the rectangle
+            //    rect.h = size;
+            //    // Now it's safe to call the special function
+            //    if (render_coll_boxes)
+            //    {
+            //        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            //        if (0 != SDL_RenderFillRect(renderer, &rect))
+            //        {
+            //            std::cout << "[*] Error rendering point storm cloud goal point ...\n";
+            //        }
+            //        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            //    }
+            //}
 
-            if (render_coll_boxes)
+            /*if (render_coll_boxes)
             {
                 SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
                 SDL_RenderDrawRect(renderer, enemies.at(i)->GetCollRect());
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-            }
+            }*/
         }
         else
         {
@@ -550,19 +552,19 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
         }
     }*/
 
-    // NEEDS TO BE IN ENEMY UPDATE METHOD
-    for (int i = 0; i < enemies.size(); i++)
-    {
-        if (IsFrameDone(enemies.at(i)->GetFrameTime(), enemies.at(i)->GetLastFrameStart()))
-        {
-            enemies.at(i)->SetLastFrameTime(SDL_GetTicks());
+    //// NEEDS TO BE IN ENEMY UPDATE METHOD
+    //for (int i = 0; i < enemies.size(); i++)
+    //{
+    //    if (IsFrameDone(enemies.at(i)->GetFrameTime(), enemies.at(i)->GetLastFrameStart()))
+    //    {
+    //        enemies.at(i)->SetLastFrameTime(SDL_GetTicks());
 
-            if (enemies.at(i)->GetFrameIndex() < enemies.at(i)->NumOfFrames() - 1)
-                enemies.at(i)->AdvanceFrame();
-            else
-                enemies.at(i)->SetFrameIndex(0);
-        }
-    }
+    //        if (enemies.at(i)->GetFrameIndex() < enemies.at(i)->NumOfFrames() - 1)
+    //            enemies.at(i)->AdvanceFrame();
+    //        else
+    //            enemies.at(i)->SetFrameIndex(0);
+    //    }
+    //}
 
 }
 

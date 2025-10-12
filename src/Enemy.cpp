@@ -2,20 +2,15 @@
 #include <SDL.h>
 #include <random>
 #include <iostream>
-
 #include "Enemy.hpp"
 #include "Player.hpp"
+#include "AnimationManager.hpp"
 
-Enemy::Enemy(const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, std::vector<SDL_Rect> spawn_frames_arg, std::vector<SDL_Rect> main_frames_arg, std::vector<SDL_Rect> attack_frames_arg, std::vector<SDL_Rect> death_frames_arg,  float move_speed, int health_arg, float crit, float start_damage)
+Enemy::Enemy(const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, float move_speed, int health_arg, float crit, float start_damage)
 {
 	enemy_dest_rect = dest_rect;
 	enemy_coll_rect = coll_rect;
-	spawn_frames = spawn_frames_arg;
-	main_frames = main_frames_arg;
-	attack_frames = attack_frames_arg;
-	death_frames = death_frames_arg;
-	last_frame_time_ms = 0;
-	
+
 	movement_speed = move_speed;
 	base_health = health_arg;
 	base_damage = start_damage;
@@ -23,22 +18,6 @@ Enemy::Enemy(const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, std::vector<S
 	invincible = false;
 	state = "main";
 }
-
-void Enemy::AdvanceFrame()
-{
-	current_frame_index++;
-}
-
-std::string Enemy::GetState()
-{
-	return state;
-}
-
-std::string Enemy::GetTextureKey()
-{
-	return (current_texture_key);
-}
-
 
 // Setters and Getters
 SDL_Rect* Enemy::GetCollRect()
@@ -50,45 +29,16 @@ SDL_Rect* Enemy::GetDstRect()
 	return &enemy_dest_rect;
 }
 
-SDL_Rect* Enemy::GetFrame()
-{
-	return &current_frames[current_frame_index];
-}
-
-int Enemy::NumOfFrames()
-{
-	return current_frames.size();
-}
-
 void Enemy::UpdateState(std::string new_state)
 {
 	state = new_state;
-	current_frame_index = 0;
 }
 
-Uint32 Enemy::GetLastFrameStart()
+std::string Enemy::GetState()
 {
-	return last_frame_time_ms;
-}
-Uint32 Enemy::GetFrameTime()
-{
-	return frame_time_ms_ms;
+	return(state);
 }
 
-void Enemy::SetLastFrameTime(Uint32 current_time) 
-{
-	last_frame_time_ms = current_time;
-}
-
-void Enemy::SetFrameIndex(int index)
-{
-	current_frame_index = index;
-}
-
-int Enemy::GetFrameIndex()
-{
-	return current_frame_index;
-}
 
 int Enemy::GetHealth()
 {
@@ -99,19 +49,35 @@ void Enemy::ChangeHealth(int health_diff)
 	base_health += health_diff;
 }
 
+bool Enemy::IsDoneAttacking()
+{
+	Uint32 current_time = SDL_GetTicks();
+	if ((current_time - last_fire_time) >= fire_cooldown_ms)
+	{
+		return(true);
+	}
+
+	else
+	{
+		//std::cout << "[*] Frame is not done\n";
+		return(false);
+	}
+}
+
 
 
 
 
 // ICE CRYSTAL ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-IceCrystal::IceCrystal(const SDL_Rect& dest_rect)
-	: Enemy(dest_rect, dest_rect, 
-		{ {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64} }, // Spawn frame
-		{ {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64}}, // Main frames
-		{ {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64} }, // Attack Frames
-		{{ 0,0,64,64 }, { 64,0,64,64 }, { 128,0,64,64 }, { 192,0,64,64 }, { 256,0,64,64 }, { 320,0,64,64 }, { 384,0,64,64 }, { 448,0,64,64 }, { 512,0,64,64 }, { 576,0,64,64 }, { 640,0,64,64 }, { 704,0,64,64 }}, // Death frames 
-		1.0, 100, 0, 35)
+IceCrystal::IceCrystal(AnimationManager* animation_manager, const SDL_Rect& dest_rect)
+	: Enemy(dest_rect, dest_rect, 1.0, 100, 0, 35)
 {
+	animations["main"] = *animation_manager->Get("enemy-ice-crystal", "main");
+	animations["death"] = *animation_manager->Get("enemy-ice-crystal", "death");
+	animations["heal"] = *animation_manager->Get("overlays", "heal");
+	animations["death"].Reset();
+	state = "main";
+	current_animation = &animations["main"];
 	fire_cooldown_ms = 300;
 }
 
@@ -126,8 +92,7 @@ void IceCrystal::Update(Player *player)
 			movement_speed *= -1;
 		}
 
-		current_texture_key = "purple_crystal_main";
-		current_frames = main_frames;
+		current_animation = &animations["main"];
 		Move(player);
 	}
 
@@ -135,17 +100,27 @@ void IceCrystal::Update(Player *player)
 
 	if (state == "death")
 	{
-		enemy_coll_rect = { 0,0,0,0 };
-		if (current_frame_index >= death_frames.size() - 1)
+		if (current_animation->GetCurrentFrameIndex() == 1)
 		{
-			state = "delete";
+			std::cout << "[*] Ice crystal dying, adding heal overlay~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+			overlay_animations.push_back(std::make_unique<Animation>(animations["heal"]));
 		}
-		
-		current_texture_key = "purple_crystal_death";
-		current_frames = death_frames;
-
+		current_animation = &animations["death"];
+		enemy_coll_rect = { 0,0,0,0 };
+		if (current_animation->IsFinished())
+		{
+			current_animation->Reset();
+			state = "delete";
+			
+		}
 
 	}
+	current_animation->Update();
+	for (auto& animation : overlay_animations)
+	{
+		animation->Update();
+	}
+	
 	
 }
 
@@ -185,18 +160,47 @@ bool IceCrystal::IsReadyToAttack()
 
 }
 
+void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
+{
+	std::cout << "[*] Drawing Ice Crystal\n";
+
+	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
+
+	for (auto& animation : overlay_animations)
+	{
+		std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
+		SDL_Rect* current_frame = animation->GetCurrentFrame();
+		SDL_Rect temp = { (enemy_dest_rect.x + enemy_dest_rect.w / 2) - current_frame->w * animation->GetScale() / 2,
+							(enemy_dest_rect.y + enemy_dest_rect.h / 2) - current_frame->h * animation->GetScale() / 2,
+							current_frame->w,
+							current_frame->h };
+		animation->Draw(renderer, temp, SDL_FLIP_NONE);
+	}
+
+	if (collision_box_flag)
+	{
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+		if (0 != SDL_RenderDrawRect(renderer, &enemy_coll_rect))
+		{
+			std::cout << "[*] Error rendering ice crystal collision box ...\n";
+		}
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	}
+
+}
+
 // STORM CLOUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-StormCloud::StormCloud(int screen_width, int screen_height, int player_x, int player_y)
-	: Enemy({ -32,-32,48 * 4 ,32 * 4 }, { -32,-32,48 * 4,32 * 4 }, 
-		{ {0,0,48,32} }, // Spawn Frames
-		{ {0,0,48,32} }, // Main Frames
-		{ {0, 0, 48, 32}, {48, 0, 48, 32}, {96, 0, 48, 32}, {144, 0, 48, 32 }, {192, 0, 48, 32 }, {240, 0, 48, 32}, {288, 0, 48, 32} }, // Attack Frames
-		{ {{0, 0, 48, 32}, {48, 0, 48, 32}, {96, 0, 48, 32}, {144, 0, 48, 32 }, {192, 0, 48, 32 }, {240, 0, 48, 32}, {288, 0, 48, 32}} }, // Death Frames
-		4.7, 30, 0, 35)
+StormCloud::StormCloud(AnimationManager* animation_manager, int screen_width, int screen_height, int player_x, int player_y)
+	: Enemy({ -32,-32,48 * 4 ,32 * 4 }, { -32,-32,48 * 4,32 * 4 }, 4.7, 30, 0, 35)
 {
 	
 
-
+	animations["main"] = *animation_manager->Get("enemy-storm-cloud", "main");
+	animations["attack"] = *animation_manager->Get("enemy-storm-cloud", "attack");
+	animations["death"] = *animation_manager->Get("enemy-storm-genie", "death");
+	animations["heal"] = *animation_manager->Get("overlays", "heal");
+	current_animation = &animations["main"];
+	
 	std::cout << "[*] Goal x and y: " << goal_x << " " << goal_y << std::endl;
 	
 	std::random_device rd;
@@ -239,6 +243,7 @@ StormCloud::StormCloud(int screen_width, int screen_height, int player_x, int pl
 void StormCloud::Update(Player* player)
 {
 	float threshhold = 85;
+	std::cout << "STATE: " << state <<  "Shot Fired: " << shot_fired << "=============================================" << std::endl;
 
 	if (state == "main")
 	{
@@ -249,9 +254,6 @@ void StormCloud::Update(Player* player)
 			start_of_wait_state = SDL_GetTicks();
 		}
 
-
-		current_texture_key = "storm_cloud_attack"; //Still image of the first frame for the main image
-		current_frames = main_frames;
 	}
 
 	if (state == "wait")
@@ -273,13 +275,11 @@ void StormCloud::Update(Player* player)
 	if (state == "shoot")
 	{
 		if (!shot_fired)
-			current_frames = attack_frames;
+			current_animation = &animations["attack"];
 
 		std::cout << "[*] Storm cloud shooting\n";
 		if (shot_fired)
 		{
-			current_frame_index = 0;
-			current_frames = main_frames;
 			direction_x *= -1;
 			direction_y *= -1;
 			start_of_wait_state = SDL_GetTicks();
@@ -289,21 +289,28 @@ void StormCloud::Update(Player* player)
 
 	if (state == "retreat")
 	{
-		current_frame_index = 0;
-		current_frames = main_frames;
 		Move(player);
 	}
 
 	if (state == "death")
 	{
+		if (current_animation->GetCurrentFrameIndex() == 1)
+		{
+			overlay_animations.push_back(std::make_unique<Animation>(animations["heal"]));
+		}
 		enemy_coll_rect = { 0,0,0,0 };
-		if (current_frame_index >= death_frames.size() - 1)
+		if (current_animation->IsFinished())
 		{
 			state = "delete";
 		}
 
-		current_texture_key = "storm_cloud_death";
-		current_frames = death_frames;
+		current_animation = &animations["death"];
+	}
+
+	current_animation->Update();
+	for (auto& animation : overlay_animations)
+	{
+		animation->Update();
 	}
 }
 
@@ -325,13 +332,49 @@ void StormCloud::Move(Player* player)
 
 bool StormCloud::IsReadyToAttack()
 {
-	if (state == "shoot" && !shot_fired && current_frame_index == 3)
+	if (state == "shoot" && !shot_fired && current_animation->GetCurrentFrameIndex() == 4)
 	{
 		shot_fired = true;
 		return true;
 	}
 	else
 		return false;
+}
+
+void StormCloud::Draw(SDL_Renderer* renderer, bool collision_box_flag)
+{
+	std::cout << "[*] Drawing Storm Cloud\n";
+
+	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
+
+	for (auto& animation : overlay_animations)
+	{
+		std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
+		SDL_Rect* current_frame = animation->GetCurrentFrame();
+		SDL_Rect temp = { (enemy_dest_rect.x + enemy_dest_rect.w / 2) - current_frame->w * animation->GetScale() / 2,
+							(enemy_dest_rect.y + enemy_dest_rect.h / 2) - current_frame->h * animation->GetScale() / 2,
+							current_frame->w,
+							current_frame->h };
+		animation->Draw(renderer, temp, SDL_FLIP_NONE);
+	}
+	
+		SDL_Rect rect;
+		int size = 5;
+		rect.x = this->GetGoalX() - size / 2; // Center the point
+		rect.y = this->GetGoalY() - size / 2; // Center the point
+		rect.w = size;         // Width of the rectangle
+		rect.h = size;
+		// Now it's safe to call the special function
+		if (collision_box_flag)
+		{
+			SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+			if (0 != SDL_RenderFillRect(renderer, &rect))
+			{
+				std::cout << "[*] Error rendering point storm cloud goal point ...\n";
+			}
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		}
+	
 }
 
 int StormCloud::GetGoalX()
@@ -345,60 +388,66 @@ int StormCloud::GetGoalY()
 }
 
 // STORM GENIE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-StormGenie::StormGenie(const SDL_Rect& dest_rect)
-	: Enemy(dest_rect, dest_rect,
-		{ {0,0,64,64}, {64,0,64,64}, {128,0,64,64}, {192,0,64,64}, {256,0,64,64}, {320,0,64,64}, {384,0,64,64}, {448,0,64,64}, {512,0,64,64}, {576,0,64,64}, {640,0,64,64}, {704,0,64,64}, {768,0,64,64}, {832,0,64,64}, {896,0,64,64}, {960,0,64,64} }, // Spawn frame
-		{ {1024,0,64,64}, {1088,0,64,64}, {1152,0,64,64}, {1216,0,64,64} }, // Main frames
-		{ {1280,0,64,64}, {1344,0,64,64}, {1408,0,64,64}, {1472,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1536,0,64,64}, {1600,0,64,64} }, // Attack Frames
-		{ {0, 0, 48, 32}, {48, 0, 48, 32}, {96, 0, 48, 32}, {144, 0, 48, 32 }, {192, 0, 48, 32 }, {240, 0, 48, 32}, {288, 0, 48, 32} }, // Death frames 
-		2, 100, 0, 10)
+StormGenie::StormGenie(AnimationManager* animation_manager, const SDL_Rect& dest_rect)
+	: Enemy(dest_rect, dest_rect, 2, 100, 0, 10)
 {
+	animations["spawn"] = *animation_manager->Get("enemy-storm-genie", "spawn");
+	animations["main"] = *animation_manager->Get("enemy-storm-genie", "main");
+	animations["attack"] = *animation_manager->Get("enemy-storm-genie", "attack");
+	animations["death"] = *animation_manager->Get("enemy-storm-genie", "death");
+	animations["heal"] = *animation_manager->Get("overlays", "heal");
+	current_animation = &animations["spawn"];
+	
 	fire_cooldown_ms = 4000;
-	frame_time_ms_ms = 120;
 	state = "spawn";
-	current_texture_key = "storm_genie";
-	current_frame_index = 0;
 }
 
 void StormGenie::Update(Player* player)
 {
 	if (state == "spawn")
 	{
-		current_frames = spawn_frames;
-		if (current_frame_index == spawn_frames.size() - 1)
+		current_animation = &animations["spawn"];
+
+		if (current_animation->IsFinished())
 		{
+			animations["main"].Reset();
+			current_animation = &animations["main"];
 			state = "main";
-			current_frame_index = 0;
 		}
 	}
 
 	if (state == "main")
 	{
-
 		if (enemy_dest_rect.y == 0 || enemy_dest_rect.y + enemy_dest_rect.y == 2000) //Screen width
 		{
 			movement_speed *= -1;
 		}
-		current_frames = main_frames;
+
 		Move(player);
 		
+		// READY TO ATTACK
 		Uint32 current_time = SDL_GetTicks();
 		int vertical_difference = enemy_dest_rect.y - player->GetDstRect()->y;
 
 		if ((current_time - last_fire_time) >= fire_cooldown_ms && abs(vertical_difference) <  100)
 		{
+			animations["attack"].Reset();
+			current_animation = &animations["attack"];
 			last_fire_time = current_time;
 			state = "attacking";
 		}
+		// END READY TO ATTACK
 
 	}
 
 	if (state == "attacking")
 	{
-		current_frames = attack_frames;
-		if (current_frame_index == attack_frames.size() - 1)
+
+		if (current_animation->IsFinished())
 		{
-			current_frame_index = 0;
+			animations["main"].Reset();
+			current_animation = &animations["main"];
+
 			state = "main";
 			// MAKE GENIE GO UP for some Time, then go back towards the player, like the Mario3 angry sun
 		}
@@ -406,17 +455,25 @@ void StormGenie::Update(Player* player)
 
 	if (state == "death")
 	{
+		current_animation = &animations["death"];
 		enemy_coll_rect = { 0,0,0,0 };
-		current_texture_key = "storm_cloud_death";
-		if (current_frame_index >= death_frames.size() - 1)
+
+		if (current_animation->GetCurrentFrameIndex() == 1)
+		{
+			overlay_animations.push_back(std::make_unique<Animation>(animations["heal"]));
+		}
+
+		if (current_animation->IsFinished())
 		{
 			state = "delete";
 		}
 
-		
-		current_frames = death_frames;
+	}
 
-
+	current_animation->Update();
+	for (auto& animation : overlay_animations)
+	{
+		animation->Update();
 	}
 
 }
@@ -449,9 +506,37 @@ void StormGenie::Move(Player* player)
 bool StormGenie::IsReadyToAttack()
 {
 
-	if (state == "attacking" && current_frame_index == 4)
+	if (state == "attacking" && current_animation->GetCurrentFrameIndex() >= 4)
 		return true;
 	else
 		return false;
-
 }
+
+void StormGenie::Draw(SDL_Renderer* renderer, bool collision_box_flag)
+{
+	std::cout << "[*] Drawing Storm Genie\n";
+
+	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
+	for (auto& animation : overlay_animations)
+	{
+		std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
+		SDL_Rect* current_frame = animation->GetCurrentFrame();
+		SDL_Rect temp = { (enemy_dest_rect.x + enemy_dest_rect.w / 2) - current_frame->w * animation->GetScale() / 2,
+							(enemy_dest_rect.y + enemy_dest_rect.h / 2) - current_frame->h * animation->GetScale() / 2,
+							current_frame->w,
+							current_frame->h };
+		animation->Draw(renderer, temp, SDL_FLIP_NONE);
+	}
+
+	if (collision_box_flag)
+	{
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+		if (0 != SDL_RenderDrawRect(renderer, &enemy_coll_rect))
+		{
+			std::cout << "[*] Error rendering storm genie collision box ...\n";
+		}
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	}
+}
+
+

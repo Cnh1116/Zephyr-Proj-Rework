@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include <vector>
-//#include "Animation.hpp"
+#include "Animation.hpp"
 
 class Graphics;
 

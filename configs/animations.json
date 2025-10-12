@@ -21,9 +21,9 @@
 			"scale": 1.0
 		},
 		"shield": {
-			"texture": "..\\..\\assets\\sprites\\zephyr-sprites\\zephyr-shield.png",
-			"frame_width": 32,
-			"frame_height": 32,
+			"texture": "..\\..\\assets\\sprites\\zephyr-sprites\\shield-prime2.png",
+			"frame_width": 24,
+			"frame_height": 24,
 			"frames": 9,
 			"frame_time_ms": 100,
 			"loop_flag": false,
@@ -76,7 +76,7 @@
 	"enemy-storm-cloud": {
 		"main": {
 			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-cloud\\storm-cloud-main.png",
-			"frame_width": 32,
+			"frame_width": 48,
 			"frame_height": 32,
 			"frames": 6,
 			"frame_time_ms": 100,
@@ -86,7 +86,7 @@
 		},
 		"attack": {
 			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-cloud\\storm-cloud-attack.png",
-			"frame_width": 32,
+			"frame_width": 48,
 			"frame_height": 32,
 			"frames": 7,
 			"frame_time_ms": 100,
@@ -96,9 +96,9 @@
 		},
 		"death": {
 			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-cloud\\storm-cloud-death.png",
-			"frame_width": 64,
-			"frame_height": 64,
-			"frames": 12,
+			"frame_width": 48,
+			"frame_height": 32,
+			"frames": 6,
 			"frame_time_ms": 100,
 			"loop_flag": false,
 			"layout": "horizontal",
@@ -106,6 +106,16 @@
 		}
 	},
 	"enemy-storm-genie": {
+		"spawn": {
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-spawn.png",
+			"frame_width": 64,
+			"frame_height": 64,
+			"frames": 15,
+			"frame_time_ms": 100,
+			"loop_flag": false,
+			"layout": "horizontal",
+			"scale": 1.0
+		},
 		"main": {
 			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-main.png",
 			"frame_width": 64,
@@ -127,8 +137,8 @@
 			"scale": 1.0
 		},
 		"death": {
-			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-main.png",
-			"frame_width": 32,
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-death.png",
+			"frame_width": 48,
 			"frame_height": 32,
 			"frames": 7,
 			"frame_time_ms": 100,
@@ -251,10 +261,10 @@
 			"frame_width": 33,
 			"frame_height": 32,
 			"frames": 5,
-			"frame_time_ms": 100,
+			"frame_time_ms": 75,
 			"loop_flag": false,
 			"layout": "horizontal",
-			"scale": 1.0
+			"scale": 4.0
 		},
 		"shield_ready": {
 			"texture": "..\\..\\assets\\sprites\\overlay-sprites\\overlay-shield-ready.png",

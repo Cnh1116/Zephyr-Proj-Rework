@@ -1,8 +1,9 @@
 #include <iostream>
 #include "Projectiles.hpp"
 #include "Graphics.hpp"
+#include "AnimationManager.hpp"
 
-Projectile::Projectile(const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, bool player_projectile_flag, std::string main_texture_key_str, std::vector<SDL_Rect> frames, std::string impact_texture_key_str, std::vector<SDL_Rect> imp_frames, Uint32 frame_cooldown_ms, bool replayable, bool shift_impact_arg)
+Projectile::Projectile( const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, bool player_projectile_flag, std::string main_texture_key_str, std::vector<SDL_Rect> frames, std::string impact_texture_key_str, std::vector<SDL_Rect> imp_frames, Uint32 frame_cooldown_ms, bool replayable, bool shift_impact_arg)
     : dest_rect(dest_rect),
     speed(projectile_speed),
     damage(projectile_damage),

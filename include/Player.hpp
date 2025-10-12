@@ -23,7 +23,7 @@ class Player
         Player(int PIXEL_SCALE, AnimationManager* animation_manager);
 
         //UPDATE
-        void Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick);
+        void Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager);
         void Draw(SDL_Renderer* renderer, bool collision_box_flag);
 
         // STATE
@@ -32,16 +32,18 @@ class Player
 
         // LOCATION
         SDL_Rect* GetDstRect();
-        SDL_Rect* GetCollRect();
+        SDL_Rect* GetCollRect(); 
         void SetPosition(int x, int y, int SCREEN_WIDTH, int SCREEN_HEIGHT);
         void SetImageScale(int image_scale);
         
         // STATS
-        int GetHealth();
+        void Heal(int recovery_amount, SoundManager& sound_manager);
+        void Hurt(int damage, SoundManager& sound_manager);
         float GetCrit();
         float GetSpeed();
         void SetSpeed(float speed);
-        void ChangeHealth(float health_modifier);
+		int GetHealth();
+        bool CanParryHeal();
         float GetBaseDamage();
 
         // PRIMARY FIRE
@@ -114,6 +116,8 @@ class Player
         int base_damage;
         int base_health;
         float crit_percent = 0;
+        Uint32 last_parry_heal_time = 0;
+        Uint32 parry_heal_buffer = 500;
         
         //IMAGE STUFF --- NEEDS TO BE DEPRECIATED
         int BASE_SPRITE_SIZE = 32;

@@ -128,7 +128,7 @@ void Game::RunGame()
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
         graphics_manager->BackgroundUpdate(loop_flag);
 
-        player.Update(dx * player.GetSpeed(), dy * player.GetSpeed(), WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag, time_delta);
+        player.Update(dx * player.GetSpeed(), dy * player.GetSpeed(), WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag, time_delta, *sound_manager);
         if (player.GetHealth() <= 0)
             game_over = true;
 
@@ -256,6 +256,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                 player->SetSecondaryFireMarkerActive(false);
 
                 bool collided_with_item = false;
+
                 for (int j = 0; j < (*item_list).size(); j++)
                 {
                     if (Collisions::RectRectCollision(&(*item_list).at(j).item_cloud_coll_rect, game_projectiles.at(i)->GetCollisionRect(), false))
@@ -263,12 +264,16 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                         collided_with_item = true;
                         if (game_projectiles.at(i)->GetState() == "main")
                         {
+                            player->AddItem(item_list->at(j).name);
                             sound_manager->PlaySound("player_secondary_fire_impact", 45);
+                            sound_manager->PlaySound("item_collection_sound", 45);
                             game_projectiles.at(i)->UpdateState("impact");
                             (*item_list).at(j).destroyed = true;
                         }
                     }
                 }
+                
+                
                 if (!collided_with_item)
                     game_projectiles.at(i)->UpdateState("delete");  
             }
@@ -281,12 +286,11 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
             {
                 if ((player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
                 {
-                    sound_manager->PlaySound("player_hit", 100);
                     player->UpdatePlayerState("iframes");
 
                     game_projectiles.at(i)->UpdateState("impact");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
-                    player->ChangeHealth(-game_projectiles.at(i)->damage);
+                    player->Hurt(game_projectiles.at(i)->damage, *sound_manager);
                     sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 55); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
                 }
 
@@ -296,13 +300,12 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     game_projectiles.at(i)->UpdateState("impact");
                     sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 25);
 
-                    if (player->GetNumItem("garnet_shield") > 0)
+                    if (player->GetNumItem("garnet_shield") > 0 && player->CanParryHeal())
                     {
                         
-                        //player->Heal()
-                        sound_manager->PlaySound("player_heal", 80);
-                        player->ChangeHealth(player->GetNumItem("garnet_shield") * 5); // Heal 5HP for every stack of garnet shield
-                        //player->SetHealingEffectsActive(true);
+                        player->Heal(player->GetNumItem("garnet_shield") * 5, *sound_manager);
+                        
+                        
                     }
                 }
 
@@ -365,8 +368,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
             if (Collisions::RectRectCollision(enemies.at(k)->GetCollRect(), player->GetCollRect(), false) && (player->GetPlayerState() != "iframes"))
             {
-                sound_manager->PlaySound("player_hit", 80);
-                player->ChangeHealth(-20);
+                player->Hurt(20, *sound_manager);
                 player->UpdatePlayerState("iframes");
             }
         }
@@ -386,29 +388,29 @@ void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
         int enemy_index = distrib(gen) % 3;
 
 
-
+        
         switch (enemy_index)
         {
-        case 0:
-        {
-            enemies.emplace_back(new IceCrystal({ 400,70,64 * 3,64 * 3 }));
-            break;
-        }
+            case 0:
+            {
+                enemies.emplace_back(new IceCrystal(animation_manager, { 400,70,64 * 3,64 * 3 }));
+                break;
+            }
 
-        case 1:
-        {
-            enemies.emplace_back(new StormCloud(graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight(), player.GetDstRect()->x + (player.GetDstRect()->w / 2), player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
-            break;
-        }
-        case 2:
-        {
-            enemies.emplace_back(new StormGenie({ 400,70,64 * 3,64 * 3 }));
-            break;
-        }
-        default:
-        {
-            std::cout << "[!] ERROR Default hit for enemy switch statement\n";
-        }
+            case 1:
+            {
+                enemies.emplace_back(new StormCloud(animation_manager, graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight(), player.GetDstRect()->x + (player.GetDstRect()->w / 2), player.GetDstRect()->y + (player.GetDstRect()->h / 2)));
+                break;
+            }
+            case 2:
+            {
+                enemies.emplace_back(new StormGenie(animation_manager, { 400,70,64 * 3,64 * 3 }));
+                break;
+            }
+            default:
+            {
+                std::cout << "[!] ERROR Default hit for enemy switch statement\n";
+            }
         }
 
     }
