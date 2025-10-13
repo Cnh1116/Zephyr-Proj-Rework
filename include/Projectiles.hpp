@@ -23,12 +23,6 @@ protected:
 
         // Setters and Getters
         SDL_Rect* GetDstRect();
-       /* std::string GetTextureKey();
-        Uint32 GetFrameTime();
-        Uint32 GetLastFrameStart();
-        SDL_Rect* GetFrame();
-        bool IsReplayable();
-        int NumOfFrames();*/
         const char* GetState();
         SDL_Rect* GetCollisionRect();
         const char* GetSoundEffectImpact();
@@ -52,14 +46,7 @@ protected:
         // Other vars
         const char* state;
 
-        //// Texture Stuff
-        //std::vector<SDL_Rect> main_frames;
-        //std::vector<SDL_Rect> impact_frames;
-        //std::vector<SDL_Rect> current_frames;
-        //
-        //std::string main_texture_key;
-        //std::string impact_texture_key;
-        //std::string current_texture_key;
+
 
         // ANIMATIONS
         std::vector<std::unique_ptr<Animation>> overlay_animations;
@@ -67,11 +54,10 @@ protected:
 
         const char* sound_effect_impact;
         
-        int current_frame_index;
+
         SDL_Rect dest_rect;
         SDL_Rect collision_rect;
-        Uint32 frame_time_ms_ms;
-        Uint32 last_frame_time_ms;
+
         
         int BASE_SPRITE_SIZE = 32;
         int pixel_scale;

@@ -5,17 +5,17 @@
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 4,
-			"frame_time_ms": 100,
+			"frame_time_ms": 75,
 			"loop_flag": true,
 			"layout": "vertical",
 			"scale": 1.0
 		},
 		"iframes": {
-			"texture": "..\\..\\assets\\sprites\\zephyr-sprites\\zephyr-iframes.png",
+			"texture": "..\\..\\assets\\sprites\\zephyr-sprites\\zephyr-iframes-prime.png",
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 4,
-			"frame_time_ms": 100,
+			"frame_time_ms": 75,
 			"loop_flag": true,
 			"layout": "vertical",
 			"scale": 1.0

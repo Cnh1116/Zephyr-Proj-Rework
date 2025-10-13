@@ -22,6 +22,8 @@ class Enemy
         int GetHealth();
         void ChangeHealth(int health_diff);
 
+		int GetPoints();
+
         void UpdateState(std::string state);
         std::string GetState();
     
@@ -42,33 +44,11 @@ class Enemy
         std::vector<std::unique_ptr<Animation>> overlay_animations;         
         std::unique_ptr<Animation> current_animation;
 
-        //std::string current_texture_key;
-        //std::string main_texture_key;
-        //std::string death_texture_key;
-        //std::vector<SDL_Rect> spawn_frames;
-        //std::vector<SDL_Rect> main_frames;
-        //std::vector<SDL_Rect> death_frames;
-        //std::vector<SDL_Rect> attack_frames;
-        //std::vector<SDL_Rect> current_frames;
-        //int current_frame_index = 0;
-        //Uint32 frame_time_ms_ms = 150; // Might need seperate frame cool downs per animation type.
-        //Uint32 last_frame_time_ms = 0;
-        //// Functions
-        //void AdvanceFrame();
-
-        //SDL_Rect* GetFrame();
-        //std::string GetState();
-        //std::string GetTextureKey();
-        //int NumOfFrames();
-        //Uint32 GetLastFrameStart();
-        //Uint32 GetFrameTime();
-        //void SetLastFrameTime(Uint32 current_time);
-        //int GetFrameIndex();
-        //void SetFrameIndex(int index);
-
-
+        // Location
         SDL_Rect enemy_dest_rect;
         SDL_Rect enemy_coll_rect;
+
+        int points;
 
         //States
         std::string state;

@@ -38,6 +38,7 @@ public:
 	SDL_Texture* GetTexture() const { return texture; }
 	SDL_Rect* GetCurrentFrame() { return &frames[current_frame]; }
 	int GetCurrentFrameIndex() const { return current_frame; }
+	void SetCurrentFrameIndex(int index) { if (index >= 0 && index < frames.size()) current_frame = index; }
 	int GetFrameWidth() const { return frames[current_frame].w * scale; }
 	int GetFrameHeight() const { return frames[current_frame].h * scale; }
 	std::string GetName() const { return output_name; }

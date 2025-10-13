@@ -124,14 +124,20 @@ void Game::RunGame()
         HandleCollisions(&player, game_projectiles, item_manager->GetItemList(), enemies);
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  UPDATE Players, Projectiles and Enemies     ~
+        ~  UPDATE Background Clouds                    ~
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
         graphics_manager->BackgroundUpdate(loop_flag);
 
+        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~  UPDATE Players                              ~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
         player.Update(dx * player.GetSpeed(), dy * player.GetSpeed(), WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag, time_delta, *sound_manager);
         if (player.GetCurrentHealth() <= 0)
             game_over = true;
 
+        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~  UPDATE Projectiles                          ~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
         for (int i = 0; i < game_projectiles.size();)
         {
             game_projectiles.at(i)->Update(); //proj->update() which calles movePRojectile and should ++animation sprite
@@ -147,25 +153,12 @@ void Game::RunGame()
             }
         }
 
+        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~  UPDATE Enemies                              ~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
         for (int i = 0; i < enemies.size();)
         {
-            enemies.at(i)->Update(&player, game_projectiles); //proj->update() which calles movePRojectile and should ++animation sprite
-            //if (enemies.at(i)->IsReadyToAttack())
-            //{
-            //    if (dynamic_cast<IceCrystal*>(enemies.at(i)))
-            //        game_projectiles.emplace_back(new IceShard(*animation_manager, enemies.at(i)->enemy_dest_rect, 5.0, 3, enemies.at(i)->base_damage));
-            //    
-            //    if (dynamic_cast<StormCloud*>(enemies.at(i)))
-            //        game_projectiles.emplace_back(new LightningBall(*animation_manager, enemies.at(i)->enemy_dest_rect, 7.5, 3, enemies.at(i)->base_damage, (player.GetCollRect()->x + (player.GetCollRect()->w/2)), (player.GetCollRect()->y + (player.GetCollRect()->h / 2))));
-            //    
-            //    /*if (dynamic_cast<StormGenie*>(enemies.at(i)))
-            //    {
-            //        const SDL_Rect left_bolt_dst = { 0, enemies.at(i)->enemy_dest_rect.y, enemies.at(i)->enemy_dest_rect.x, 48};
-            //        const SDL_Rect right_bolt_dst = { enemies.at(i)->enemy_dest_rect.x + enemies.at(i)->enemy_dest_rect.w, enemies.at(i)->enemy_dest_rect.y, (WINDOW_WIDTH - (enemies.at(i)->enemy_dest_rect.x + enemies.at(i)->enemy_dest_rect.w)), 48 };
-            //        game_projectiles.emplace_back(new LightningStrike(*animation_manager, right_bolt_dst, 3, enemies.at(i)->base_damage, true));
-            //        game_projectiles.emplace_back(new LightningStrike(*animation_manager, left_bolt_dst, 3, enemies.at(i)->base_damage, false));
-            //    }*/
-            //}
+            enemies.at(i)->Update(&player, game_projectiles); 
 
             if (enemies.at(i)->GetState() == "delete")
             {
@@ -180,9 +173,6 @@ void Game::RunGame()
         }
 
         item_manager->UpdateItemList();
-        //enemies.emplace_back(new PurpleCrystal({ 400,70,64 * 3,64 * 3 }));
-        //UpdateEnemies(enemies);
-        
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~  RENDER Player, Projectiles and Enemies     ~
@@ -199,7 +189,7 @@ void Game::RunGame()
     }
 }
 
-void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectile*>& game_projectiles, bool &render_coll_boxes) //item_vector pointer to spawn item
+void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectile*>& game_projectiles, bool &render_coll_boxes)
 {
         
         if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) // ESC //
@@ -296,11 +286,13 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     game_projectiles.at(i)->UpdateState("impact");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
                     player->Hurt(game_projectiles.at(i)->damage, *sound_manager);
+                    player->UpdatePlayerState("iframes");
                     sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 55); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
                 }
 
                 if (player->GetPlayerState() == "shield" && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetShieldColl(), false))
                 {
+					// MOVE ME TO A USESHIELD FUNCTION ====================
                     sound_manager->PlaySound("player_shield_hit", 90);
                     game_projectiles.at(i)->UpdateState("impact");
                     sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 25);
@@ -312,6 +304,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                         
                         
                     }
+                    // MOVE ME TO A USESHIELD FUNCTION ====================
                 }
 
                 if (player->GetPlayerState() == "iframes" && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
@@ -371,13 +364,22 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                 
             }
 
-            if (Collisions::RectRectCollision(enemies.at(k)->GetCollRect(), player->GetCollRect(), false) && (player->GetPlayerState() != "iframes"))
+            /*if (Collisions::RectRectCollision(enemies.at(k)->GetCollRect(), player->GetCollRect(), false) && (player->GetPlayerState() != "iframes"))
             {
                 player->Hurt(20, *sound_manager);
                 player->UpdatePlayerState("iframes");
-            }
+            }*/
         }
     } // GAME PROJECTILE loop_flag END
+
+    for (auto& enemy : enemies) {
+        if (Collisions::RectRectCollision(enemy->GetCollRect(), player->GetCollRect(), false)
+            && (player->GetPlayerState() != "iframes"))
+        {
+            player->Hurt(20, *sound_manager);
+            player->UpdatePlayerState("iframes");
+        }
+    }
 
 
 }

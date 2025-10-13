@@ -73,10 +73,15 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
         if (IsIframesDone())
         {
             state = "main";
+            int prev_frame_index = animation_manager.Get("zephyr", "main")->GetCurrentFrameIndex();
 			current_animation = animation_manager.Get("zephyr", "main");
-            last_iframes_start = SDL_GetTicks();
+            current_animation->SetCurrentFrameIndex(prev_frame_index);
         }
-        current_animation = animation_manager.Get("zephyr", "iframes");
+        else if (current_animation != animation_manager.Get("zephyr", "iframes")) 
+        {
+            animation_manager.Get("zephyr", "iframes")->Reset();
+            current_animation = animation_manager.Get("zephyr", "iframes");
+        }
     }
 
     if (state == "shield")
@@ -398,6 +403,13 @@ void Player::SetShieldLastTimeUsed(Uint32 last_time_used)
 void Player::UpdatePlayerState(std::string new_state)
 {
     state = new_state;
+    if (new_state == "iframes")
+    {
+		int prev_frame_index = current_animation->GetCurrentFrameIndex();
+        last_iframes_start = SDL_GetTicks();
+		current_animation = animation_manager.Get("zephyr", "iframes");
+		current_animation->SetCurrentFrameIndex(prev_frame_index);
+    }
 }
 
 
@@ -521,7 +533,6 @@ int Player::GetNumItem(std::string item_name)
 void Player::Heal(int recovery_amount, SoundManager& sound_manager)
 {
 
-    std::cout << "[*] Player healed for " << recovery_amount << " health points.============================================================================================================\n";
     sound_manager.PlaySound("player_heal", 80);
     overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "heal")));
     current_health += recovery_amount;
@@ -529,6 +540,7 @@ void Player::Heal(int recovery_amount, SoundManager& sound_manager)
 }
 void Player::Hurt(int damage, SoundManager& sound_manager)
 {
-    sound_manager.PlaySound("player_hurt", 80);
+    std::cout << "[*] Player hurt for " << damage << " damage points.============================================================================================================\n";
+    sound_manager.PlaySound("player_hurt", 100);
     current_health -= damage;
 }

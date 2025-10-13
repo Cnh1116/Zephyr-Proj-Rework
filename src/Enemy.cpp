@@ -17,6 +17,8 @@ Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, con
 	base_health = health_arg;
 	base_damage = start_damage;
 
+	points = 0;
+
 	invincible = false;
 	state = "main";
 }
@@ -34,6 +36,11 @@ SDL_Rect* Enemy::GetDstRect()
 void Enemy::UpdateState(std::string new_state)
 {
 	state = new_state;
+}
+
+int Enemy::GetPoints()
+{
+	return points;
 }
 
 std::string Enemy::GetState()

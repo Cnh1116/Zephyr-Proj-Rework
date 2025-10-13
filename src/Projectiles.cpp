@@ -8,29 +8,14 @@ Projectile::Projectile(AnimationManager& animation_manager, const SDL_Rect& dest
     speed(projectile_speed),
     damage(projectile_damage),
     player_projectile(player_projectile_flag),
-    //main_texture_key(main_texture_key_str),
-    //impact_texture_key(impact_texture_key_str),
-    //current_texture_key(main_texture_key_str),
-    //current_frame_index(0),
-    //main_frames(frames),
-    //impact_frames(imp_frames),
-    //frame_time_ms_ms(frame_cooldown_ms),
-    //last_frame_time_ms(0),
-    //animation_replayable(replayable),
     state("main"),
     collision_rect(dest_rect),
-    //current_frames(main_frames),
     shift_impact(shift_impact_arg),
 	animation_manager(animation_manager)
 
 {
 }
 
-//std::string Projectile::GetTextureKey()
-//{
-//    
-//    return current_texture_key;
-//}
 
 Projectile::~Projectile()
 {
@@ -46,8 +31,7 @@ void Projectile::MoveProjectile()
 void Projectile::UpdateState(const char* state_str)
 {
     state = state_str;
-    last_frame_time_ms = 0;
-    current_frame_index = 0;
+
 
     if(state_str == "impact" && shift_impact)
         if (player_projectile)
@@ -71,39 +55,12 @@ SDL_Rect* Projectile::GetDstRect()
     return(&dest_rect);
 }
 
-//SDL_Rect* Projectile::GetFrame()
-//{
-//    return &current_frames[current_frame_index];
-//}
-//
-//Uint32 Projectile::GetFrameTime()
-//{
-//    return frame_time_ms_ms;
-//}
-//Uint32 Projectile::GetLastFrameStart()
-//{
-//    return last_frame_time_ms;
-//}
-//
-//bool Projectile::IsReplayable()
-//{
-//    return animation_replayable;
-//}
-//
-//int Projectile::NumOfFrames()
-//{
-//    return current_frames.size();
-//}
 
 SDL_Rect* Projectile::GetCollisionRect()
 {
     return &collision_rect;
 }
 
-void Projectile::AdvanceFrame()
-{
-    current_frame_index++;
-}
 
 const char* Projectile::GetSoundEffectImpact()
 {
@@ -115,8 +72,7 @@ const char* Projectile::GetSoundEffectImpact()
 PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, int PIXEL_SCALE, bool critical_flag)
     : Projectile(animation_manager, {(dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE}, projectile_speed, projectile_damage, true, true)
 {
-    /*current_texture_key = "primary_fire";
-    current_frames = main_frames;*/
+
     critical = critical_flag;
 
     current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-primary", "main"));
@@ -124,14 +80,9 @@ PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& de
     if (critical)
     {
         projectile_damage *= 2;
-        /*impact_texture_key = "primary_fire_crit_impact";
-        impact_frames = { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}, {128,0,32,32}, {160,0,32,32} };*/
+
     }
-    else
-    {
-        /*impact_texture_key = "primary_fire_impact";
-        impact_frames = { {0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32} };*/
-    }
+
 }
 
 void PrimaryFire::MoveProjectile() 
@@ -158,9 +109,6 @@ void PrimaryFire::Update()
     if (state == "impact")
     {
         collision_rect = { 0,0,0,0 };
-        
-        /*current_frames = impact_frames;
-        current_texture_key = impact_texture_key;*/
         
         if (!critical)
         {
@@ -227,7 +175,7 @@ SecondaryFire::SecondaryFire(AnimationManager& animation_manager, const SDL_Rect
 
 void SecondaryFire::Update()
 {
-    MoveProjectile(); // Always move sec. fire down cause of hitting cloud
+    MoveProjectile();
 
     if (state == "main")
     {
@@ -235,9 +183,7 @@ void SecondaryFire::Update()
         {
             current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-secondary", "main"));
         }
-        
-        /*current_frames = main_frames;
-        current_texture_key = "secondary_fire";*/
+
     }
     
     if (state == "impact")
@@ -247,8 +193,6 @@ void SecondaryFire::Update()
             current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-secondary", "impact"));
         }
         
-        /*current_frames = impact_frames;
-        current_texture_key = "secondary_fire_impact";*/
         
         //Laterally Middle of current sizing minus half width of new smaller size
         dest_rect.x = (dest_rect.x + dest_rect.w / 2) - (32 * 2 / 2);
@@ -305,7 +249,6 @@ void SecondaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     }
 }
 
-
 // ICE SHARD
 
 IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage)
@@ -341,8 +284,6 @@ void IceShard::Update()
             current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "impact"));
         }
         collision_rect = { 0,0,0,0 };
-        /*current_frames = impact_frames;
-        current_texture_key = "ice_shard_impact";*/
         if (current_animation->IsFinished())
         {
             state = "delete";
@@ -445,8 +386,6 @@ void LightningBall::Update()
             current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "impact"));
         }
         collision_rect = { 0,0,0,0 };
-        /*current_frames = impact_frames;
-        current_texture_key = "lightning_ball_impact";*/
         if (current_animation->IsFinished())
         {
             state = "delete";
@@ -495,20 +434,13 @@ LightningStrike::LightningStrike(AnimationManager& animation_manager, const SDL_
     right_flag = right_flag_arg;
     if (right_flag)
     {
-        /*current_texture_key = "lightning_strike_right";*/
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-right"));
     }
     else
     {
-       /* current_texture_key = "lightning_strike_left";*/
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left"));
         
     }
-
-
-
-    current_frame_index = 0;
-    last_frame_time_ms = 0;
 }
 void LightningStrike::MoveProjectile()
 {
