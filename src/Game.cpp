@@ -76,27 +76,25 @@ void Game::RunGame()
         float dx = 0, dy = 0;
         if (keystates[SDL_SCANCODE_W])
         {
-            dy = -1.0;
+            dy += -1.0;
         }
         if (keystates[SDL_SCANCODE_A])
         {
-            dx = -1.0;
+            dx += -1.0;
         }
         if (keystates[SDL_SCANCODE_S])
         {
-            dy = 1.0;
+            dy += 1.0;
         }
         if (keystates[SDL_SCANCODE_D])
         {
-            dx = 1.0;
+            dx += 1.0;
         }
 
-        // If we are moving diagnal, we need to normalize the movement
-        if (dx != 0 && dy != 0)
-        {
-            float length = sqrt(dx * dx + dy * dy);
-            dx /= length;
-            dy /= length;
+        float len = sqrtf(dx * dx + dy * dy);
+        if (len > 0.0001f) {
+            dx /= len;
+            dy /= len;
         }
 
         if (keystates[SDL_SCANCODE_LCTRL])
@@ -131,7 +129,7 @@ void Game::RunGame()
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~  UPDATE Players                              ~
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        player.Update(dx * player.GetSpeed(), dy * player.GetSpeed(), WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag, time_delta, *sound_manager);
+        player.Update(dx, dy, WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag, time_delta, *sound_manager);
         if (player.GetCurrentHealth() <= 0)
             game_over = true;
 
@@ -277,18 +275,27 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
         // ENEMY PROJECTILES HURTING PLAYER
         if (!game_projectiles.at(i)->player_projectile)
         {
-            if (game_projectiles.at(i)->GetState() == "main")
+            // IF THE PROJECTILE IS ACTIVE AND THERE IS COLLISION WITH PLAYER
+            if (game_projectiles.at(i)->GetState() == "main" && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
             {
-                if ((player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
+                // IF THE PLAYER CAN BE HURT
+                if ((player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") )
                 {
                     player->UpdatePlayerState("iframes");
-
-                    game_projectiles.at(i)->UpdateState("impact");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
                     player->Hurt(game_projectiles.at(i)->damage, *sound_manager);
                     player->UpdatePlayerState("iframes");
-                    sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 55); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
                 }
+
+				// PLAY SOUND AND SET STATE TO IMPACT
+                if (!game_projectiles.at(i)->GetSoundPlayed())
+                {
+                    sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 20); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
+                    game_projectiles.at(i)->SetSoundPlayed(true);
+                }
+
+                game_projectiles.at(i)->UpdateState("impact");
+                
 
                 if (player->GetPlayerState() == "shield" && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetShieldColl(), false))
                 {
@@ -322,66 +329,81 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
             // PLAYER PROJECTILES HURTING ENEMIES
             if (game_projectiles.at(i)->player_projectile && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), enemies.at(k)->GetCollRect(), false))
             {
-
                 if (auto* primary_projectile = dynamic_cast<PrimaryFire*>(game_projectiles.at(i)))
                 {
-                    if (primary_projectile->critical)
+                    if (game_projectiles.at(i)->GetState() == "main")
                     {
-                        if (game_projectiles.at(i)->GetState() == "main")
+                        if (primary_projectile->critical)
                         {
                             sound_manager->PlaySound("jade_drum", 90);
-                            game_projectiles.at(i)->UpdateState("impact");
-
-
-                            enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage);
-
-                            if (enemies.at(k)->GetHealth() <= 0)
-                            {
-                                enemies.at(k)->UpdateState("death");
-                            }
+                            enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
                         }
-                    }
-
-                    else
-                    {
-                        if (game_projectiles.at(i)->GetState() == "main")
+                        else
                         {
                             sound_manager->PlaySound("player_hit", 60);
-                            game_projectiles.at(i)->UpdateState("impact");
-
-
-                            enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage);
-
-                            if (enemies.at(k)->GetHealth() <= 0)
-                            {
-                                enemies.at(k)->UpdateState("death");
-                            }
+                            enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
                         }
-                    }
-                    
-                    
-                }
-                
-            }
 
-            /*if (Collisions::RectRectCollision(enemies.at(k)->GetCollRect(), player->GetCollRect(), false) && (player->GetPlayerState() != "iframes"))
-            {
-                player->Hurt(20, *sound_manager);
-                player->UpdatePlayerState("iframes");
-            }*/
+                        game_projectiles.at(i)->UpdateState("impact");
+                        sound_manager->PlaySound("player_secondary_fire_impact", 60);
+
+                        if (enemies.at(k)->GetHealth() <= 0)
+                            enemies.at(k)->UpdateState("death");
+                    }
+                }
+            }
         }
     } // GAME PROJECTILE loop_flag END
 
-    for (auto& enemy : enemies) {
-        if (Collisions::RectRectCollision(enemy->GetCollRect(), player->GetCollRect(), false)
-            && (player->GetPlayerState() != "iframes"))
+    for (auto& enemy : enemies) 
+    {
+        SDL_Rect playerRect = *player->GetCollRect();
+        SDL_Rect enemyRect = *enemy->GetCollRect();
+
+        if (Collisions::RectRectCollision(enemy->GetCollRect(), player->GetCollRect(), false))
         {
-            player->Hurt(20, *sound_manager);
-            player->UpdatePlayerState("iframes");
+            // Find overlap distances
+            float overlapX = (playerRect.x + playerRect.w / 2.0f) - (enemyRect.x + enemyRect.w / 2.0f);
+            float overlapY = (playerRect.y + playerRect.h / 2.0f) - (enemyRect.y + enemyRect.h / 2.0f);
+
+            float halfWidths = (playerRect.w + enemyRect.w) / 2.0f;
+            float halfHeights = (playerRect.h + enemyRect.h) / 2.0f;
+
+            float penX = halfWidths - fabsf(overlapX);
+            float penY = halfHeights - fabsf(overlapY);
+
+            // We have overlap
+            if (penX > 0 && penY > 0)
+            {
+                // Resolve along the axis of least penetration
+                if (penX < penY)
+                {
+                    float pushDir = (overlapX > 0) ? 1.0f : -1.0f;
+                    player->SetPosition((int)(penX * pushDir), 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+                    // Reduce X velocity to create a "bounce stop" effect
+                    player->SetVX(player->GetVX() * -0.25f);
+                }
+                else
+                {
+                    float pushDir = (overlapY > 0) ? 1.0f : -1.0f;
+                    player->SetPosition(0, (int)(penY * pushDir), WINDOW_WIDTH, WINDOW_HEIGHT);
+
+                    // Reduce Y velocity to create a "bounce stop" effect
+                    player->SetVX(player->GetVY() * -0.25f);
+                }
+            }
+
+            if (player->GetPlayerState() != "iframes")
+            {
+                int enemy_collision_damage = 20;
+                player->Hurt(enemy_collision_damage, *sound_manager);
+				SDL_Color color = { 255, 0, 0, 255 };
+                //graphics_manager->RenderText(std::to_string(enemy_collision_damage), player->GetDstRect(), color);
+                player->UpdatePlayerState("iframes");
+            }
         }
     }
-
-
 }
 
 void Game::SpawnEnemies(std::vector<Enemy*> &enemies)

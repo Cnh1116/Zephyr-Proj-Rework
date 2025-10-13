@@ -34,7 +34,7 @@ class Enemy
         int base_damage;
         int base_health;
         float crit_percent = 0;
-        Uint32 fire_cooldown_ms = 2000; 
+        Uint32 fire_cooldown_ms = 1000; 
         Uint32 last_fire_time = 0;
         bool IsDoneAttacking();
 
@@ -71,11 +71,21 @@ class IceCrystal : public Enemy
         void Update(Player *player, std::vector<Projectile*>& game_projectiles) override;
         void Move(Player* player) override;
         bool IsReadyToAttack() override;
+        bool BulletReady();
+        bool WaitDone();
         void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
 
 private:
     bool added_death_animation = false;
+    float target_x = 0;
+    int num_proj_shot = 0;
+    int max_proj_shot = 4;
+    Uint32 bullet_rate = 100;
+    Uint32 last_bullet_time = 0;
+    
+    Uint32 last_wait_time;
+	Uint32 wait_duration = 1000;
     // --- Tunable parameters ---
     float velocity = 1.0f;
     // --- Tunable parameters ---
@@ -138,7 +148,7 @@ private:
     Uint32 last_fire_time = 0;
     Uint32 lightning_strike_duration = 1500;
 
-    bool added_death_animation = false;
+    bool death_animation_played  = false;
     
     // --- Tunable parameters ---
     float velocity = 1.0f;

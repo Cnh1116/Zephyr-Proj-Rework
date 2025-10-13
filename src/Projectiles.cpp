@@ -62,7 +62,7 @@ SDL_Rect* Projectile::GetCollisionRect()
 }
 
 
-const char* Projectile::GetSoundEffectImpact()
+std::string Projectile::GetSoundEffectImpact()
 {
     return sound_effect_impact;
 }
@@ -110,22 +110,14 @@ void PrimaryFire::Update()
     {
         collision_rect = { 0,0,0,0 };
         
-        if (!critical)
+     
+        
+        if (current_animation->GetName() != "proj-zephyr-primary-impact")
         {
-
-            if (current_animation->GetName() != "proj-zephyr-primary-impact")
-            {
-                current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-primary", "impact"));
-            }
-
+            current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-primary", "impact"));
+            //if (critical) overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "critical")));
         }
-        else
-        {
-            if (current_animation->GetName() != "proj-zephyr-primary-impact-crit")
-            {
-                current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-primary", "impact-crit"));
-            }
-        }
+		
 
         if (current_animation->IsFinished())
         {
@@ -255,7 +247,8 @@ IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rec
     : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false)
 {
     sound_effect_impact = "ice_shard_impact";
-    current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "main"));
+    state = "spawn";
+    current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "spawn"));
 }
 void IceShard::MoveProjectile()
 {
@@ -264,6 +257,11 @@ void IceShard::MoveProjectile()
 
 void IceShard::Update()
 {
+    if (state == "spawn" && current_animation->IsFinished())
+    {
+        state = "main";
+    }
+    
     if (state == "main")
     {
         if (current_animation->GetName() != "proj-ice-crystal-attack-main")

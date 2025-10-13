@@ -8,12 +8,12 @@ class SoundManager
     public:
         SoundManager(); //Maybe give directory where sounds are ??
         ~SoundManager();
-        void PlaySound(const char* sound_key, int volume_percent);
+        void PlaySound(std::string current_key, int volume_percent);
         void PlayMusic(const char* song_key);
         void FadeOutMusic();
         
 
-        std::map<const char*, Mix_Chunk*> sound_effects_map;
+        std::map<std::string, Mix_Chunk*> sound_effects_map;
         std::map<const char*, const char*> music_map;
         
 

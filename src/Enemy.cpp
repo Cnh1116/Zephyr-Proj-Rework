@@ -83,7 +83,7 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 {
 	
 	
-	state = "main";
+	state = "idle";
 	current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "main"));
 	enemy_coll_rect = { enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (enemy_dest_rect.w / 4),
 						enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (enemy_dest_rect.h / 4),
@@ -95,20 +95,62 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 
 void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectiles)
 {
+	int player_distance_threshold = 40;
+	//std::cout << "ICE STATE: " << "---------------------------------------------------" << state << std::endl;
+	
+	// --- IDLE / SPAWN ---
+	if (state == "idle")
+	{
+		int lateral_diff = abs(enemy_dest_rect.x - player->GetDstRect()->x);
 
-	if (state == "main")
+		if (lateral_diff <= player_distance_threshold)
+		{
+			// Player is close → start shooting immediately
+			state = "shoot";
+			num_proj_shot = 0;
+			last_fire_time = SDL_GetTicks();
+		}
+		else
+		{
+			// Player far → start moving toward their X (snapshot)
+			target_x = static_cast<float>(player->GetDstRect()->x);
+			state = "move";
+		}
+	}
+
+	if (state == "wait" && this->WaitDone())
+	{
+		state = "idle";
+	}
+	
+	if (state == "move")
+	{
+		Move(player); // Move should move toward target_x (not player->x directly!)
+
+		// Check if we’ve reached our stored target position
+		if (fabs(enemy_dest_rect.x - target_x) <= player_distance_threshold)
+		{
+			state = "shoot";
+			num_proj_shot = 0;
+			last_fire_time = SDL_GetTicks();
+		}
+	}
+
+	if (state == "shoot")
 	{
 		
-		if (enemy_dest_rect.x == 0 || enemy_dest_rect.x + enemy_dest_rect.w == 2000) //Screen width
+		// Once done shooting, go idle again
+		if (num_proj_shot >= max_proj_shot)
 		{
-			movement_speed *= -1;
+			num_proj_shot = 0;
+			state = "wait";
+			last_wait_time = SDL_GetTicks();
 		}
-
-		Move(player);
-
-		if (this->IsReadyToAttack())
+		// Stay stationary and fire at intervals
+		else if (BulletReady())
 		{
 			Attack(game_projectiles, player);
+			num_proj_shot++;
 		}
 	}
 
@@ -118,7 +160,6 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 	{
 		if (!added_death_animation)
 		{
-			std::cout << "[*] Ice crystal dying, adding heal overlay~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
 			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "heal")));
 			added_death_animation = true;
 		}
@@ -148,8 +189,7 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 void IceCrystal::Move(Player* player)
 {
 	
-	float targetX = static_cast<float>(player->GetDstRect()->x);
-	float diff = targetX - posX;
+	float diff = target_x - posX;
 
 	// --- Dead zone ---
 	const float dead_zone = 40.0f;  // pixels of tolerance before moving
@@ -196,8 +236,6 @@ void IceCrystal::Move(Player* player)
 
 bool IceCrystal::IsReadyToAttack()
 {
-
-	
 	Uint32 current_time = SDL_GetTicks();
 
 	if ((current_time - last_fire_time) >= fire_cooldown_ms)
@@ -211,23 +249,59 @@ bool IceCrystal::IsReadyToAttack()
 
 		return(false);
 	}
-	
 }
+
+bool IceCrystal::BulletReady()
+{
+	Uint32 current_time = SDL_GetTicks();
+
+	if ((current_time - last_bullet_time) >= bullet_rate)
+	{
+		last_bullet_time = current_time;
+		return(true);
+	}
+
+	else
+	{
+
+		return(false);
+	}
+}
+
+bool IceCrystal::WaitDone()
+{
+	Uint32 current_time = SDL_GetTicks();
+
+	if ((current_time - last_wait_time) >= wait_duration)
+	{
+		last_wait_time = current_time;
+		return(true);
+	}
+
+	else
+	{
+		return(false);
+	}
+}
+
 
 void IceCrystal::Attack(std::vector<Projectile*>& game_projectiles, Player* player)
 {
-	game_projectiles.emplace_back(new IceShard(animation_manager, enemy_dest_rect, 5.0, 3, base_damage));
+	const SDL_Rect ice_shard_dest = { (enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (animation_manager.Get("proj-ice-crystal-attack", "spawn")->GetFrameWidth()) / 2),
+										enemy_dest_rect.y + (enemy_dest_rect.h * 0.8),
+											animation_manager.Get("proj-ice-crystal-attack", "spawn")->GetFrameWidth() + (num_proj_shot * 30) ,
+											animation_manager.Get("proj-ice-crystal-attack", "spawn")->GetFrameHeight() };
+	
+	game_projectiles.emplace_back(new IceShard(animation_manager, ice_shard_dest, 5.0, 3, base_damage));
 }
 
 void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 {
-	std::cout << "[*] Drawing Ice Crystal\n";
-
 	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
 
 	for (auto& animation : overlay_animations)
 	{
-		std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
+		std::cout << "DRAWING OVERLAY !" << std::endl;
 		SDL_Rect* current_frame = animation->GetCurrentFrame();
 		SDL_Rect temp = {	enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
 							enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
@@ -297,7 +371,7 @@ StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, in
 void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectiles)
 {
 	float threshhold = 85;
-	std::cout << "STATE: " << state <<  "Shot Fired: " << shot_fired << "=============================================" << std::endl;
+	//std::cout << "STATE: " << state <<  "Shot Fired: " << shot_fired << "=============================================" << std::endl;
 
 	if (state == "main")
 	{
@@ -422,13 +496,11 @@ bool StormCloud::IsReadyToAttack()
 
 void StormCloud::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 {
-	std::cout << "[*] Drawing Storm Cloud\n";
-
 	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
 
 	for (auto& animation : overlay_animations)
 	{
-		std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
+		std::cout << "DRAWING OVERLAY !" << std::endl;
 		SDL_Rect* current_frame = animation->GetCurrentFrame();
 		SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
 							enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
@@ -500,6 +572,7 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 		if (current_animation->IsFinished())
 		{
 			current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "main"));
+			float width_Scale = 0.4;
 			state = "main";
 		}
 	}
@@ -580,11 +653,10 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 		}
 
 		// Add heal overlay on first death frame
-		if (current_animation->GetCurrentFrameIndex() == 1)
+		if (!death_animation_played)
 		{
-			overlay_animations.push_back(
-				std::make_unique<Animation>(*animation_manager.Get("overlays", "heal"))
-			);
+			death_animation_played = true;
+			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "heal")));
 		}
 
 		// If death animation finished, mark for deletion
@@ -667,12 +739,10 @@ bool StormGenie::IsReadyToAttack()
 
 void StormGenie::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 {
-	std::cout << "[*] Drawing Storm Genie\n";
-
 	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
 	for (auto& animation : overlay_animations)
 	{
-		std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
+		std::cout << "DRAWING OVERLAY !" << std::endl;
 		SDL_Rect* current_frame = animation->GetCurrentFrame();
 		SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
 							enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,

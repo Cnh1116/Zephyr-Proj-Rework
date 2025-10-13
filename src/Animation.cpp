@@ -97,7 +97,7 @@ bool Animation::IsFrameDone()
 	
 	
 	Uint32 current_time = SDL_GetTicks();
-	std::cout << "Last Update Time: " << last_update_time << " Frame Time (ms): " << frame_time_ms << " Current Time" << current_frame << std::endl;
+	//std::cout << "Last Update Time: " << last_update_time << " Frame Time (ms): " << frame_time_ms << " Current Time" << current_frame << std::endl;
 	if ((current_time - last_update_time) >= frame_time_ms)
 	{
 		return(true);

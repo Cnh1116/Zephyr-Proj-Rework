@@ -25,11 +25,12 @@ protected:
         SDL_Rect* GetDstRect();
         const char* GetState();
         SDL_Rect* GetCollisionRect();
-        const char* GetSoundEffectImpact();
+        std::string GetSoundEffectImpact();
+		bool GetSoundPlayed() { return sound_played; }
+		void SetSoundPlayed(bool played) { sound_played = played; }
         
 
         //Other Functions
-        void AdvanceFrame();
         void UpdateState(const char* state);
         
         
@@ -52,7 +53,7 @@ protected:
         std::vector<std::unique_ptr<Animation>> overlay_animations;
         std::unique_ptr<Animation> current_animation;
 
-        const char* sound_effect_impact;
+        std::string sound_effect_impact;
         
 
         SDL_Rect dest_rect;
@@ -65,8 +66,8 @@ protected:
         bool shift_impact;
         //bool animation_replayable;
 
-    //private:
-        //Animation main_animation;
+    private:
+		bool sound_played = false;
         
 };
 

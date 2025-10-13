@@ -164,7 +164,7 @@ SDL_Texture* Graphics::GetTexture(const char* png_path)
 void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, ItemManager& item_manager, std::vector<Enemy*>& enemies, bool render_coll_boxes)
 {
     
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Black background
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
     // BACKGROUD //

@@ -20,15 +20,20 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
     bool invincible = false;
 
     player_dest_rect = {0, 0, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
-    player_coll_rect = { 0, 0, BASE_SPRITE_SIZE*3, BASE_SPRITE_SIZE };
+    player_coll_rect = { 0, 0, static_cast<int>(BASE_SPRITE_SIZE * 2.75), BASE_SPRITE_SIZE };
 
-    // BASE STATS
-    base_speed = 5.0;
-    dash_speed = 10.2;
-    base_damage = 10;
-    max_health = 200;
-    current_health = max_health;
-    crit_percent = 1.0; // Percentage
+
+    // --- Tunable parameters ---
+    float velocity = 1.0f;
+    // --- Tunable parameters ---
+    const float stiffness = 2.0f;     // increase after normalization
+    const float damping = 0.7f;
+    const float hover_amp = 1.5f;
+    const float hover_freq = 0.07f;
+    // In your class:
+    float posX = 0.0f; // store precise position
+
+
 
     
     secondary_fire.source_rect = {32, 32, 32, 32}; 
@@ -39,11 +44,11 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
 }
 
 
-void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager)
+void Player::Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager)
 {
-    std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << &animation_manager << std::endl;
-    SetPosition(x_pos, y_pos, SCREEN_WIDTH, SCREEN_HEIGHT);
-	std::cout << "[*] Player STATE: " << state << std::endl;
+    
+    Move(dx, dy, SCREEN_WIDTH, SCREEN_HEIGHT);
+	//std::cout << "[*] Player STATE: " << state << std::endl;
     
     if (!secondary_fire.marker_active) secondary_fire.marker_col_rect = { 0,0,0,0 };
     
@@ -70,6 +75,7 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
 
     if (state == "iframes")
     {
+        current_speed = base_speed * 0.8;
         if (IsIframesDone())
         {
             state = "main";
@@ -104,14 +110,14 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
 
     if (state == "dash")
     {
+        accel = dash_accel;
         current_speed = dash_speed; // IF SPEED TIME IS UP STATE + MAIN
         if (IsDashDone())
         {
+            accel = base_accel;
             state = "main";
         }
     }
-    // Set animatino state.
-    //if  idle_animation_index == idle_animation vector.size(), idle_animation_index == 0; else idle_animation_index ++
 
     // ITEM STATS UPDATE
     crit_percent = player_items.num_glass_toucans * 2 + 1;
@@ -136,10 +142,33 @@ void Player::Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, l
     }
 
     
-
 	current_animation->Update();
 
 
+}
+
+void Player::Move(float input_dx, float input_dy, int SCREEN_WIDTH, int SCREEN_HEIGHT)
+{
+    // Compute desired velocities
+    float target_vx = input_dx * current_speed;
+    float target_vy = input_dy * current_speed;
+
+    // Smoothly move current velocity toward the target velocity
+    vx += (target_vx - vx) * accel;
+    vy += (target_vy - vy) * accel;
+
+    // If there is no directional intent, apply deceleration to come to rest
+    if (fabsf(input_dx) < 0.0001f) {
+        vx *= (1.0f - decel);
+        if (fabsf(vx) < 0.05f) vx = 0.0f;
+    }
+    if (fabsf(input_dy) < 0.0001f) {
+        vy *= (1.0f - decel);
+        if (fabsf(vy) < 0.05f) vy = 0.0f;
+    }
+
+    // --- Update position ---
+    SetPosition((int)vx, (int)vy, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 void Player::SetSecondaryFireMarkerActive(bool flag)
@@ -234,24 +263,35 @@ void Player::SetImageScale(int scale)
    image_scale = scale;
 }
 
-void Player::SetPosition(int x, int y, int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void Player::SetPosition(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     
-    // Update position with boundary checks.
-    if (player_dest_rect.x + x >= 0 && player_dest_rect.x + x <= SCREEN_WIDTH - player_dest_rect.w) 
-    {
-        player_dest_rect.x += x ;  // Move along x-axis within bounds
-        player_coll_rect.x = player_dest_rect.x + (player_dest_rect.w / 2) - (player_coll_rect.w/2);
-        secondary_fire.hud_dest_rect.x = player_dest_rect.x;
-        secondary_fire.hud_coll_rect.x = player_dest_rect.x + (player_dest_rect.w / 2) - (secondary_fire.hud_coll_rect.w / 2);
-    }
-    if (player_dest_rect.y + y >= 0 && player_dest_rect.y + y <= SCREEN_HEIGHT - player_dest_rect.h) 
-    {
-        player_dest_rect.y += y ;  // Move along y-axis within bounds
-        player_coll_rect.y = player_dest_rect.y + (player_dest_rect.h / 2) - (player_coll_rect.h/2);
-        secondary_fire.hud_dest_rect.y = player_dest_rect.y - (256 + 64);
-        secondary_fire.hud_coll_rect.y = player_dest_rect.y - (256 + 64) + (secondary_fire.hud_dest_rect.h / 2) - (secondary_fire.hud_coll_rect.h / 2);
-    }
+    // Update internal float positions
+    posX += dx;
+    posY += dy;
+
+    // Clamp within bounds
+    if (posX < 0) posX = 0;
+    if (posX > SCREEN_WIDTH - player_dest_rect.w)
+        posX = SCREEN_WIDTH - player_dest_rect.w;
+
+    if (posY < 0) posY = 0;
+    if (posY > SCREEN_HEIGHT - player_dest_rect.h)
+        posY = SCREEN_HEIGHT - player_dest_rect.h;
+
+    // Update rectangles based on new position
+    player_dest_rect.x = static_cast<int>(posX);
+    player_dest_rect.y = static_cast<int>(posY);
+
+    player_coll_rect.x = player_dest_rect.x + (player_dest_rect.w / 2) - (player_coll_rect.w / 2);
+    player_coll_rect.y = player_dest_rect.y + (player_dest_rect.h / 2) - (player_coll_rect.h / 2);
+
+    secondary_fire.hud_dest_rect.x = player_dest_rect.x;
+    secondary_fire.hud_dest_rect.y = player_dest_rect.y - (256 + 64);
+
+    secondary_fire.hud_coll_rect.x = player_dest_rect.x + (player_dest_rect.w / 2) - (secondary_fire.hud_coll_rect.w / 2);
+    secondary_fire.hud_coll_rect.y = player_dest_rect.y - (256 + 64) + (secondary_fire.hud_dest_rect.h / 2) - (secondary_fire.hud_coll_rect.h / 2);
+
 
     if (secondary_fire.marker_active)
     {
@@ -493,7 +533,7 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     
     for (auto& animation : overlay_animations) 
     {  
-		std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
+		std::cout << "DRAWING OVERLAY !" << std::endl;
         SDL_Rect* current_frame = animation->GetCurrentFrame();
         SDL_Rect temp = {   player_dest_rect.x + (player_dest_rect.w - current_frame->w *  animation->GetScale()) / 2, 
                             player_dest_rect.y + (player_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
@@ -540,7 +580,7 @@ void Player::Heal(int recovery_amount, SoundManager& sound_manager)
 }
 void Player::Hurt(int damage, SoundManager& sound_manager)
 {
-    std::cout << "[*] Player hurt for " << damage << " damage points.============================================================================================================\n";
+    std::cout << "[*] Player hurt for " << damage << " damage points.\n";
     sound_manager.PlaySound("player_hurt", 100);
     current_health -= damage;
 }

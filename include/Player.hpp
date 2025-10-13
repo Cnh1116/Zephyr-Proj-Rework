@@ -23,7 +23,7 @@ class Player
         Player(int PIXEL_SCALE, AnimationManager& animation_manager);
 
         //UPDATE
-        void Update(int x_pos, int y_pos, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager);
+        void Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager);
         void Draw(SDL_Renderer* renderer, bool collision_box_flag);
 
         // STATE
@@ -33,7 +33,8 @@ class Player
         // LOCATION
         SDL_Rect* GetDstRect();
         SDL_Rect* GetCollRect(); 
-        void SetPosition(int x, int y, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+        void SetPosition(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+        void Move(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT);
         void SetImageScale(int image_scale);
         
         //HEALTH
@@ -45,6 +46,10 @@ class Player
         // STATS
         float GetCrit();
         float GetSpeed();
+        const float GetVX() { return vx; }
+		const float GetVY() { return vy; }
+        void SetVX(float new_vx) { vx = new_vx; }
+        void SetVY(float new_vy) { vy = new_vy; }
         void SetSpeed(float speed);
         bool CanParryHeal();
         float GetBaseDamage();
@@ -89,40 +94,36 @@ class Player
 
 
         // I-FRAMES
-        Uint32 GetIframeTime();
-        Uint32 GetLastIFrameStart();
-        void AdvanceIFrame();
-        void SetLastIFrameTime(Uint32 last_time);
         bool IsIframesDone();
 
-        // OLD FUNCTIONS X X X X
-        // ANIMATION FUNCTIONS
-        //std::string GetTextureKey();
-        //Uint32 GetFrameTime();
-        //Uint32 GetLastFrameStart();
-        //SDL_Rect* GetFrame();
-        //bool IsReplayable();
-        //int NumOfFrames();
-        //void SetLastFrameTime(Uint32 current_time);
-        //int GetFrameIndex();
-        //void AdvanceFrame();
-        // //SDL_Rect* GetShieldFrame();
-        //void SetFrameIndex(int index);
-        //Uint32 GetShieldFrameTime();
-        //Uint32 GetLastShieldFrameStart();
-        //const char* GetState();
+
     
     private:
         //STATS
-        float base_speed;
-        float current_speed;
-        int base_damage;
-        float crit_percent = 0;
+        float base_speed = 5.0;
+        float current_speed = 5.0;
+
+        // POSITION 
+        float posX = 0.0f;
+        float posY = 0.0f;
+        float vx = 0.0f;  // velocity X
+        float vy = 0.0f;  // velocity Y
+
+        float accel = 0.05f;     // acceleration rate
+        float base_accel = accel;
+        float decel = 0.001f;     // deceleration rate
+        //float max_speed = 5.0f; // max movement speed
+        
+
+        int base_damage = 20;
+        float crit_percent = 1.0; // Percentage
+        
+
+        // HEALTH
+        int max_health = 200;
+        int current_health = max_health;
         Uint32 last_parry_heal_time = 0;
         Uint32 parry_heal_buffer = 500;
-
-        int max_health;
-        int current_health;
         
         //IMAGE STUFF --- NEEDS TO BE DEPRECIATED
         int BASE_SPRITE_SIZE = 32;
@@ -134,19 +135,20 @@ class Player
 
         //States
         std::string state;
-        bool invincible;
+        bool invincible = false;
         
 		
 
         // I-FRAMES
         Uint32 last_iframes_start = 0;
-        Uint32 iframes_duration = 1250;
+        Uint32 iframes_duration = 900;
 
         // DASH
         Uint32 last_dash_time = 0;
         Uint32 dash_cooldown_ms = 1500;
-        Uint32 dash_duration = 200;
-        float dash_speed;
+        Uint32 dash_duration = 230;
+        float dash_accel = 0.3f;
+        float dash_speed = 8.0;
 
         struct Primary_fire
         {
