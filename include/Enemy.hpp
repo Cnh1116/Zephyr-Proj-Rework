@@ -22,11 +22,15 @@ class Enemy
         int GetHealth();
         void ChangeHealth(int health_diff);
 
+		int GetPoints();
+
         void UpdateState(std::string state);
         std::string GetState();
     
         //STATS
         float movement_speed;
+        
+
         int base_damage;
         int base_health;
         float crit_percent = 0;
@@ -42,33 +46,11 @@ class Enemy
         std::vector<std::unique_ptr<Animation>> overlay_animations;         
         std::unique_ptr<Animation> current_animation;
 
-        //std::string current_texture_key;
-        //std::string main_texture_key;
-        //std::string death_texture_key;
-        //std::vector<SDL_Rect> spawn_frames;
-        //std::vector<SDL_Rect> main_frames;
-        //std::vector<SDL_Rect> death_frames;
-        //std::vector<SDL_Rect> attack_frames;
-        //std::vector<SDL_Rect> current_frames;
-        //int current_frame_index = 0;
-        //Uint32 frame_time_ms_ms = 150; // Might need seperate frame cool downs per animation type.
-        //Uint32 last_frame_time_ms = 0;
-        //// Functions
-        //void AdvanceFrame();
-
-        //SDL_Rect* GetFrame();
-        //std::string GetState();
-        //std::string GetTextureKey();
-        //int NumOfFrames();
-        //Uint32 GetLastFrameStart();
-        //Uint32 GetFrameTime();
-        //void SetLastFrameTime(Uint32 current_time);
-        //int GetFrameIndex();
-        //void SetFrameIndex(int index);
-
-
+        // Location
         SDL_Rect enemy_dest_rect;
         SDL_Rect enemy_coll_rect;
+
+        int points;
 
         //States
         std::string state;
@@ -91,6 +73,18 @@ class IceCrystal : public Enemy
         bool IsReadyToAttack() override;
         void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
+
+private:
+    bool added_death_animation = false;
+    // --- Tunable parameters ---
+    float velocity = 1.0f;
+    // --- Tunable parameters ---
+    const float stiffness = 2.0f;     // increase after normalization
+    const float damping = 0.7f;
+    const float hover_amp = 1.5f;
+    const float hover_freq = 0.07f;
+    // In your class:
+    float posX = 0.0f; // store precise position
 };
 
 class StormCloud : public Enemy
@@ -116,6 +110,9 @@ class StormCloud : public Enemy
         int goal_x, goal_y;
         bool shot_fired = false;
         bool first_time_waiting = true;
+        bool added_death_animation = false;
+        
+        
 };
 
 class 
@@ -129,9 +126,29 @@ public:
     void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
     void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
 
+    bool IsDoneAttacking();
+
 private:
     bool shot_fired;
     bool spawned_lightning;
+
+    Projectile* left_lightning_bolt = nullptr;
+    Projectile* right_lightning_bolt = nullptr;
+
+    Uint32 last_fire_time = 0;
+    Uint32 lightning_strike_duration = 1500;
+
+    bool added_death_animation = false;
+    
+    // --- Tunable parameters ---
+    float velocity = 1.0f;
+    const float stiffness = 0.03f;   // "pull" toward player
+    const float damping = 0.88f;   // smoothness (0.85–0.92 feels good)
+    const float hover_amp = 0.6f;    // gentle floating motion amplitude
+    const float hover_freq = 0.04f;  // oscillation speed
+    // In your class:
+    float posY = 0.0f; // store precise position
+    
 	
 };
 #endif

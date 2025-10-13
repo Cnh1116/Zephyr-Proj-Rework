@@ -82,7 +82,10 @@ void ItemManager::UpdateItemList()
                                         new_item.item_cloud_animation->GetFrameHeight() };
 
 
-		SDL_Rect cloud_coll_rect = cloud_dest_rect;
+		SDL_Rect cloud_coll_rect = { cloud_dest_rect.x + (cloud_dest_rect.w - static_cast<int>(new_item.item_cloud_animation->GetFrameWidth() * 0.75)) / 2,
+									cloud_dest_rect.y + (cloud_dest_rect.h - static_cast<int>(new_item.item_cloud_animation->GetFrameHeight() * 0.75)) / 2,
+									static_cast<int>(new_item.item_cloud_animation->GetFrameWidth() * 0.75),
+									static_cast<int>(new_item.item_cloud_animation->GetFrameHeight() * 0.75)};
 
 
         SDL_Rect item_dest_rect = {     cloud_dest_rect.x + (cloud_dest_rect.w - static_cast<int>(new_item.current_animation->GetFrameWidth() * 2)) / 2,

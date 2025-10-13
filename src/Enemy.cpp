@@ -1,4 +1,4 @@
-
+﻿
 #include <SDL.h>
 #include <random>
 #include <iostream>
@@ -17,6 +17,8 @@ Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, con
 	base_health = health_arg;
 	base_damage = start_damage;
 
+	points = 0;
+
 	invincible = false;
 	state = "main";
 }
@@ -34,6 +36,11 @@ SDL_Rect* Enemy::GetDstRect()
 void Enemy::UpdateState(std::string new_state)
 {
 	state = new_state;
+}
+
+int Enemy::GetPoints()
+{
+	return points;
 }
 
 std::string Enemy::GetState()
@@ -75,9 +82,15 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 	: Enemy(animation_manager, dest_rect, dest_rect, 1.0, 100, 0, 35)
 {
 	
+	
 	state = "main";
 	current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "main"));
+	enemy_coll_rect = { enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (enemy_dest_rect.w / 4),
+						enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (enemy_dest_rect.h / 4),
+						enemy_dest_rect.w / 2,
+						enemy_dest_rect.h / 2 };
 	fire_cooldown_ms = 300;
+	
 }
 
 void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectiles)
@@ -103,10 +116,11 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 
 	if (state == "death")
 	{
-		if (current_animation->GetCurrentFrameIndex() == 1)
+		if (!added_death_animation)
 		{
 			std::cout << "[*] Ice crystal dying, adding heal overlay~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
 			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "heal")));
+			added_death_animation = true;
 		}
 		if (current_animation->GetName() != "enemy-ice-crystal-death")
 		{
@@ -134,15 +148,50 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 void IceCrystal::Move(Player* player)
 {
 	
-	if ((player->GetDstRect()->x + (player->GetDstRect()->w / 2)) < (enemy_dest_rect.x + (enemy_dest_rect.w / 2)))
-		enemy_dest_rect.x += (-1 * movement_speed);
-	else
-		enemy_dest_rect.x += movement_speed;
+	float targetX = static_cast<float>(player->GetDstRect()->x);
+	float diff = targetX - posX;
 
-	enemy_coll_rect.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (enemy_coll_rect.w / 2);
-	enemy_coll_rect.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (enemy_coll_rect.h / 2);
-	enemy_coll_rect.w = enemy_dest_rect.w / 2;
-	enemy_coll_rect.h = enemy_dest_rect.h / 2;
+	// --- Dead zone ---
+	const float dead_zone = 40.0f;  // pixels of tolerance before moving
+
+	// --- Screen-normalized difference ---
+	float screen_height = static_cast<float>(1080);
+	float norm_diff = diff / screen_height;
+
+	
+	float hover_offset;
+
+	// --- Springy motion ---
+	if (fabs(diff) > dead_zone)
+	{
+		// Only chase player if far enough away
+		velocity = velocity * damping + norm_diff * stiffness;
+
+		// --- Optional hover motion ---
+		//hover_offset = sin(SDL_GetTicks() * hover_freq) * hover_amp;
+	}
+	else
+	{
+		// Within tolerance → slow down gradually
+		velocity *= 0.0f;  // optional: damp to zero smoothly
+		hover_offset = 0.0f;
+	}
+
+
+
+	// --- Apply velocity ---
+	posX += velocity;//+ hover_offset;
+
+	// --- Update render position ---
+	enemy_dest_rect.x = static_cast<int>(posX);
+
+	int coll_box_width = enemy_dest_rect.w / 3;
+	int coll_box_hight = enemy_dest_rect.h / 3;
+	
+	enemy_coll_rect.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (coll_box_width / 2);
+	enemy_coll_rect.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (coll_box_hight / 2);
+	enemy_coll_rect.w = coll_box_width;
+	enemy_coll_rect.h = coll_box_hight;
 }
 
 bool IceCrystal::IsReadyToAttack()
@@ -323,9 +372,10 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 		}
 
 		// Add overlay once
-		if (current_animation->GetCurrentFrameIndex() == 1 )
+		if (!added_death_animation)
 		{
 			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "heal")));
+			added_death_animation = true;
 		}
 
 		if (current_animation->IsFinished())
@@ -436,6 +486,7 @@ StormGenie::StormGenie(AnimationManager& animation_manager, const SDL_Rect& dest
 	current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "spawn"));
 	shot_fired = false;
 	spawned_lightning = false;
+	posY = static_cast<float>(enemy_dest_rect.y);
 	
 	fire_cooldown_ms = 4000;
 	state = "spawn";
@@ -445,7 +496,7 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 {
 	if (state == "spawn")
 	{
-
+		enemy_coll_rect = { 0, 0, 0, 0 };
 		if (current_animation->IsFinished())
 		{
 			current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "main"));
@@ -455,7 +506,7 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 	if (state == "main")
 	{
-		if (enemy_dest_rect.y == 0 || enemy_dest_rect.y + enemy_dest_rect.y == 2000) //Screen width
+		if (enemy_dest_rect.y < 5 || enemy_dest_rect.y  > 1020) // SCREEN HEIGHT
 		{
 			movement_speed *= -1;
 		}
@@ -487,21 +538,18 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 		{
 			Attack(game_projectiles, player);
 			spawned_lightning = true;
+			last_fire_time = SDL_GetTicks();
 		}
 		
-		if (current_animation->IsFinished())
+		if (IsDoneAttacking())
 		{
 			shot_fired = false;
 			spawned_lightning = false;
 
-			for (auto* projectile : game_projectiles)
-			{
-				if (dynamic_cast<LightningStrike*>(projectile) != nullptr && projectile->GetState() != "delete")
-				{
-					spawned_lightning = true;
-					break;
-				}
-			}
+		
+			left_lightning_bolt->UpdateState("delete");
+			right_lightning_bolt->UpdateState("delete");
+			
 
 			if (!spawned_lightning)
 			{
@@ -515,6 +563,15 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 	if (state == "death")
 	{
+		if (left_lightning_bolt != nullptr)
+		{
+			left_lightning_bolt->UpdateState("delete");
+		}
+		if (right_lightning_bolt!= nullptr)
+		{
+			right_lightning_bolt->UpdateState("delete");
+		}
+		
 		// Only set the death animation once
 		if (current_animation->GetName() != "enemy-storm-genie-death")
 		{
@@ -548,22 +605,50 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 void StormGenie::Move(Player* player)
 {
+	float targetY = static_cast<float>(player->GetDstRect()->y);
+	float diff = targetY - posY;
 
-	int vertical_difference = enemy_dest_rect.y - player->GetDstRect()->y;
+	// --- Dead zone ---
+	const float dead_zone = 40.0f;  // pixels of tolerance before moving
 
-	// Only move if the difference is great enough.
-	if (abs(vertical_difference) > 30)
+	// --- Screen-normalized difference ---
+	float screen_height = static_cast<float>(1080);
+	float norm_diff = diff / screen_height;
+
+	// --- Tunable parameters ---
+	const float stiffness = 2.0f;     // increase after normalization
+	const float damping = 0.7f;
+	const float hover_amp = 1.5f;
+	const float hover_freq = 0.07f;
+	float hover_offset;
+
+	// --- Springy motion ---
+	if (fabs(diff) > dead_zone)
 	{
-		if (vertical_difference > 0)
-		{
-			enemy_dest_rect.y += movement_speed;
-		}
-
-		else
-		{
-			enemy_dest_rect.y -= movement_speed;
-		}
+		// Only chase player if far enough away
+		velocity = velocity * damping + norm_diff * stiffness;
+		
+		// --- Optional hover motion ---
+		//hover_offset = sin(SDL_GetTicks() * hover_freq) * hover_amp;
 	}
+	else
+	{
+		// Within tolerance → slow down gradually
+		velocity *= 0.0f;  // optional: damp to zero smoothly
+		hover_offset = 0.0f;
+	}
+
+	
+
+	// --- Apply velocity ---
+	posY += velocity;//+ hover_offset;
+
+	// --- Update render position ---
+	enemy_dest_rect.y = static_cast<int>(posY);
+
+
+
+	
 
 	enemy_coll_rect.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (enemy_coll_rect.w / 2);
 	enemy_coll_rect.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (enemy_coll_rect.h / 2);
@@ -611,10 +696,44 @@ void StormGenie::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 {
 	if (this->IsReadyToAttack())
 	{
-		const SDL_Rect left_bolt_dst = { 0, enemy_dest_rect.y, enemy_dest_rect.x, 48 };
-		const SDL_Rect right_bolt_dst = { enemy_dest_rect.x + enemy_dest_rect.w, enemy_dest_rect.y, (1920 - (enemy_dest_rect.x + enemy_dest_rect.w)), 48 };
-		game_projectiles.emplace_back(new LightningStrike(animation_manager, right_bolt_dst, 3, base_damage, true));
-		game_projectiles.emplace_back(new LightningStrike(animation_manager, left_bolt_dst, 3, base_damage, false));
+		int bolt_height_diff = -30;
+		int width_adjustment = 5;
+		float width_scaling = 1;
+		
+		const SDL_Rect left_bolt_dst = { (enemy_dest_rect.x - (animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left")->GetFrameWidth() * width_scaling) + width_adjustment),
+											enemy_dest_rect.y + bolt_height_diff,
+											animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left")->GetFrameWidth() * width_scaling ,
+											animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left")->GetFrameHeight() };
+		
+		const SDL_Rect right_bolt_dst = {	(enemy_dest_rect.x + (enemy_dest_rect.w) - width_adjustment),
+											enemy_dest_rect.y + bolt_height_diff,
+											animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-right")->GetFrameWidth() * width_scaling ,
+											animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-right")->GetFrameHeight() };
+		
+		animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left")->GetFrameWidth();
+		
+
+		
+		right_lightning_bolt = new LightningStrike(animation_manager, right_bolt_dst, 3, base_damage, true);
+		left_lightning_bolt = new LightningStrike(animation_manager, left_bolt_dst, 3, base_damage, false);
+ 
+		game_projectiles.emplace_back(right_lightning_bolt);
+		game_projectiles.emplace_back(left_lightning_bolt);
+	}
+}
+
+bool StormGenie::IsDoneAttacking()
+{
+	Uint32 current_time = SDL_GetTicks();
+
+	if ((current_time - last_fire_time) >= lightning_strike_duration)
+	{
+		return(true);
+	}
+
+	else
+	{
+		return(false);
 	}
 }
 

@@ -140,7 +140,7 @@ class Player
 
         // I-FRAMES
         Uint32 last_iframes_start = 0;
-        Uint32 iframes_duration = 1000;
+        Uint32 iframes_duration = 1250;
 
         // DASH
         Uint32 last_dash_time = 0;

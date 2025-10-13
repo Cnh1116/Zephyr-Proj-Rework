@@ -230,6 +230,11 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
         {
             game_projectiles.at(i)->Draw(renderer, render_coll_boxes);
         }
+        
+        else if(dynamic_cast<LightningStrike*>(game_projectiles.at(i))) //Lightning Strike is special, can ignore thie screen check
+        {
+            game_projectiles.at(i)->Draw(renderer, render_coll_boxes);
+        }
         else
         {
             game_projectiles.at(i)->UpdateState("delete");
