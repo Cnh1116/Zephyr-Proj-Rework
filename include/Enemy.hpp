@@ -31,7 +31,7 @@ class Enemy
         float movement_speed;
         
 
-        int base_damage;
+        float base_damage;
         int base_health;
         float crit_percent = 0;
         Uint32 fire_cooldown_ms = 1000; 

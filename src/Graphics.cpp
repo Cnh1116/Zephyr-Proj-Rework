@@ -53,6 +53,11 @@ Graphics::Graphics(const char* title, int width, int height, int scale)
     {
         std::cout << "[!] font 1 not initialized.";
     }
+    font_2 = TTF_OpenFont("../../assets/fonts/Times-New-Roman/Times New Roman/times new roman bold.ttf", 30);
+    if (!font_2)
+    {
+        std::cout << "[!] font 1 not initialized.";
+    }
 
 }
 
@@ -161,7 +166,7 @@ SDL_Texture* Graphics::GetTexture(const char* png_path)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, ItemManager& item_manager, std::vector<Enemy*>& enemies, bool render_coll_boxes)
+void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, ItemManager& item_manager, std::vector<Enemy*>& enemies, OverlayTextManager& overlay_text_manager, bool render_coll_boxes)
 {
     
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -247,6 +252,9 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
 
     //  UI //
     RenderPlayerText(player);
+
+    // OVERLAY TEXT //
+	overlay_text_manager.RenderOverlays();
 
     // SHOW IT //
     SDL_RenderPresent(renderer);
@@ -423,5 +431,17 @@ int Graphics::GenRandomNumber(int low, int high)
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distrib(low, high);
     return (distrib(gen));
+}
+
+TTF_Font* Graphics::GetFont(int font_id)
+{
+    switch (font_id)
+    {
+    case 1: return font_1;
+		break;
+    case 2: return font_2;
+	default: return font_1;
+		break;
+    }
 }
 

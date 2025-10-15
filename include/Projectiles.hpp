@@ -28,6 +28,7 @@ protected:
         std::string GetSoundEffectImpact();
 		bool GetSoundPlayed() { return sound_played; }
 		void SetSoundPlayed(bool played) { sound_played = played; }
+        std::string GetPrintableDamage();
         
 
         //Other Functions

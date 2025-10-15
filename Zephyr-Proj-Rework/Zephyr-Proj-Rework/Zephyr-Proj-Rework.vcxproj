@@ -142,6 +142,8 @@
     <ClCompile Include="..\..\src\Graphics.cpp" />
     <ClCompile Include="..\..\src\ItemManager.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\OverlayText.cpp" />
+    <ClCompile Include="..\..\src\OverlayTextManager.cpp" />
     <ClCompile Include="..\..\src\Player.cpp" />
     <ClCompile Include="..\..\src\Projectiles.cpp" />
     <ClCompile Include="..\..\src\Sound.cpp" />
@@ -154,6 +156,8 @@
     <ClInclude Include="..\..\include\Game.hpp" />
     <ClInclude Include="..\..\include\Graphics.hpp" />
     <ClInclude Include="..\..\include\ItemManager.hpp" />
+    <ClInclude Include="..\..\include\OverlayText.hpp" />
+    <ClInclude Include="..\..\include\OverlayTextManager.hpp" />
     <ClInclude Include="..\..\include\Player.hpp" />
     <ClInclude Include="..\..\include\Projectiles.hpp" />
     <ClInclude Include="..\..\include\Sound.hpp" />

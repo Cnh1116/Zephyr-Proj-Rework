@@ -1,7 +1,9 @@
 #include <iostream>
+#include <sstream>
 #include "Projectiles.hpp"
 #include "Graphics.hpp"
 #include "AnimationManager.hpp"
+#include <iomanip>
 
 Projectile::Projectile(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, bool player_projectile_flag, bool shift_impact_arg)
     : dest_rect(dest_rect),
@@ -65,6 +67,19 @@ SDL_Rect* Projectile::GetCollisionRect()
 std::string Projectile::GetSoundEffectImpact()
 {
     return sound_effect_impact;
+}
+
+std::string Projectile::GetPrintableDamage()
+{
+	if (damage == 0.0f)
+		return "0";
+    else
+    {
+        std::ostringstream ss;
+        ss << std::fixed << std::setprecision(2) << damage;
+
+        return ss.str();
+    }
 }
 
 // PRIMARY FIRE

@@ -41,6 +41,7 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
     secondary_fire.hud_coll_rect = { player_dest_rect.x, player_dest_rect.y, BASE_SPRITE_SIZE, BASE_SPRITE_SIZE };
     secondary_fire.marker_active = false;
     secondary_fire.ready = true;
+    shield.shield_ready = true;
 }
 
 
@@ -142,6 +143,7 @@ void Player::Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, lon
     }
 
     
+    if (this->IsShieldReady()) { shield.shield_ready = true; }
 	current_animation->Update();
 
 

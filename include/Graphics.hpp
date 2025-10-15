@@ -12,6 +12,7 @@
 #include "ItemManager.hpp"
 #include "Player.hpp"
 #include "Enemy.hpp"
+#include "OverlayTextManager.hpp"
 
 
 class Player;
@@ -36,8 +37,11 @@ public:
     void LoadTextures();
     SDL_Texture* GetTexture(const char* png_path);
 
+    // FONT
     void RenderText(const std::string& text, const SDL_Rect& rect, SDL_Color color);
-    void RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, ItemManager& item_manager, std::vector<Enemy*>& enemies, bool render_coll_boxes);
+    TTF_Font* GetFont(int font_id);
+
+    void RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, ItemManager& item_manager, std::vector<Enemy*>& enemies, OverlayTextManager& overlay_text_manager, bool render_coll_boxes);
     void BackgroundUpdate(Uint32 loop_flag);
 
 
@@ -74,6 +78,7 @@ private:
 
     std::map<std::string, SDL_Texture*> texture_map;
     TTF_Font* font_1;
+    TTF_Font* font_2;
     
     
     // Initialize SDL, create window and renderer

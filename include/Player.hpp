@@ -183,8 +183,8 @@ class Player
         {
             SDL_Rect dest_rect;
             SDL_Rect coll_rect;
-            Uint32 last_time_used = 0;
             Uint32 shield_cooldown_ms = 5000;
+            Uint32 last_time_used = shield_cooldown_ms;
             bool shield_ready = true;
 
         };

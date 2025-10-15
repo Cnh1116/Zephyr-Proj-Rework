@@ -30,7 +30,7 @@ SoundManager::SoundManager()
     LoadSoundEffect("player_shield_activate", "../../assets/sounds/player-sounds/secondary-fire-impact.wav");
     LoadSoundEffect("player_shield_hit", "../../assets/sounds/player-sounds/parry-sfx-aracde.wav");
     LoadSoundEffect("shield_activate", "../../assets/sounds/player-sounds/shield-activate.wav");
-    LoadSoundEffect("dash_sound", "../../assets/sounds/player-sounds/.wav");
+    LoadSoundEffect("dash_sound", "../../assets/sounds/player-sounds/dash.wav");
     LoadSoundEffect("player_crit", "../../assets/sounds/player-sounds/player-crit.wav");
     
     // Overlay Effect Sounds

@@ -10,13 +10,18 @@ int WINDOW_WIDTH = 1920;
 int WINDOW_HEIGHT = 1080;
 float MAX_FPS = 120.0;
 
+
+int damage_numbers_text_time = 350;
+SDL_Color damage_number_color = { 212, 47, 47, 255 };
+SDL_Color heal_number_color= { 44, 214, 58, 255 };
+
 Game::Game() // Game constructor acts as my INIT function for the game.
     : graphics_manager(new Graphics("Main Window", WINDOW_WIDTH, WINDOW_HEIGHT, PIXEL_SCALE)), //Screen name, dimensions and pixel scale
       sound_manager(new SoundManager()),
 	  animation_manager(new AnimationManager(graphics_manager->GetRenderer())),
       game_over(false),
-      times_X_pressed(0),
       item_manager(new ItemManager(animation_manager)),
+	  overlay_text_manager(new OverlayTextManager(graphics_manager->GetRenderer(), graphics_manager->GetFont(2))),
       player(Player(PIXEL_SCALE, *animation_manager))
 {
     // Load Player Sprite
@@ -56,6 +61,7 @@ void Game::RunGame()
         Uint32 current_tick = SDL_GetTicks();
         Uint32 time_delta = current_tick - last_tick;
         last_tick = current_tick;
+
 
 
 		SpawnEnemies(enemies);
@@ -175,7 +181,8 @@ void Game::RunGame()
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~  RENDER Player, Projectiles and Enemies     ~
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        graphics_manager->RenderGameItems(&player, game_projectiles, *item_manager, enemies, render_coll_boxes);
+        graphics_manager->RenderGameItems(&player, game_projectiles, *item_manager, enemies, *overlay_text_manager, render_coll_boxes);
+        overlay_text_manager->Update();
 
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~
@@ -284,6 +291,10 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     player->UpdatePlayerState("iframes");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
                     player->Hurt(game_projectiles.at(i)->damage, *sound_manager);
+                    overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
+                        damage_number_color,
+                        player->GetCollRect(),
+                        damage_numbers_text_time);
                     player->UpdatePlayerState("iframes");
                 }
 
@@ -306,8 +317,13 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
                     if (player->GetNumItem("garnet_shield") > 0 && player->CanParryHeal())
                     {
-                        
-                        player->Heal(player->GetNumItem("garnet_shield") * 5, *sound_manager);
+                        int heal_amount = player->GetNumItem("garnet_shield") * 5;
+                        player->Heal(heal_amount, *sound_manager);
+                        overlay_text_manager->AddMessage(std::to_string(heal_amount),
+                            heal_number_color,
+                            player->GetCollRect(),
+                            damage_numbers_text_time);
+
                         
                         
                     }
@@ -337,11 +353,19 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                         {
                             sound_manager->PlaySound("jade_drum", 90);
                             enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
+                            overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
+                                                                damage_number_color,
+                                                                enemies.at(k)->GetCollRect(),
+                                                                damage_numbers_text_time);
                         }
                         else
                         {
                             sound_manager->PlaySound("player_hit", 60);
                             enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
+                            overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
+                                                                damage_number_color,
+                                                                enemies.at(k)->GetCollRect(),
+                                                                damage_numbers_text_time);
                         }
 
                         game_projectiles.at(i)->UpdateState("impact");
@@ -398,8 +422,10 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
             {
                 int enemy_collision_damage = 20;
                 player->Hurt(enemy_collision_damage, *sound_manager);
-				SDL_Color color = { 255, 0, 0, 255 };
-                //graphics_manager->RenderText(std::to_string(enemy_collision_damage), player->GetDstRect(), color);
+                overlay_text_manager->AddMessage(std::to_string(enemy_collision_damage),
+                    damage_number_color,
+                    player->GetCollRect(),
+                    damage_numbers_text_time);
                 player->UpdatePlayerState("iframes");
             }
         }

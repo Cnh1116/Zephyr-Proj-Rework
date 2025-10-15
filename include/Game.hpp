@@ -9,6 +9,7 @@
 #include "ItemManager.hpp"
 #include "AnimationManager.hpp"
 #include "Collisions.hpp"
+#include "OverlayTextManager.hpp"
 
 class Projectile;
 
@@ -33,6 +34,7 @@ class Game
         Graphics* graphics_manager;
         SoundManager* sound_manager;
         AnimationManager* animation_manager;
+		OverlayTextManager* overlay_text_manager;
         ItemManager* item_manager;
         
 		
@@ -41,7 +43,5 @@ class Game
         // item spawner
         bool game_over;
         Player player;
-
-        int times_X_pressed;
 };
 
