@@ -37,6 +37,9 @@ SoundManager::SoundManager()
     LoadSoundEffect("player_heal", "../../assets/sounds/overlay-sounds/healing.wav");    
     LoadSoundEffect("jade_drum", "../../assets/sounds/enemy-sounds/jade-drum.wav");
 
+    // Overlay Effect Sounds
+    LoadSoundEffect("shiny", "../../assets/sounds/enemy-sounds/shiny.wav");
+
     // Projectile Sounds
     LoadSoundEffect("ice_shard_impact", "../../assets/sounds/enemy-sounds/ice-shard-impact.wav");
     LoadSoundEffect("lightning_ball_impact", "../../assets/sounds/enemy-sounds/electric-ball-impact.wav");

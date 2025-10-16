@@ -41,6 +41,9 @@ class Enemy
         //IMAGE STUFF
         int BASE_SPRITE_SIZE = 32;
         int image_scale;
+        
+        bool shiny;
+        bool shiny_sound_played = false;
 
         // ANIMATIONS
         std::vector<std::unique_ptr<Animation>> overlay_animations;         
@@ -57,7 +60,7 @@ class Enemy
         bool invincible;
 
         // Override Functions
-        virtual void Update(Player *player, std::vector<Projectile*>& game_projectiles) = 0;
+        virtual void Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager) = 0;
         virtual void Attack(std::vector<Projectile*>& game_projectiles, Player* player) = 0;
         virtual void Move(Player* player) = 0;
         virtual bool IsReadyToAttack() = 0;
@@ -68,7 +71,7 @@ class IceCrystal : public Enemy
 {
     public:
         IceCrystal(AnimationManager& animation_manager, const SDL_Rect& rect);
-        void Update(Player *player, std::vector<Projectile*>& game_projectiles) override;
+        void Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager) override;
         void Move(Player* player) override;
         bool IsReadyToAttack() override;
         bool BulletReady();
@@ -101,7 +104,7 @@ class StormCloud : public Enemy
 {
     public:
         StormCloud(AnimationManager& animation_manager, int screen_width, int screen_height, int player_x, int player_y);
-        void Update(Player* player, std::vector<Projectile*>& game_projectiles) override;
+        void Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager) override;
         void Move(Player* player) override;
         bool IsReadyToAttack() override;
         void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
@@ -130,7 +133,7 @@ class
 {
 public:
     StormGenie(AnimationManager& animation_manager, const SDL_Rect& rect);
-    void Update(Player* player, std::vector<Projectile*>& game_projectiles) override;
+    void Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager) override;
     void Move(Player* player) override;
     bool IsReadyToAttack() override;
     void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;

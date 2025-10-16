@@ -113,7 +113,7 @@ class Player
         float vx = 0.0f;  // velocity X
         float vy = 0.0f;  // velocity Y
 
-        float accel = 0.05f;     // acceleration rate
+        float accel = 0.03f;     // acceleration rate
         float base_accel = accel;
         float decel = 0.001f;     // deceleration rate
         //float max_speed = 5.0f; // max movement speed

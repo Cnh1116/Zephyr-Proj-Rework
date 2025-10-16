@@ -6,6 +6,7 @@
 #include "Player.hpp"
 #include "AnimationManager.hpp"
 #include <Projectiles.hpp>
+#include "Sound.hpp"
 
 Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, float move_speed, int health_arg, float crit, float start_damage)
 	: animation_manager(animation_manager)
@@ -21,6 +22,13 @@ Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, con
 
 	invincible = false;
 	state = "main";
+	
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> shiny_chance(0, 100);
+	std::cout << "[*] Updating Enemies since size is 0\n";
+	shiny = shiny_chance(gen) < 2;
+	
 }
 
 // Setters and Getters
@@ -94,7 +102,7 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 	
 }
 
-void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectiles)
+void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager)
 {
 	int player_distance_threshold = 40;
 	//std::cout << "ICE STATE: " << "---------------------------------------------------" << state << std::endl;
@@ -293,7 +301,7 @@ void IceCrystal::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 											animation_manager.Get("proj-ice-crystal-attack", "spawn")->GetFrameWidth() + (num_proj_shot * 30) ,
 											animation_manager.Get("proj-ice-crystal-attack", "spawn")->GetFrameHeight() };
 	
-	game_projectiles.emplace_back(new IceShard(animation_manager, ice_shard_dest, 5.0, 3, base_damage));
+	game_projectiles.emplace_back(new IceShard(animation_manager, ice_shard_dest, 5.0, 3, base_damage, shiny));
 }
 
 void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
@@ -373,7 +381,7 @@ StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, in
 	
 }
 
-void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectiles)
+void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager)
 {
 	float threshhold = 85;
 	//std::cout << "STATE: " << state <<  "Shot Fired: " << shot_fired << "=============================================" << std::endl;
@@ -541,7 +549,13 @@ void StormCloud::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 {
 	if (this->IsReadyToAttack())
 	{
-		game_projectiles.emplace_back(new LightningBall(animation_manager, enemy_dest_rect, 7.5, 3, base_damage, (player->GetCollRect()->x + (player->GetCollRect()->w / 2)), (player->GetCollRect()->y + (player->GetCollRect()->h / 2))));
+		game_projectiles.emplace_back(new LightningBall(animation_manager, 
+														enemy_dest_rect, 
+														7.5, 
+														3, 
+														base_damage, 
+														(player->GetCollRect()->x + (player->GetCollRect()->w / 2)), 
+														(player->GetCollRect()->y + (player->GetCollRect()->h / 2)), shiny));
 	}
 }
 
@@ -559,8 +573,10 @@ int StormCloud::GetGoalY()
 StormGenie::StormGenie(AnimationManager& animation_manager, const SDL_Rect& dest_rect)
 	: Enemy(animation_manager, dest_rect, dest_rect, 2, 100, 0, 10)
 {
-	
-	current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "spawn"));
+	if (shiny)
+		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "spawn_shiny"));
+	else
+		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "spawn"));
 	shot_fired = false;
 	spawned_lightning = false;
 	posY = static_cast<float>(enemy_dest_rect.y);
@@ -569,16 +585,23 @@ StormGenie::StormGenie(AnimationManager& animation_manager, const SDL_Rect& dest
 	state = "spawn";
 }
 
-void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectiles)
+void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager)
 {
 	if (state == "spawn")
 	{
 		enemy_coll_rect = { 0, 0, 0, 0 };
 		if (current_animation->IsFinished())
 		{
-			current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "main"));
-			float width_Scale = 0.4;
+			if (shiny)
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "main_shiny"));
+			else
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "main"));
 			state = "main";
+		}
+		if (shiny and current_animation->GetCurrentFrameIndex() == 4 and !shiny_sound_played)
+		{
+			sound_manager.PlaySound("shiny", 100);
+			shiny_sound_played = true;
 		}
 	}
 
@@ -599,8 +622,16 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 		{
 			if (!shot_fired)
 			{
-				animation_manager.Get("enemy-storm-genie", "attack")->Reset();
-				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "attack"));
+				if (shiny)
+				{
+					animation_manager.Get("enemy-storm-genie", "attack_shiny")->Reset();
+					current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "attack_shiny"));
+				}
+				else
+				{
+					animation_manager.Get("enemy-storm-genie", "attack")->Reset();
+					current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "attack"));
+				}
 				last_fire_time = current_time;
 				state = "attacking";
 			}
@@ -619,8 +650,16 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 			last_fire_time = SDL_GetTicks();
 		}
 
-		if (current_animation->GetName() == "enemy-storm-genie-attack" && current_animation->IsFinished())
-			current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "attacking"));
+		if (shiny)
+		{
+			if (current_animation->GetName() == "enemy-storm-genie-attack_shiny" && current_animation->IsFinished())
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "attacking_shiny"));
+		}
+		else
+		{
+			if (current_animation->GetName() == "enemy-storm-genie-attack" && current_animation->IsFinished())
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "attacking"));
+		}
 		
 		if (IsDoneAttacking())
 		{
@@ -634,7 +673,10 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 			if (!spawned_lightning)
 			{
-				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "main"));
+				if (shiny)
+					current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "main_shiny"));
+				else
+					current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "main"));
 				last_fire_time = SDL_GetTicks();
 				state = "main";
 			}
@@ -654,9 +696,12 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 		}
 		
 		// Only set the death animation once
-		if (current_animation->GetName() != "enemy-storm-genie-death")
+		if (current_animation->GetName() != "enemy-storm-genie-death" and current_animation->GetName() != "enemy-storm-genie-death_shiny")
 		{
-			current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "death"));
+			if (shiny)
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "death_shiny"));
+			else
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "death"));
 			enemy_coll_rect = { 0,0,0,0 };  // disable collision
 		}
 
@@ -777,11 +822,25 @@ void StormGenie::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 		int bolt_height_diff = -30;
 		int width_adjustment = 5;
 		float width_scaling = 1;
+
+		std::string left_attack_key;
+		std::string right_attack_key;
+		if (shiny)
+		{
+			left_attack_key = "storm-genie-attack-left_shiny";
+			right_attack_key = "storm-genie-attack-right_shiny";
+		}
+		else
+		{
+			left_attack_key = "storm-genie-attack-left";
+			right_attack_key = "storm-genie-attack-right";
+		}
+
 		
 		const SDL_Rect left_bolt_dst = { (enemy_dest_rect.x - (animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left")->GetFrameWidth() * width_scaling) + width_adjustment),
 											enemy_dest_rect.y + bolt_height_diff,
-											animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left")->GetFrameWidth() * width_scaling ,
-											animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left")->GetFrameHeight() };
+											animation_manager.Get("proj-storm-genie-attack", left_attack_key)->GetFrameWidth() * width_scaling ,
+											animation_manager.Get("proj-storm-genie-attack", right_attack_key)->GetFrameHeight() };
 		
 		const SDL_Rect right_bolt_dst = {	(enemy_dest_rect.x + (enemy_dest_rect.w) - width_adjustment),
 											enemy_dest_rect.y + bolt_height_diff,
@@ -792,8 +851,8 @@ void StormGenie::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 		
 
 		
-		right_lightning_bolt = new LightningStrike(animation_manager, right_bolt_dst, 3, base_damage, true);
-		left_lightning_bolt = new LightningStrike(animation_manager, left_bolt_dst, 3, base_damage, false);
+		right_lightning_bolt = new LightningStrike(animation_manager, right_bolt_dst, 3, base_damage, true, shiny);
+		left_lightning_bolt = new LightningStrike(animation_manager, left_bolt_dst, 3, base_damage, false, shiny);
  
 		game_projectiles.emplace_back(right_lightning_bolt);
 		game_projectiles.emplace_back(left_lightning_bolt);

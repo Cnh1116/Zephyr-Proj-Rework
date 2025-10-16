@@ -18,7 +18,13 @@ protected:
 	    AnimationManager& animation_manager;
     public:
         // Constructors
-        Projectile(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, bool player_projectile_flag, bool shift_impact);
+        Projectile(AnimationManager& animation_manager, 
+                    const SDL_Rect& dest_rect, 
+                    float projectile_speed, 
+                    float projectile_damage, 
+                    bool player_projectile_flag, 
+                    bool shift_impact,
+                    bool shiny);
         ~Projectile();
 
         // Setters and Getters
@@ -39,6 +45,9 @@ protected:
         virtual void MoveProjectile() = 0;
         virtual void Update() = 0;
         virtual void Draw(SDL_Renderer* renderer, bool collision_box_flag) = 0;
+
+        //Shiny Flag
+        bool shiny;
         
 
         // Stats   
@@ -96,7 +105,7 @@ class SecondaryFire : public Projectile
 class IceShard : public Projectile 
 {
     public:
-        IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage);
+        IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, bool shiny);
         void MoveProjectile() override;
         void Update() override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
@@ -105,7 +114,7 @@ class IceShard : public Projectile
 class LightningBall : public Projectile 
 {
     public:
-        LightningBall(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, int player_x, int player_y);
+        LightningBall(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, int player_x, int player_y, bool shiny);
         void MoveProjectile() override;
         void Update() override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
@@ -118,7 +127,7 @@ class LightningBall : public Projectile
 class LightningStrike : public Projectile
 {
 public:
-    LightningStrike(AnimationManager& animation_manager, const SDL_Rect& dest_rect, int PIXEL_SCALE, float damage, bool right_flag);
+    LightningStrike(AnimationManager& animation_manager, const SDL_Rect& dest_rect, int PIXEL_SCALE, float damage, bool right_flag, bool shiny);
     void MoveProjectile() override;
     void Update() override;
     void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;

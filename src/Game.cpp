@@ -162,7 +162,7 @@ void Game::RunGame()
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
         for (int i = 0; i < enemies.size();)
         {
-            enemies.at(i)->Update(&player, game_projectiles); 
+            enemies.at(i)->Update(&player, game_projectiles, *sound_manager); 
 
             if (enemies.at(i)->GetState() == "delete")
             {
@@ -175,7 +175,6 @@ void Game::RunGame()
                 ++i;
             }
         }
-
         item_manager->UpdateItemList();
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -438,10 +437,13 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
             {
                 int enemy_collision_damage = 20;
                 player->Hurt(enemy_collision_damage, *sound_manager);
-                overlay_text_manager->AddMessage(std::to_string(enemy_collision_damage),
-                    damage_number_color,
-                    player->GetCollRect(),
-                    damage_numbers_text_time);
+                if (render_coll_boxes)
+                {
+                    overlay_text_manager->AddMessage(std::to_string(enemy_collision_damage),
+                        damage_number_color,
+                        player->GetCollRect(),
+                        damage_numbers_text_time);
+                }
                 player->UpdatePlayerState("iframes");
             }
         }

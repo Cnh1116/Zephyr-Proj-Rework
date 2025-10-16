@@ -155,106 +155,156 @@
 			"loop_flag": false,
 			"layout": "horizontal",
 			"scale": 1.0
-		}
-	},
-	"proj-zephyr-primary": {
-		"main": {
-			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-primary-fire\\primary-fire-main-prime-prime.png",
-			"frame_width": 32,
-			"frame_height": 32,
-			"frames": 3,
-			"frame_time_ms": 100,
-			"loop_flag": true,
-			"layout": "horizontal",
-			"scale": 1.0
 		},
-		"impact": {
-			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-primary-fire\\primary-fire-main-prime.png",
-			"frame_width": 32,
-			"frame_height": 32,
-			"frames": 5,
-			"frame_time_ms": 100,
-			"loop_flag": false,
-			"layout": "horizontal",
-			"scale": 1.0
-		}
-	},
-	"proj-zephyr-secondary": {
-		"main": {
-			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-secondary-fire\\secondary-fire-main.png",
-			"frame_width": 32,
-			"frame_height": 32,
-			"frames": 5,
-			"frame_time_ms": 100,
-			"loop_flag": false,
-			"layout": "horizontal",
-			"scale": 1.0
-		},
-		"impact": {
-			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-secondary-fire\\secondary-fire-impact.png",
-			"frame_width": 32,
-			"frame_height": 32,
-			"frames": 5,
-			"frame_time_ms": 100,
-			"loop_flag": false,
-			"layout": "horizontal",
-			"scale": 1.0
-		}
-	},
-	"proj-ice-crystal-attack": {
-		"spawn": {
-			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\ice-crystal-attack\\ice-crystal-attack-spawn.png",
-			"frame_width": 32,
-			"frame_height": 32,
-			"frames": 8,
-			"frame_time_ms": 60,
-			"loop_flag": false,
-			"layout": "horizontal",
-			"scale": 1.0
-		},
-		"main": {
-			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\ice-crystal-attack\\ice-crystal-attack-main.png",
-			"frame_width": 32,
-			"frame_height": 32,
-			"frames": 12,
-			"frame_time_ms": 100,
-			"loop_flag": true,
-			"layout": "horizontal",
-			"scale": 1.0
-		},
-		"impact": {
-			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\ice-crystal-attack\\ice-crystal-attack-impact.png",
-			"frame_width": 32,
-			"frame_height": 32,
-			"frames": 5,
-			"frame_time_ms": 100,
-			"loop_flag": false,
-			"layout": "horizontal",
-			"scale": 1.0
-		}
-	},
-	"proj-storm-cloud-attack": {
-		"main": {
-			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-cloud-attack\\storm-cloud-attack-main.png",
-			"frame_width": 40,
-			"frame_height": 40,
-			"frames": 12,
-			"frame_time_ms": 100,
-			"loop_flag": true,
-			"layout": "horizontal",
-			"scale": 1.0
-		},
-		"impact": {
-			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-cloud-attack\\storm-cloud-attack-impact.png",
+		"spawn_shiny": {
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-spawn-SHINY.png",
 			"frame_width": 64,
 			"frame_height": 64,
-			"frames": 5,
+			"frames": 15,
+			"frame_time_ms": 45,
+			"loop_flag": false,
+			"layout": "horizontal",
+			"scale": 1.0
+		},
+		"main_shiny": {
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-main-SHINY.png",
+			"frame_width": 64,
+			"frame_height": 64,
+			"frames": 4,
+			"frame_time_ms": 100,
+			"loop_flag": true,
+			"layout": "horizontal",
+			"scale": 1.0
+		},
+		"attack_shiny": {
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-attack-SHINY.png",
+			"frame_width": 64,
+			"frame_height": 64,
+			"frames": 6,
+			"frame_time_ms": 80,
+			"loop_flag": false,
+			"layout": "horizontal",
+			"scale": 1.0
+		},
+		"attacking_shiny": {
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-attacking-SHINY.png",
+			"frame_width": 64,
+			"frame_height": 64,
+			"frames": 4,
+			"frame_time_ms": 100,
+			"loop_flag": true,
+			"layout": "horizontal",
+			"scale": 1.0
+		},
+		"death_shiny": {
+			"texture": "..\\..\\assets\\sprites\\enemies-sprites\\storm-genie\\storm-genie-death-SHINY.png",
+			"frame_width": 48,
+			"frame_height": 32,
+			"frames": 7,
 			"frame_time_ms": 100,
 			"loop_flag": false,
 			"layout": "horizontal",
 			"scale": 1.0
 		}
 	},
+		"proj-zephyr-primary": {
+			"main": {
+				"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-primary-fire\\primary-fire-main-prime-prime.png",
+				"frame_width": 32,
+				"frame_height": 32,
+				"frames": 3,
+				"frame_time_ms": 100,
+				"loop_flag": true,
+				"layout": "horizontal",
+				"scale": 1.0
+			},
+			"impact": {
+				"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-primary-fire\\primary-fire-main-prime.png",
+				"frame_width": 32,
+				"frame_height": 32,
+				"frames": 5,
+				"frame_time_ms": 100,
+				"loop_flag": false,
+				"layout": "horizontal",
+				"scale": 1.0
+			}
+		},
+		"proj-zephyr-secondary": {
+			"main": {
+				"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-secondary-fire\\secondary-fire-main.png",
+				"frame_width": 32,
+				"frame_height": 32,
+				"frames": 5,
+				"frame_time_ms": 100,
+				"loop_flag": false,
+				"layout": "horizontal",
+				"scale": 1.0
+			},
+			"impact": {
+				"texture": "..\\..\\assets\\sprites\\projectile-sprites\\zephyr-secondary-fire\\secondary-fire-impact.png",
+				"frame_width": 32,
+				"frame_height": 32,
+				"frames": 5,
+				"frame_time_ms": 100,
+				"loop_flag": false,
+				"layout": "horizontal",
+				"scale": 1.0
+			}
+		},
+		"proj-ice-crystal-attack": {
+			"spawn": {
+				"texture": "..\\..\\assets\\sprites\\projectile-sprites\\ice-crystal-attack\\ice-crystal-attack-spawn.png",
+				"frame_width": 32,
+				"frame_height": 32,
+				"frames": 8,
+				"frame_time_ms": 60,
+				"loop_flag": false,
+				"layout": "horizontal",
+				"scale": 1.0
+			},
+			"main": {
+				"texture": "..\\..\\assets\\sprites\\projectile-sprites\\ice-crystal-attack\\ice-crystal-attack-main.png",
+				"frame_width": 32,
+				"frame_height": 32,
+				"frames": 12,
+				"frame_time_ms": 100,
+				"loop_flag": true,
+				"layout": "horizontal",
+				"scale": 1.0
+			},
+			"impact": {
+				"texture": "..\\..\\assets\\sprites\\projectile-sprites\\ice-crystal-attack\\ice-crystal-attack-impact.png",
+				"frame_width": 32,
+				"frame_height": 32,
+				"frames": 5,
+				"frame_time_ms": 100,
+				"loop_flag": false,
+				"layout": "horizontal",
+				"scale": 1.0
+			}
+		},
+		"proj-storm-cloud-attack": {
+			"main": {
+				"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-cloud-attack\\storm-cloud-attack-main.png",
+				"frame_width": 40,
+				"frame_height": 40,
+				"frames": 12,
+				"frame_time_ms": 100,
+				"loop_flag": true,
+				"layout": "horizontal",
+				"scale": 1.0
+			},
+			"impact": {
+				"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-cloud-attack\\storm-cloud-attack-impact.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 5,
+				"frame_time_ms": 100,
+				"loop_flag": false,
+				"layout": "horizontal",
+				"scale": 1.0
+			}
+		},
 	"proj-storm-genie-attack": {
 		"storm-genie-attack-left": {
 			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-genie-attack\\storm-genie-attack-left.png",
@@ -275,132 +325,152 @@
 			"loop_flag": true,
 			"layout": "vertical",
 			"scale": 3.0
+		},
+		"storm-genie-attack-left_shiny": {
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-genie-attack\\storm-genie-attack-left-SHINY.png",
+			"frame_width": 111,
+			"frame_height": 48,
+			"frames": 6,
+			"frame_time_ms": 45,
+			"loop_flag": true,
+			"layout": "vertical",
+			"scale": 3.0
+		},
+		"storm-genie-attack-right_shiny": {
+			"texture": "..\\..\\assets\\sprites\\projectile-sprites\\storm-genie-attack\\storm-genie-attack-right-SHINY.png",
+			"frame_width": 111,
+			"frame_height": 48,
+			"frames": 6,
+			"frame_time_ms": 45,
+			"loop_flag": true,
+			"layout": "vertical",
+			"scale": 3.0
 		}
 	},
-	"items": {
-		"cloud": {
-			"texture": "..\\..\\assets\\sprites\\item-sprites\\item-cloud.png",
-			"frame_width": 64,
-			"frame_height": 64,
-			"frames": 1,
-			"frame_time_ms": 75,
-			"loop_flag": true,
-			"layout": "horizontal",
-			"scale": 2
+		"items": {
+			"cloud": {
+				"texture": "..\\..\\assets\\sprites\\item-sprites\\item-cloud.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 1,
+				"frame_time_ms": 75,
+				"loop_flag": true,
+				"layout": "horizontal",
+				"scale": 2
+			},
+			"glass_toucan": {
+				"texture": "..\\..\\assets\\sprites\\item-sprites\\glass-toucan.png",
+				"frame_width": 32,
+				"frame_height": 32,
+				"frames": 1,
+				"frame_time_ms": 200,
+				"loop_flag": false,
+				"layout": "vertical",
+				"scale": 1
+			},
+			"garnet_shield": {
+				"texture": "..\\..\\assets\\sprites\\item-sprites\\garnet-shield.png",
+				"frame_width": 32,
+				"frame_height": 32,
+				"frames": 1,
+				"frame_time_ms": 200,
+				"loop_flag": false,
+				"layout": "vertical",
+				"scale": 1
+			}
 		},
-		"glass_toucan": {
-			"texture": "..\\..\\assets\\sprites\\item-sprites\\glass-toucan.png",
-			"frame_width": 32,
-			"frame_height": 32,
-			"frames": 1,
-			"frame_time_ms": 200,
-			"loop_flag": false,
-			"layout": "vertical",
-			"scale": 1
+		"overlays": {
+			"heal": {
+				"texture": "..\\..\\assets\\sprites\\overlay-sprites\\overlay-heal.png",
+				"frame_width": 33,
+				"frame_height": 32,
+				"frames": 5,
+				"frame_time_ms": 75,
+				"loop_flag": false,
+				"layout": "horizontal",
+				"scale": 2.0
+			},
+			"shield_ready": {
+				"texture": "..\\..\\assets\\sprites\\overlay-sprites\\overlay-shield-ready.png",
+				"frame_width": 32,
+				"frame_height": 32,
+				"frames": 1,
+				"frame_time_ms": 200,
+				"loop_flag": false,
+				"layout": "vertical",
+				"scale": 2.0
+			},
+			"ice_burst": {
+				"texture": "..\\..\\assets\\sprites\\overlay-sprites\\ice-burst.png",
+				"frame_width": 128,
+				"frame_height": 128,
+				"frames": 7,
+				"frame_time_ms": 75,
+				"loop_flag": false,
+				"layout": "vertical",
+				"scale": 2.0
+			}
 		},
-		"garnet_shield": {
-			"texture": "..\\..\\assets\\sprites\\item-sprites\\garnet-shield.png",
-			"frame_width": 32,
-			"frame_height": 32,
-			"frames": 1,
-			"frame_time_ms": 200,
-			"loop_flag": false,
-			"layout": "vertical",
-			"scale": 1
-		}
-	},
-	"overlays": {
-		"heal": {
-			"texture": "..\\..\\assets\\sprites\\overlay-sprites\\overlay-heal.png",
-			"frame_width": 33,
-			"frame_height": 32,
-			"frames": 5,
-			"frame_time_ms": 75,
-			"loop_flag": false,
-			"layout": "horizontal",
-			"scale": 2.0
-		},
-		"shield_ready": {
-			"texture": "..\\..\\assets\\sprites\\overlay-sprites\\overlay-shield-ready.png",
-			"frame_width": 32,
-			"frame_height": 32,
-			"frames": 1,
-			"frame_time_ms": 200,
-			"loop_flag": false,
-			"layout": "vertical",
-			"scale": 2.0
-		},
-		"ice_burst": {
-			"texture": "..\\..\\assets\\sprites\\overlay-sprites\\ice-burst.png",
-			"frame_width": 128,
-			"frame_height": 128,
-			"frames": 7,
-			"frame_time_ms": 75,
-			"loop_flag": false,
-			"layout": "vertical",
-			"scale": 2.0
-		}
-	},
-	"ui": {
-		"health_bar": {
-			"texture": "..\\..\\assets\\sprites\\ui-sprites\\health-bar.png",
-			"frame_width": 48,
-			"frame_height": 16,
-			"frames": 1,
-			"frame_time_ms": 75,
-			"loop_flag": true,
-			"layout": "horizontal",
-			"scale": 5.0
-		},
-		"health_bar_base": {
-			"texture": "..\\..\\assets\\sprites\\ui-sprites\\health-bar-base.png",
-			"frame_width": 48,
-			"frame_height": 16,
-			"frames": 1,
-			"frame_time_ms": 75,
-			"loop_flag": false,
-			"layout": "horizontal",
-			"scale": 5.0
-		},
-		"shield_bar": {
-			"texture": "..\\..\\assets\\sprites\\ui-sprites\\shield-bar.png",
-			"frame_width": 48,
-			"frame_height": 16,
-			"frames": 1,
-			"frame_time_ms": 75,
-			"loop_flag": true,
-			"layout": "horizontal",
-			"scale": 5.0
-		},
-		"shield_bar_base": {
-			"texture": "..\\..\\assets\\sprites\\ui-sprites\\health-bar-base.png",
-			"frame_width": 48,
-			"frame_height": 16,
-			"frames": 1,
-			"frame_time_ms": 75,
-			"loop_flag": false,
-			"layout": "horizontal",
-			"scale": 5.0
-		},
-		"dash_bar": {
-			"texture": "..\\..\\assets\\sprites\\ui-sprites\\dash-bar.png",
-			"frame_width": 48,
-			"frame_height": 16,
-			"frames": 1,
-			"frame_time_ms": 75,
-			"loop_flag": true,
-			"layout": "horizontal",
-			"scale": 5.0
-		},
-		"dash_bar_base": {
-			"texture": "..\\..\\assets\\sprites\\ui-sprites\\health-bar-base.png",
-			"frame_width": 48,
-			"frame_height": 16,
-			"frames": 1,
-			"frame_time_ms": 75,
-			"loop_flag": false,
-			"layout": "horizontal",
-			"scale": 5.0
+		"ui": {
+			"health_bar": {
+				"texture": "..\\..\\assets\\sprites\\ui-sprites\\health-bar.png",
+				"frame_width": 48,
+				"frame_height": 16,
+				"frames": 1,
+				"frame_time_ms": 75,
+				"loop_flag": true,
+				"layout": "horizontal",
+				"scale": 5.0
+			},
+			"health_bar_base": {
+				"texture": "..\\..\\assets\\sprites\\ui-sprites\\health-bar-base.png",
+				"frame_width": 48,
+				"frame_height": 16,
+				"frames": 1,
+				"frame_time_ms": 75,
+				"loop_flag": false,
+				"layout": "horizontal",
+				"scale": 5.0
+			},
+			"shield_bar": {
+				"texture": "..\\..\\assets\\sprites\\ui-sprites\\shield-bar.png",
+				"frame_width": 48,
+				"frame_height": 16,
+				"frames": 1,
+				"frame_time_ms": 75,
+				"loop_flag": true,
+				"layout": "horizontal",
+				"scale": 5.0
+			},
+			"shield_bar_base": {
+				"texture": "..\\..\\assets\\sprites\\ui-sprites\\health-bar-base.png",
+				"frame_width": 48,
+				"frame_height": 16,
+				"frames": 1,
+				"frame_time_ms": 75,
+				"loop_flag": false,
+				"layout": "horizontal",
+				"scale": 5.0
+			},
+			"dash_bar": {
+				"texture": "..\\..\\assets\\sprites\\ui-sprites\\dash-bar.png",
+				"frame_width": 48,
+				"frame_height": 16,
+				"frames": 1,
+				"frame_time_ms": 75,
+				"loop_flag": true,
+				"layout": "horizontal",
+				"scale": 5.0
+			},
+			"dash_bar_base": {
+				"texture": "..\\..\\assets\\sprites\\ui-sprites\\health-bar-base.png",
+				"frame_width": 48,
+				"frame_height": 16,
+				"frames": 1,
+				"frame_time_ms": 75,
+				"loop_flag": false,
+				"layout": "horizontal",
+				"scale": 5.0
+			}
 		}
 	}
-}

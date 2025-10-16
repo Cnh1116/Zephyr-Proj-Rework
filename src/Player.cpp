@@ -571,7 +571,7 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
     SDL_Rect health_bar_dst = {
         0,
-        SCREEN_HEIGHT - health_bar_animation->GetFrameHeight(),
+        SCREEN_HEIGHT - health_bar_animation->GetFrameHeight() - 100,
         health_bar_animation->GetFrameWidth(),
         health_bar_animation->GetFrameHeight()
     };
@@ -588,8 +588,8 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     smooth_shield = lerp(smooth_shield, shield_percentage, SMOOTHING_SPEED);
 
     SDL_Rect shield_bar_dst = {
-        (SCREEN_WIDTH / 2) - (shield_bar_animation->GetFrameWidth() / 2),
-        SCREEN_HEIGHT - shield_bar_animation->GetFrameHeight(),
+        0,
+        SCREEN_HEIGHT - shield_bar_animation->GetFrameHeight() - 50,
         shield_bar_animation->GetFrameWidth(),
         shield_bar_animation->GetFrameHeight()
     };
@@ -605,7 +605,7 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     smooth_dash = lerp(smooth_dash, dash_percentage, SMOOTHING_SPEED);
 
     SDL_Rect dash_bar_dst = {
-        SCREEN_WIDTH - dash_bar_animation->GetFrameWidth(),
+        0,
         SCREEN_HEIGHT - dash_bar_animation->GetFrameHeight(),
         dash_bar_animation->GetFrameWidth(),
         dash_bar_animation->GetFrameHeight()

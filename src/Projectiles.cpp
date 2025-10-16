@@ -5,7 +5,13 @@
 #include "AnimationManager.hpp"
 #include <iomanip>
 
-Projectile::Projectile(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, bool player_projectile_flag, bool shift_impact_arg)
+Projectile::Projectile(AnimationManager& animation_manager, 
+    const SDL_Rect& dest_rect, 
+    float projectile_speed, 
+    float projectile_damage, 
+    bool player_projectile_flag, 
+    bool shift_impact_arg, 
+    bool shiny_arg)
     : dest_rect(dest_rect),
     speed(projectile_speed),
     damage(projectile_damage),
@@ -13,7 +19,8 @@ Projectile::Projectile(AnimationManager& animation_manager, const SDL_Rect& dest
     state("main"),
     collision_rect(dest_rect),
     shift_impact(shift_impact_arg),
-	animation_manager(animation_manager)
+	animation_manager(animation_manager),
+	shiny(shiny_arg)
 
 {
 }
@@ -85,7 +92,7 @@ std::string Projectile::GetPrintableDamage()
 // PRIMARY FIRE
 
 PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, int PIXEL_SCALE, bool critical_flag)
-    : Projectile(animation_manager, {(dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE}, projectile_speed, projectile_damage, true, true)
+    : Projectile(animation_manager, {(dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE}, projectile_speed, projectile_damage, true, true, false)
 {
 
     critical = critical_flag;
@@ -175,7 +182,7 @@ void PrimaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
 // SECONDARY FIRE
 SecondaryFire::SecondaryFire(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE)
-    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, 0.0f, true, false)
+    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, 0.0f, true, false, false)
 {
     current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-secondary", "main"));
 }
@@ -258,8 +265,8 @@ void SecondaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
 // ICE SHARD
 
-IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage)
-    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false)
+IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, bool shiny)
+    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false, shiny)
 {
     sound_effect_impact = "ice_shard_impact";
     state = "spawn";
@@ -338,8 +345,8 @@ void IceShard::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
 // LIGHTNING BALL
 
-LightningBall::LightningBall(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, int player_x, int player_y)
-    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false)
+LightningBall::LightningBall(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, int player_x, int player_y, bool shiny)
+    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false, shiny)
 {
     sound_effect_impact = "lightning_ball_impact";
     current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main"));
@@ -440,18 +447,24 @@ void LightningBall::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
 // Lightning Strike ===============================================
 
-LightningStrike::LightningStrike(AnimationManager& animation_manager, const SDL_Rect& dest_rect, int PIXEL_SCALE, float damage, bool right_flag_arg)
-    : Projectile(animation_manager, dest_rect, 0, damage, false, false)
+LightningStrike::LightningStrike(AnimationManager& animation_manager, const SDL_Rect& dest_rect, int PIXEL_SCALE, float damage, bool right_flag_arg, bool shiny)
+    : Projectile(animation_manager, dest_rect, 0, damage, false, false, shiny)
 {
     sound_effect_impact = "lightning_ball_impact";
     right_flag = right_flag_arg;
     if (right_flag)
     {
-        current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-right"));
+        if (shiny)
+            current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-right_shiny"));
+        else
+            current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-right"));
     }
     else
     {
-        current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left"));
+        if (shiny)
+            current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left_shiny"));
+        else
+            current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left"));
         
     }
 }
