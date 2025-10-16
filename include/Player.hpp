@@ -207,7 +207,12 @@ class Player
         // ANIMATIONS
         std::vector<std::unique_ptr<Animation>> overlay_animations;
         Animation* current_animation;
+        Animation* health_bar_animation;
+        Animation* shield_bar_animation;
+        Animation* dash_bar_animation;
+        Animation* health_bar_base_animation;
         AnimationManager& animation_manager;
+
 };
 
 #endif

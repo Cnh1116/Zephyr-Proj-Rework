@@ -159,9 +159,9 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 
 	if (state == "death")
 	{
-		if (!added_death_animation)
+		if (!added_death_animation && current_animation->GetCurrentFrameIndex() == 5)
 		{
-			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "heal")));
+			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "ice_burst")));
 			added_death_animation = true;
 		}
 		if (current_animation->GetName() != "enemy-ice-crystal-death")
@@ -298,7 +298,7 @@ void IceCrystal::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 
 void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 {
-	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
+	
 
 	for (auto& animation : overlay_animations)
 	{
@@ -310,6 +310,8 @@ void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 							current_frame->h * animation->GetScale() };
 		animation->Draw(renderer, temp, SDL_FLIP_NONE);
 	}
+
+	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
 
 	if (collision_box_flag)
 	{

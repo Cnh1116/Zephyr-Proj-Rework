@@ -34,7 +34,7 @@ SoundManager::SoundManager()
     LoadSoundEffect("player_crit", "../../assets/sounds/player-sounds/player-crit.wav");
     
     // Overlay Effect Sounds
-    LoadSoundEffect("player_heal", "../../assets/sounds/items-sounds/healing.wav");    
+    LoadSoundEffect("player_heal", "../../assets/sounds/overlay-sounds/healing.wav");    
     LoadSoundEffect("jade_drum", "../../assets/sounds/enemy-sounds/jade-drum.wav");
 
     // Projectile Sounds

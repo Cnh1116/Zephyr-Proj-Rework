@@ -25,6 +25,12 @@ public:
 	void Draw(	SDL_Renderer* renderer,
 				const SDL_Rect& dest_rect,
 				SDL_RendererFlip flip = SDL_FLIP_NONE);
+	// Overload this function for times where we don't want the whole src 
+	void DrawPartial(SDL_Renderer* renderer,
+		const SDL_Rect& dest_rect,
+		float percent,
+		float frame_width,
+		SDL_RendererFlip flip);
 
 	// Utilities
 	void Reset();

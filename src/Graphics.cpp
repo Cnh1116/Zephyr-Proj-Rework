@@ -82,7 +82,7 @@ void Graphics::LoadTextures()
 {
     // [ LIST OF TEXTURES ]
     // Background
-    texture_map["light_blue_background"] = GetTexture("../../assets/sprites/background-sprites/light-blue-background.png");
+    texture_map["light_blue_background"] = GetTexture("../../assets/sprites/background-sprites/sunset-background.png");
     texture_map["clouds1_texture"] =  GetTexture("../../assets/sprites/background-sprites/clouds1.png");
     texture_map["clouds2_texture"] = GetTexture("../../assets/sprites/background-sprites/clouds2.png");
     texture_map["clouds3_texture"] = GetTexture("../../assets/sprites/background-sprites/clouds3.png");
@@ -395,29 +395,19 @@ void Graphics::RenderDebugText(Player* player)
     std::string player_speed = std::string("Speed ") + std::to_string(static_cast<int>(player->GetSpeed()));
     std::string state = std::string("State: ") + player->GetPlayerState();
 
-    RenderText(player_pos, { screen_width - static_cast<int>(player_pos.length()) * 12, screen_height - 30, static_cast<int>(player_pos.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(player_damage, { screen_width - static_cast<int>(player_damage.length()) * 12, screen_height - 60, static_cast<int>(player_damage.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(player_crit, { screen_width - static_cast<int>(player_crit.length()) * 12, screen_height - 90, static_cast<int>(player_crit.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(player_health, { screen_width - static_cast<int>(player_health.length()) * 12, screen_height - 120, static_cast<int>(player_health.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(player_speed, { screen_width - static_cast<int>(player_speed.length()) * 12, screen_height - 150, static_cast<int>(player_speed.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(state, { screen_width - static_cast<int>(state.length()) * 12, screen_height - 180, static_cast<int>(state.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(player_pos, { screen_width - static_cast<int>(player_pos.length()) * 12, 0, static_cast<int>(player_pos.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(player_damage, { screen_width - static_cast<int>(player_damage.length()) * 12, 30, static_cast<int>(player_damage.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(player_crit, { screen_width - static_cast<int>(player_crit.length()) * 12, 60, static_cast<int>(player_crit.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(player_health, { screen_width - static_cast<int>(player_health.length()) * 12, 90, static_cast<int>(player_health.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(player_speed, { screen_width - static_cast<int>(player_speed.length()) * 12, 120, static_cast<int>(player_speed.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(state, { screen_width - static_cast<int>(state.length()) * 12, 150, static_cast<int>(state.length()) * 12, 30 }, { 0,0,0,0 });
 
 }
 
 void Graphics::RenderPlayerUI(Player* player)
 {
     // HEALTH BAR
-    int health_bar_width = 200;
-    int health_bar_height = 50;
-
-
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_Rect health_bar_outline = { 0, screen_height - health_bar_height, player->GetMaxHealth(), health_bar_height };
-    SDL_RenderFillRect(renderer, &health_bar_outline);
-
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect health_bar_fill = { 0, screen_height - health_bar_height, player->GetCurrentHealth(), health_bar_height };
-    SDL_RenderFillRect(renderer, &health_bar_fill);
+    
 
     //POINTS
     std::string points = std::string("Points:") + std::to_string(player->GetPoints());

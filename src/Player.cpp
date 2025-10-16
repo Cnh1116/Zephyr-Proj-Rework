@@ -16,6 +16,11 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
 
     current_animation = animation_manager_arg.Get("zephyr", "main");
 
+    health_bar_animation = animation_manager_arg.Get("ui", "health_bar");
+    shield_bar_animation = animation_manager_arg.Get("ui", "shield_bar");
+    dash_bar_animation = animation_manager_arg.Get("ui", "dash_bar");
+    health_bar_base_animation = animation_manager_arg.Get("ui", "health_bar_base");
+
     state = "main";
     bool invincible = false;
 
@@ -543,6 +548,73 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
                             current_frame->h * animation->GetScale() };
         animation->Draw(renderer, temp, SDL_FLIP_NONE);
     }
+    
+    auto clamp = [](float value, float min, float max) {
+        return (value < min) ? min : (value > max ? max : value);
+        };
+
+    auto lerp = [](float a, float b, float t) {
+        return a + (b - a) * t;
+        };
+
+    // Store smoothed values as static to persist between frames
+    static float smooth_health = 1.0f;
+    static float smooth_shield = 1.0f;
+    static float smooth_dash = 1.0f;
+    const float SMOOTHING_SPEED = 0.1f; // lower = smoother, higher = snappier
+
+
+    // --- HEALTH BAR ---
+    int SCREEN_HEIGHT = 1080;
+    float health_percent = clamp(static_cast<float>(current_health) / static_cast<float>(max_health), 0.0f, 1.0f);
+    smooth_health = lerp(smooth_health, health_percent, SMOOTHING_SPEED);
+
+    SDL_Rect health_bar_dst = {
+        0,
+        SCREEN_HEIGHT - health_bar_animation->GetFrameHeight(),
+        health_bar_animation->GetFrameWidth(),
+        health_bar_animation->GetFrameHeight()
+    };
+
+    health_bar_base_animation->Draw(renderer, health_bar_dst);
+    health_bar_animation->DrawPartial(renderer, health_bar_dst, smooth_health, static_cast<float>(health_bar_animation->GetFrameWidth() / health_bar_animation->GetScale()), SDL_FLIP_NONE);
+
+    // --- SHIELD BAR ---
+    int SCREEN_WIDTH = 1920;
+    float shield_percentage = clamp(
+        static_cast<float>(SDL_GetTicks() - shield.last_time_used) / static_cast<float>(shield.shield_cooldown_ms),
+        0.0f, 1.0f
+    );
+    smooth_shield = lerp(smooth_shield, shield_percentage, SMOOTHING_SPEED);
+
+    SDL_Rect shield_bar_dst = {
+        (SCREEN_WIDTH / 2) - (shield_bar_animation->GetFrameWidth() / 2),
+        SCREEN_HEIGHT - shield_bar_animation->GetFrameHeight(),
+        shield_bar_animation->GetFrameWidth(),
+        shield_bar_animation->GetFrameHeight()
+    };
+
+    health_bar_base_animation->Draw(renderer, shield_bar_dst);
+    shield_bar_animation->DrawPartial(renderer, shield_bar_dst, smooth_shield, static_cast<float>(shield_bar_animation->GetFrameWidth() / shield_bar_animation->GetScale()), SDL_FLIP_NONE);
+
+    // --- DASH BAR ---
+    float dash_percentage = clamp(
+        static_cast<float>(SDL_GetTicks() - last_dash_time) / static_cast<float>(dash_cooldown_ms),
+        0.0f, 1.0f
+    );
+    smooth_dash = lerp(smooth_dash, dash_percentage, SMOOTHING_SPEED);
+
+    SDL_Rect dash_bar_dst = {
+        SCREEN_WIDTH - dash_bar_animation->GetFrameWidth(),
+        SCREEN_HEIGHT - dash_bar_animation->GetFrameHeight(),
+        dash_bar_animation->GetFrameWidth(),
+        dash_bar_animation->GetFrameHeight()
+    };
+
+    health_bar_base_animation->Draw(renderer, dash_bar_dst);
+    dash_bar_animation->DrawPartial(renderer, dash_bar_dst, smooth_dash, static_cast<float>(dash_bar_animation->GetFrameWidth()/dash_bar_animation->GetScale()), SDL_FLIP_NONE);
+
+    
 
     if (collision_box_flag)
     {
