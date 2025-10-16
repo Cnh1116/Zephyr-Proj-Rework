@@ -23,7 +23,7 @@ class Game
         void RunGame();
         void HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectile*> &game_projectile, bool &render_coll_boxes);
         void FPSLogic(Uint32 current_tick);
-        void HandleCollisions(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies);
+        void HandleCollisions(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies, bool render_coll_boxes);
         
         //Spawning Enemies
         void SpawnEnemies(std::vector<Enemy*>& enemies);

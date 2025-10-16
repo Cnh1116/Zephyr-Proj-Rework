@@ -31,7 +31,8 @@ public:
     void DeactivateWindow();
 
     // Text
-    void RenderPlayerText(Player* player);
+    void RenderDebugText(Player* player);
+    void RenderPlayerUI(Player* player);
 
     // Textures
     void LoadTextures();

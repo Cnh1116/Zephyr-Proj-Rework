@@ -125,7 +125,7 @@ void Game::RunGame()
         /*~~~~~~~~~~~~~~~~~~~~~~~~
         ~  HANDLE COLLISIONS     ~
         ~~~~~~~~~~~~~~~~~~~~~~~~*/
-        HandleCollisions(&player, game_projectiles, item_manager->GetItemList(), enemies);
+        HandleCollisions(&player, game_projectiles, item_manager->GetItemList(), enemies, render_coll_boxes);
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~  UPDATE Background Clouds                    ~
@@ -237,7 +237,7 @@ void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectil
         }
 }
 
-void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies)
+void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies, bool render_coll_boxes)
 {
     
     // CHECKING COLLISIONS FOR DIFF PROJECTILES
@@ -291,11 +291,15 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     player->UpdatePlayerState("iframes");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
                     player->Hurt(game_projectiles.at(i)->damage, *sound_manager);
-                    overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
-                        damage_number_color,
-                        player->GetCollRect(),
-                        damage_numbers_text_time);
                     player->UpdatePlayerState("iframes");
+                    if (render_coll_boxes)
+                    {
+                        overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
+                            damage_number_color,
+                            player->GetCollRect(),
+                            damage_numbers_text_time);
+                    }
+                    
                 }
 
 				// PLAY SOUND AND SET STATE TO IMPACT
@@ -319,10 +323,13 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     {
                         int heal_amount = player->GetNumItem("garnet_shield") * 5;
                         player->Heal(heal_amount, *sound_manager);
-                        overlay_text_manager->AddMessage(std::to_string(heal_amount),
-                            heal_number_color,
-                            player->GetCollRect(),
-                            damage_numbers_text_time);
+                        if (render_coll_boxes)
+                        {
+                            overlay_text_manager->AddMessage(std::to_string(heal_amount),
+                                heal_number_color,
+                                player->GetCollRect(),
+                                damage_numbers_text_time);
+                        }
 
                         
                         
@@ -353,26 +360,35 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                         {
                             sound_manager->PlaySound("jade_drum", 90);
                             enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
-                            overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
-                                                                damage_number_color,
-                                                                enemies.at(k)->GetCollRect(),
-                                                                damage_numbers_text_time);
+                            if (render_coll_boxes)
+                            {
+                                overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
+                                    damage_number_color,
+                                    enemies.at(k)->GetCollRect(),
+                                    damage_numbers_text_time);
+                            }
                         }
                         else
                         {
                             sound_manager->PlaySound("player_hit", 60);
                             enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
-                            overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
-                                                                damage_number_color,
-                                                                enemies.at(k)->GetCollRect(),
-                                                                damage_numbers_text_time);
+                            if (render_coll_boxes)
+                            {
+                                overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
+                                    damage_number_color,
+                                    enemies.at(k)->GetCollRect(),
+                                    damage_numbers_text_time);
+                            }
                         }
 
                         game_projectiles.at(i)->UpdateState("impact");
                         sound_manager->PlaySound("player_secondary_fire_impact", 60);
 
                         if (enemies.at(k)->GetHealth() <= 0)
+                        {
                             enemies.at(k)->UpdateState("death");
+                            player->GivePoints(enemies.at(k)->GetPoints());
+                        }
                     }
                 }
             }

@@ -90,6 +90,7 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 						enemy_dest_rect.w / 2,
 						enemy_dest_rect.h / 2 };
 	fire_cooldown_ms = 300;
+	points = 10;
 	
 }
 
@@ -329,6 +330,8 @@ StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, in
 
 	current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "main"));
 	
+	points = 10;
+
 	std::cout << "[*] Goal x and y: " << goal_x << " " << goal_y << std::endl;
 	
 	std::random_device rd;
@@ -559,7 +562,7 @@ StormGenie::StormGenie(AnimationManager& animation_manager, const SDL_Rect& dest
 	shot_fired = false;
 	spawned_lightning = false;
 	posY = static_cast<float>(enemy_dest_rect.y);
-	
+	points = 10;
 	fire_cooldown_ms = 4000;
 	state = "spawn";
 }
@@ -613,6 +616,9 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 			spawned_lightning = true;
 			last_fire_time = SDL_GetTicks();
 		}
+
+		if (current_animation->GetName() == "enemy-storm-genie-attack" && current_animation->IsFinished())
+			current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "attacking"));
 		
 		if (IsDoneAttacking())
 		{

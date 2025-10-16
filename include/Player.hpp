@@ -96,6 +96,10 @@ class Player
         // I-FRAMES
         bool IsIframesDone();
 
+        // POINTS
+		void GivePoints(int points_to_add) { points += points_to_add; }
+		int GetPoints() { return points; }
+
 
     
     private:
@@ -138,6 +142,8 @@ class Player
         bool invincible = false;
         
 		
+        // POINTS
+		int points = 0;
 
         // I-FRAMES
         Uint32 last_iframes_start = 0;

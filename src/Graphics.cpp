@@ -251,7 +251,10 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
     player->Draw(renderer, render_coll_boxes);
 
     //  UI //
-    RenderPlayerText(player);
+    if (render_coll_boxes)
+        RenderDebugText(player);
+
+	RenderPlayerUI(player);
 
     // OVERLAY TEXT //
 	overlay_text_manager.RenderOverlays();
@@ -376,7 +379,7 @@ void Graphics::BackgroundUpdate(Uint32 loop_flag)
     
 }
 
-void Graphics::RenderPlayerText(Player* player)
+void Graphics::RenderDebugText(Player* player)
 {
     // Weird logic to make the crit string be 2 decimal places.
     float crit_percent = player->GetCrit();
@@ -385,7 +388,6 @@ void Graphics::RenderPlayerText(Player* player)
     string_stream << std::fixed << crit_percent;
     std::string crit_string = string_stream.str();
 
-
     std::string player_pos = std::string("X: ") + std::to_string(player->GetDstRect()->x) + std::string(" Y: ") + std::to_string(player->GetDstRect()->y);
     std::string player_damage = std::string("Base Damage ") + std::to_string(static_cast<int>(player->GetBaseDamage()));
     std::string player_crit = std::string("Crit Chance ") + crit_string + "%";
@@ -393,31 +395,33 @@ void Graphics::RenderPlayerText(Player* player)
     std::string player_speed = std::string("Speed ") + std::to_string(static_cast<int>(player->GetSpeed()));
     std::string state = std::string("State: ") + player->GetPlayerState();
 
-    std::string points = std::string("Points: xxx");
-
-
     RenderText(player_pos, { screen_width - static_cast<int>(player_pos.length()) * 12, screen_height - 30, static_cast<int>(player_pos.length()) * 12, 30 }, { 0,0,0,0 });
     RenderText(player_damage, { screen_width - static_cast<int>(player_damage.length()) * 12, screen_height - 60, static_cast<int>(player_damage.length()) * 12, 30 }, { 0,0,0,0 });
     RenderText(player_crit, { screen_width - static_cast<int>(player_crit.length()) * 12, screen_height - 90, static_cast<int>(player_crit.length()) * 12, 30 }, { 0,0,0,0 });
     RenderText(player_health, { screen_width - static_cast<int>(player_health.length()) * 12, screen_height - 120, static_cast<int>(player_health.length()) * 12, 30 }, { 0,0,0,0 });
     RenderText(player_speed, { screen_width - static_cast<int>(player_speed.length()) * 12, screen_height - 150, static_cast<int>(player_speed.length()) * 12, 30 }, { 0,0,0,0 });
     RenderText(state, { screen_width - static_cast<int>(state.length()) * 12, screen_height - 180, static_cast<int>(state.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(points, { screen_width / 2 - static_cast<int>(state.length()) * 12, 0, static_cast<int>(state.length()) * 12, 30 }, { 0,0,0,0 });
 
-    
+}
 
+void Graphics::RenderPlayerUI(Player* player)
+{
     // HEALTH BAR
     int health_bar_width = 200;
     int health_bar_height = 50;
-    
-    
+
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_Rect health_bar_outline = { 0, screen_height - health_bar_height, player->GetMaxHealth(), health_bar_height};
+    SDL_Rect health_bar_outline = { 0, screen_height - health_bar_height, player->GetMaxHealth(), health_bar_height };
     SDL_RenderFillRect(renderer, &health_bar_outline);
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect health_bar_fill = { 0, screen_height - health_bar_height, player->GetCurrentHealth(), health_bar_height};
+    SDL_Rect health_bar_fill = { 0, screen_height - health_bar_height, player->GetCurrentHealth(), health_bar_height };
     SDL_RenderFillRect(renderer, &health_bar_fill);
+
+    //POINTS
+    std::string points = std::string("Points:") + std::to_string(player->GetPoints());
+    RenderText(points, { screen_width / 2 - static_cast<int>(points.length()) * 12, 0, static_cast<int>(points.length()) * 12, 30 }, { 0,0,0,0 });
 }
 
 SDL_Renderer* Graphics::GetRenderer()
