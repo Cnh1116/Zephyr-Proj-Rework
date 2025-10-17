@@ -92,6 +92,39 @@ void Animation::Draw(SDL_Renderer* renderer,
 
 	}
 }
+
+void Animation::DrawRotated(SDL_Renderer* renderer,
+	const SDL_Rect& dest_rect,
+	SDL_RendererFlip flip,
+	double rotation_angle)
+{
+	if (!texture || frames.empty())
+	{
+		std::cerr << "Error: No texture or frames to draw.\n";
+		return;
+	}
+
+	int w, h;
+	if (SDL_QueryTexture(texture, nullptr, nullptr, &w, &h) != 0)
+	{
+		std::cerr << "SDL_QueryTexture Error: " << SDL_GetError() << std::endl;
+		exit(1);
+	}
+
+	// Copy and scale destination rect (if needed)
+	SDL_Rect scaled_dest_rect = dest_rect;
+
+	// If no rotation center is given, rotate around the texture's center
+	SDL_Point default_center = { scaled_dest_rect.w / 2, scaled_dest_rect.h / 2 };
+
+	// Render with rotation
+	if (SDL_RenderCopyEx(renderer, texture, &frames[current_frame], &scaled_dest_rect,
+		rotation_angle, &default_center, flip) != 0)
+	{
+		std::cerr << "SDL_RenderCopyEx Error: " << SDL_GetError() << std::endl;
+	}
+}
+
 void Animation::DrawPartial(SDL_Renderer* renderer,
 	const SDL_Rect& dest_rect,
 	float percent,

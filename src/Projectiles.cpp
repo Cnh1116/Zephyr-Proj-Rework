@@ -270,7 +270,10 @@ IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rec
 {
     sound_effect_impact = "ice_shard_impact";
     state = "spawn";
-    current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "spawn"));
+    if (shiny)
+        current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "spawn_shiny"));
+    else
+        current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "spawn"));
 }
 void IceShard::MoveProjectile()
 {
@@ -288,7 +291,10 @@ void IceShard::Update()
     {
         if (current_animation->GetName() != "proj-ice-crystal-attack-main")
         {
-            current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "main"));
+            if (shiny)
+                current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "main_shiny"));
+            else
+                current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "main"));
         }
         MoveProjectile();
         collision_rect.w = dest_rect.w / 2;
@@ -299,9 +305,12 @@ void IceShard::Update()
     
     if (state == "impact")
     {
-        if (current_animation->GetName() != "proj-ice-crystal-attack-impact")
+        if (current_animation->GetName() != "proj-ice-crystal-attack-impact" and current_animation->GetName() != "proj-ice-crystal-attack-impact_shiny")
         {
-            current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "impact"));
+            if (shiny)
+                current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "impact_shiny"));
+            else
+                current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "impact"));
         }
         collision_rect = { 0,0,0,0 };
         if (current_animation->IsFinished())
@@ -349,7 +358,11 @@ LightningBall::LightningBall(AnimationManager& animation_manager, const SDL_Rect
     : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false, shiny)
 {
     sound_effect_impact = "lightning_ball_impact";
-    current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main"));
+
+    if (shiny)
+        current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main_shiny"));
+    else
+        current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main"));
     
     float delta_x = static_cast<double>(player_x) - (dest_rect.x + (dest_rect.w / 2));
     float delta_y = static_cast<double>(player_y) - (dest_rect.y + (dest_rect.h / 2));
@@ -388,9 +401,12 @@ void LightningBall::Update()
 {
     if (state == "main")
     {
-        if (current_animation->GetName() != "proj-storm-cloud-attack-main")
+        if (current_animation->GetName() != "proj-storm-cloud-attack-main" and current_animation->GetName() != "proj-storm-cloud-attack-main_shiny")
         {
-            current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main"));
+            if (shiny)
+                current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main_shiny"));
+            else
+                current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main"));
         }
         MoveProjectile();
         collision_rect.w = dest_rect.w / 2;
@@ -401,9 +417,12 @@ void LightningBall::Update()
 
     if (state == "impact")
     {
-        if (current_animation->GetName() != "proj-storm-cloud-attack-impact")
+        if (current_animation->GetName() != "proj-storm-cloud-attack-impact" and current_animation->GetName() != "proj-storm-cloud-attack-impact_shiny")
         {
-            current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "impact"));
+            if (shiny)
+                current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "impact_shiny"));
+            else
+                current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "impact"));
         }
         collision_rect = { 0,0,0,0 };
         if (current_animation->IsFinished())

@@ -116,7 +116,7 @@ class Player
         float accel = 0.03f;     // acceleration rate
         float base_accel = accel;
         float decel = 0.001f;     // deceleration rate
-        //float max_speed = 5.0f; // max movement speed
+        float max_speed = 5.0f; // max movement speed
         
 
         int base_damage = 20;
@@ -155,6 +155,9 @@ class Player
         Uint32 dash_duration = 230;
         float dash_accel = 0.3f;
         float dash_speed = 8.0;
+        bool dash_overlay_added = false;
+		SDL_Rect dash_overlay_dest_rect;
+        float dash_overlay_angle;
 
         struct Primary_fire
         {

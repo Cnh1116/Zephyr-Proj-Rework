@@ -31,6 +31,11 @@ public:
 		float percent,
 		float frame_width,
 		SDL_RendererFlip flip);
+	// Draw with rotation
+	void DrawRotated(SDL_Renderer* renderer,
+		const SDL_Rect& dest_rect,
+		SDL_RendererFlip flip,
+		double rotation_angle);
 
 	// Utilities
 	void Reset();

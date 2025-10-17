@@ -23,11 +23,13 @@ Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, con
 	invincible = false;
 	state = "main";
 	
+
+	// IS SHINY ?
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> shiny_chance(0, 100);
+	std::uniform_int_distribution<> shiny_chance(0, 1000);
 	std::cout << "[*] Updating Enemies since size is 0\n";
-	shiny = shiny_chance(gen) < 2;
+	shiny = shiny_chance(gen) < 7;
 	
 }
 
@@ -92,7 +94,11 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 	
 	
 	state = "idle";
-	current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "main"));
+	if (shiny)
+		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "main_shiny"));
+	else
+		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "main"));
+
 	enemy_coll_rect = { enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (enemy_dest_rect.w / 4),
 						enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (enemy_dest_rect.h / 4),
 						enemy_dest_rect.w / 2,
@@ -107,9 +113,14 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 	int player_distance_threshold = 40;
 	//std::cout << "ICE STATE: " << "---------------------------------------------------" << state << std::endl;
 	
-	// --- IDLE / SPAWN ---
 	if (state == "idle")
 	{
+		if (shiny and !shiny_sound_played)
+		{
+			sound_manager.PlaySound("shiny", 50);
+			shiny_sound_played = true;
+		}
+		
 		int lateral_diff = abs(enemy_dest_rect.x - player->GetDstRect()->x);
 
 		if (lateral_diff <= player_distance_threshold)
@@ -172,9 +183,12 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "ice_burst")));
 			added_death_animation = true;
 		}
-		if (current_animation->GetName() != "enemy-ice-crystal-death")
+		if (current_animation->GetName() != "enemy-ice-crystal-death" and current_animation->GetName() != "enemy-ice-crystal-death_shiny")
 		{
-			current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "death"));
+			if (shiny)
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "death_shiny"));
+			else
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "death"));
 		}
 
 		enemy_coll_rect = { 0,0,0,0 };
@@ -296,10 +310,15 @@ bool IceCrystal::WaitDone()
 
 void IceCrystal::Attack(std::vector<Projectile*>& game_projectiles, Player* player)
 {
-	const SDL_Rect ice_shard_dest = { (enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (animation_manager.Get("proj-ice-crystal-attack", "spawn")->GetFrameWidth()) / 2),
+	std::string texture_key;
+	if (shiny)
+		texture_key = "spawn_shiny";
+	else
+		texture_key = "spawn";
+	const SDL_Rect ice_shard_dest = { (enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameWidth()) / 2),
 										enemy_dest_rect.y + (enemy_dest_rect.h * 0.8),
-											animation_manager.Get("proj-ice-crystal-attack", "spawn")->GetFrameWidth() + (num_proj_shot * 30) ,
-											animation_manager.Get("proj-ice-crystal-attack", "spawn")->GetFrameHeight() };
+											animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameWidth() + (num_proj_shot * 30) ,
+											animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameHeight() };
 	
 	game_projectiles.emplace_back(new IceShard(animation_manager, ice_shard_dest, 5.0, 3, base_damage, shiny));
 }
@@ -337,8 +356,10 @@ void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, int screen_height, int player_x, int player_y)
 	: Enemy(animation_manager, { -32,-32,48 * 4 ,32 * 4 }, { -32,-32,48 * 4,32 * 4 }, 4.7, 30, 0, 35)
 {
-
-	current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "main"));
+	if (shiny)
+		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "main_shiny"));
+	else
+		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "main"));
 	
 	points = 10;
 
@@ -388,6 +409,12 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 	if (state == "main")
 	{
+		if (enemy_dest_rect.x > 0 and enemy_dest_rect.x < 1920 and enemy_dest_rect.y > 0 and enemy_dest_rect.y < 1080 and shiny and !shiny_sound_played)
+		{
+			sound_manager.PlaySound("shiny", 75);
+			shiny_sound_played = true;
+		}
+		
 		Move(player);
 		if ((std::abs(enemy_dest_rect.x - goal_x) < threshhold) && (std::abs(enemy_dest_rect.y - goal_y) < threshhold))
 		{
@@ -407,7 +434,10 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 			{
 				state = "shoot";
 				shot_fired = false;           // reset flag for shooting
-				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "attack"));
+				if (shiny)
+					current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "attack_shiny"));
+				else
+					current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "attack"));
 			}
 			else
 			{
@@ -421,9 +451,12 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 		// Only set attack animation once
 		if (!shot_fired)
 		{
-			if (current_animation->GetName() != "enemy-storm-cloud-attack")
+			if (current_animation->GetName() != "enemy-storm-cloud-attack" and current_animation->GetName() != "enemy-storm-cloud-attack_shiny")
 			{
-				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "attack"));
+				if (shiny)
+					current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "attack_shiny"));
+				else
+					current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "attack"));
 			}
 			Attack(game_projectiles, player);
 			
@@ -452,9 +485,15 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 	if (state == "death")
 	{
 		// Only set death animation once
-		if (current_animation->GetName() != "enemy-storm-cloud-death")
+		if (current_animation->GetName() != "enemy-storm-cloud-death" and current_animation->GetName() != "enemy-storm-cloud-death_shiny")
 		{
-			current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "death"));
+			
+			if (shiny)
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "death_shiny"));
+			else
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "death"));
+			
+			
 			enemy_coll_rect = { 0, 0, 0, 0 };
 		}
 

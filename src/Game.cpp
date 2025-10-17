@@ -222,7 +222,7 @@ void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectil
 
         if (event.key.keysym.scancode == SDL_SCANCODE_LSHIFT) // LSHIFT//
         {
-            if (player->GetPlayerState() == "main" && player->IsDashReady())
+            if (player->GetPlayerState() == "main" && player->IsDashReady() and (player->GetVX() != 0 || player->GetVY() != 0))
             {
                 sound_manager->PlaySound("dash_sound", 60);
                 player->UpdatePlayerState("dash");

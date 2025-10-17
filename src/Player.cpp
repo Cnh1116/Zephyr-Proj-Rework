@@ -116,12 +116,27 @@ void Player::Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, lon
 
     if (state == "dash")
     {
+		if (!dash_overlay_added)
+		{
+            dash_overlay_added = true;
+			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "dash")));
+            dash_overlay_dest_rect = player_dest_rect;
+            
+            double angle = 0.0;
+            if (vx != 0 || vy != 0)
+            {
+                angle = atan2(vy, vx) * 180.0 / M_PI;
+            }
+			dash_overlay_angle = static_cast<float>(angle);
+		}
+        
         accel = dash_accel;
         current_speed = dash_speed; // IF SPEED TIME IS UP STATE + MAIN
         if (IsDashDone())
         {
             accel = base_accel;
             state = "main";
+            dash_overlay_added = false;
         }
     }
 
@@ -457,6 +472,10 @@ void Player::UpdatePlayerState(std::string new_state)
 		current_animation = animation_manager.Get("zephyr", "iframes");
 		current_animation->SetCurrentFrameIndex(prev_frame_index);
     }
+    if (new_state == "dash")
+    {
+		last_dash_time = SDL_GetTicks();
+    }
 }
 
 
@@ -490,7 +509,6 @@ bool Player::IsDashReady()
     if ((current_time - last_dash_time) >= dash_cooldown_ms)
     {
         std::cout << "[*] Dash is ready to use !\n";
-        last_dash_time = current_time;
         return(true);
     }
 
@@ -507,7 +525,6 @@ bool Player::IsDashDone()
     if ((current_time - last_dash_time) >= dash_duration)
     {
         std::cout << "[*] Dash is done !\n";
-        last_dash_time = current_time;
         return(true);
     }
 
@@ -541,6 +558,11 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     for (auto& animation : overlay_animations) 
     {  
 		std::cout << "DRAWING OVERLAY !" << std::endl;
+        if (animation->GetName() == "overlays-dash")
+        {   
+            animation->DrawRotated(renderer, dash_overlay_dest_rect, SDL_FLIP_NONE, dash_overlay_angle);
+        }
+
         SDL_Rect* current_frame = animation->GetCurrentFrame();
         SDL_Rect temp = {   player_dest_rect.x + (player_dest_rect.w - current_frame->w *  animation->GetScale()) / 2, 
                             player_dest_rect.y + (player_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
