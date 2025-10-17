@@ -32,6 +32,8 @@ SoundManager::SoundManager()
     LoadSoundEffect("shield_activate", "../../assets/sounds/player-sounds/shield-activate.wav");
     LoadSoundEffect("dash_sound", "../../assets/sounds/player-sounds/dash.wav");
     LoadSoundEffect("player_crit", "../../assets/sounds/player-sounds/player-crit.wav");
+    LoadSoundEffect("lightning_strike", "../../assets/sounds/enemy-sounds/lightning-strike.mp3");
+    
     
     // Overlay Effect Sounds
     LoadSoundEffect("player_heal", "../../assets/sounds/overlay-sounds/healing.wav");    
@@ -42,10 +44,10 @@ SoundManager::SoundManager()
 
     // Projectile Sounds
     LoadSoundEffect("ice_shard_impact", "../../assets/sounds/enemy-sounds/ice-shard-impact.wav");
-    LoadSoundEffect("lightning_ball_impact", "../../assets/sounds/enemy-sounds/electric-ball-impact.wav");
+    LoadSoundEffect("lightning_ball_impact", "../../assets/sounds/enemy-sounds/lightning-ball.mp3");
 
     // Item Sounds
-    LoadSoundEffect("item_collection_sound", "../../assets/sounds/item-sounds/item-collection.wav");
+    LoadSoundEffect("item_collection_sound", "../../assets/sounds/item-sounds/collect-item.mp3");
     
     // Music Files
     music_map["first_level_song"] = "../../assets/soundsmusic/ChrisChristodoulou-TheyMightAsWellBeDeadROR2_SurvivorsoftheVoid(2022).mp3";
@@ -131,5 +133,30 @@ void SoundManager::FadeOutMusic()
     } else {
         std::cerr << "[!] No music to fade out." << std::endl;
     }
+}
+
+int SoundManager::PlaySoundTracking(std::string current_key, int volume_percent)
+{
+    // Clamp volume between 0 and 100
+    volume_percent = std::clamp(volume_percent, 0, 100);
+
+    Mix_Chunk* chunk = sound_effects_map[current_key];
+    if (!chunk) {
+        std::cerr << "[!] Null sound chunk for key: " << current_key << std::endl;
+        return -1;
+    }
+
+    Mix_VolumeChunk(chunk, (volume_percent * MIX_MAX_VOLUME) / 100);
+
+    int channel = Mix_PlayChannel(-1, chunk, 0);  // -1 = pick first available channel
+    if (channel == -1) {
+        std::cerr << "[!] Failed to play sound: " << Mix_GetError() << std::endl;
+    }
+    return channel;
+
+}
+void SoundManager::StopSoundChannel(int sound_channel)
+{
+    Mix_FadeOutChannel(sound_channel , 500);
 }
 

@@ -150,6 +150,7 @@ private:
 
     Uint32 last_fire_time = 0;
     Uint32 lightning_strike_duration = 1500;
+    int lightning_strike_channel;
 
     bool death_animation_played  = false;
     

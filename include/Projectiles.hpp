@@ -16,6 +16,7 @@ class Projectile
 {
 protected:
 	    AnimationManager& animation_manager;
+        int sound_effect_noise;
     public:
         // Constructors
         Projectile(AnimationManager& animation_manager, 
@@ -35,6 +36,7 @@ protected:
 		bool GetSoundPlayed() { return sound_played; }
 		void SetSoundPlayed(bool played) { sound_played = played; }
         std::string GetPrintableDamage();
+        virtual int GetSoundEffectImpactNoise() const { return sound_effect_noise; }
         
 
         //Other Functions
@@ -89,6 +91,7 @@ class PrimaryFire : public Projectile
         void Update() override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
         bool critical;
+
 };
 
 class SecondaryFire : public Projectile 
@@ -98,6 +101,7 @@ class SecondaryFire : public Projectile
         void MoveProjectile() override;
         void Update() override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
+
 
     
 };
@@ -109,6 +113,7 @@ class IceShard : public Projectile
         void MoveProjectile() override;
         void Update() override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
+
 
 };
 class LightningBall : public Projectile 
@@ -122,6 +127,7 @@ class LightningBall : public Projectile
         double direction_x, direction_y;
         double position_x = dest_rect.x;
         double position_y = dest_rect.y;
+
 };
 
 class LightningStrike : public Projectile
@@ -132,6 +138,7 @@ public:
     void Update() override;
     void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
     bool right_flag;
+
 };
 
 #endif

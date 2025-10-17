@@ -150,8 +150,8 @@ class Player
         Uint32 iframes_duration = 900;
 
         // DASH
-        Uint32 last_dash_time = 0;
         Uint32 dash_cooldown_ms = 1500;
+        Uint32 last_dash_time = SDL_GetTicks() - dash_cooldown_ms;
         Uint32 dash_duration = 230;
         float dash_accel = 0.3f;
         float dash_speed = 8.0;
@@ -193,7 +193,7 @@ class Player
             SDL_Rect dest_rect;
             SDL_Rect coll_rect;
             Uint32 shield_cooldown_ms = 5000;
-            Uint32 last_time_used = shield_cooldown_ms;
+            Uint32 last_time_used = SDL_GetTicks() - shield_cooldown_ms;
             bool shield_ready = true;
 
         };

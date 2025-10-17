@@ -41,7 +41,7 @@ void Projectile::UpdateState(const char* state_str)
 {
     state = state_str;
 
-
+     sound_effect_noise = 20;
     if(state_str == "impact" && shift_impact)
         if (player_projectile)
         {
@@ -96,7 +96,7 @@ PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& de
 {
 
     critical = critical_flag;
-
+    sound_effect_noise = 20;
     current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-primary", "main"));
 
     if (critical)
@@ -185,6 +185,7 @@ SecondaryFire::SecondaryFire(AnimationManager& animation_manager, const SDL_Rect
     : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, 0.0f, true, false, false)
 {
     current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-secondary", "main"));
+    sound_effect_noise = 20;
 }
 
 void SecondaryFire::Update()
@@ -269,6 +270,7 @@ IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rec
     : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false, shiny)
 {
     sound_effect_impact = "ice_shard_impact";
+    sound_effect_noise = 20;
     state = "spawn";
     if (shiny)
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "spawn_shiny"));
@@ -358,6 +360,7 @@ LightningBall::LightningBall(AnimationManager& animation_manager, const SDL_Rect
     : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false, shiny)
 {
     sound_effect_impact = "lightning_ball_impact";
+    sound_effect_noise = 80;
 
     if (shiny)
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main_shiny"));
@@ -470,6 +473,7 @@ LightningStrike::LightningStrike(AnimationManager& animation_manager, const SDL_
     : Projectile(animation_manager, dest_rect, 0, damage, false, false, shiny)
 {
     sound_effect_impact = "lightning_ball_impact";
+    sound_effect_noise = 80;
     right_flag = right_flag_arg;
     if (right_flag)
     {

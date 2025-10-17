@@ -687,6 +687,7 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 			Attack(game_projectiles, player);
 			spawned_lightning = true;
 			last_fire_time = SDL_GetTicks();
+			lightning_strike_channel = sound_manager.PlaySoundTracking("lightning_strike", 45);
 		}
 
 		if (shiny)
@@ -708,6 +709,8 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 		
 			left_lightning_bolt->UpdateState("delete");
 			right_lightning_bolt->UpdateState("delete");
+
+			sound_manager.StopSoundChannel(lightning_strike_channel);
 			
 
 			if (!spawned_lightning)

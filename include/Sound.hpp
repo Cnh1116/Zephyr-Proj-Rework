@@ -10,6 +10,8 @@ class SoundManager
         ~SoundManager();
         void PlaySound(std::string current_key, int volume_percent);
         void PlayMusic(const char* song_key);
+        int PlaySoundTracking(std::string current_key, int volume_percent);
+        void StopSoundChannel(int sound_channel);
         void FadeOutMusic();
         
 

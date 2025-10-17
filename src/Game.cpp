@@ -216,7 +216,6 @@ void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectil
             {
                 sound_manager->PlaySound("shield_activate", 55);
                 player->UpdatePlayerState("shield");
-                player->SetShieldLastTimeUsed(SDL_GetTicks());
             }
         }
 
@@ -265,7 +264,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                                 sound_manager->PlaySound("item_collection_sound", 45);
                             }
                             
-                            sound_manager->PlaySound("player_secondary_fire_impact", 45);
+                            sound_manager->PlaySound("player_secondary_fire_impact", 50);
                             game_projectiles.at(i)->UpdateState("impact");
                             (*item_list).at(j).destroyed = true;
                         }
@@ -304,7 +303,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 				// PLAY SOUND AND SET STATE TO IMPACT
                 if (!game_projectiles.at(i)->GetSoundPlayed())
                 {
-                    sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 20); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
+                    sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), game_projectiles.at(i)->GetSoundEffectImpactNoise()); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
                     game_projectiles.at(i)->SetSoundPlayed(true);
                 }
 
@@ -452,7 +451,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
 void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
 {
-    if (enemies.size() == 0 or enemies.size() == 1)
+    if (enemies.size() == 0 or enemies.size() == 1 or enemies.size() == 2)
     {
         
         // PICK A RANDOM ENEMY

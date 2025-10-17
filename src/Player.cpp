@@ -456,12 +456,6 @@ std::string Player::GetPlayerState()
     return state;
 }
 
-
-void Player::SetShieldLastTimeUsed(Uint32 last_time_used)
-{
-    shield.last_time_used = last_time_used;
-}
-
 void Player::UpdatePlayerState(std::string new_state)
 {
     state = new_state;
@@ -475,6 +469,11 @@ void Player::UpdatePlayerState(std::string new_state)
     if (new_state == "dash")
     {
 		last_dash_time = SDL_GetTicks();
+    }
+    if (new_state == "shield")
+    {
+		shield.last_time_used = SDL_GetTicks();
+
     }
 }
 
