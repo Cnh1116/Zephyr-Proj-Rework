@@ -31,6 +31,7 @@ protected:
 
         // Setters and Getters
         SDL_Rect* GetDstRect();
+        void SetPosition(int x, int y);
         const char* GetState();
         Collider* GetCollisionShape();
         std::string GetSoundEffectImpact();

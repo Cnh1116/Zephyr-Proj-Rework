@@ -53,6 +53,13 @@ void Projectile::UpdateState(const char* state_str)
         }
 }
 
+void Projectile::SetPosition(int x, int y)
+{
+	dest_rect.x = x + dest_rect.w / 2;
+	dest_rect.y = y + dest_rect.h / 2;
+
+}
+
 const char* Projectile::GetState()
 {
     return state;
@@ -236,7 +243,7 @@ void SecondaryFire::MoveProjectile()
     dest_rect.y -= speed;
     collision_shape.circle.x = (dest_rect.x + dest_rect.w / 2);
     collision_shape.circle.y = (dest_rect.y + dest_rect.h / 2);
-	collision_shape.circle.r = dest_rect.w / 2;
+	collision_shape.circle.r = dest_rect.w / 4;
 }
 
 void SecondaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
@@ -504,9 +511,9 @@ void LightningStrike::Update()
 
     if (state == "main")
     {
-        float perc_thinner = 0.80;
-		int new_y_pos = dest_rect.y + static_cast<int>(dest_rect.h * (1.0 - perc_thinner));
-		int new_height = static_cast<int>(dest_rect.h * perc_thinner);
+        float perc_thinner = 0.45;
+        int new_height = static_cast<int>(dest_rect.h * perc_thinner);
+        int new_y_pos = dest_rect.y + (dest_rect.h - new_height) / 2;  // center it vertically
         
         collision_shape.rect.x = dest_rect.x;
         collision_shape.rect.w = dest_rect.w;

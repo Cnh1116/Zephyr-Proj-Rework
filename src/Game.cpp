@@ -273,7 +273,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                 
                 
                 if (!collided_with_item)
-                    game_projectiles.at(i)->UpdateState("delete");  
+                    game_projectiles.at(i)->UpdateState("delete");
             }
         }
 

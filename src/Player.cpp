@@ -25,7 +25,7 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
     bool invincible = false;
 
     player_dest_rect = {0, 0, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
-    player_coll_shape.circle.r = BASE_SPRITE_SIZE * image_scale / 3;
+    player_coll_shape.circle.r = BASE_SPRITE_SIZE * image_scale / 4;
 
 	player_coll_shape.type = ColliderType::CIRCLE;
     player_coll_shape.circle.x = player_dest_rect.x + player_dest_rect.w / 2;

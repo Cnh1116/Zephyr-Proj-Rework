@@ -515,7 +515,7 @@
 			"frame_width": 32,
 			"frame_height": 32,
 			"frames": 9,
-			"frame_time_ms": 50,
+			"frame_time_ms": 80,
 			"loop_flag": false,
 			"layout": "horizontal",
 			"scale": 1.0
