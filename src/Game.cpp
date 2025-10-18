@@ -244,7 +244,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
         // ITEM COLLECTION
         if ( dynamic_cast<SecondaryFire*>( game_projectiles.at(i) ) )
         {
-            if (Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetSecondaryFireMarkerCollision(), false))
+            if (Collisions::CheckCollision(*game_projectiles.at(i)->GetCollisionShape(), *player->GetSecondaryFireMarkerCollision(), false))
             {
                 player->SetSecondaryFireMarkerActive(false);
 
@@ -252,7 +252,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
                 for (int j = 0; j < (*item_list).size(); j++)
                 {
-                    if (Collisions::RectRectCollision(&(*item_list).at(j).item_cloud_coll_rect, game_projectiles.at(i)->GetCollisionRect(), false))
+                    if (Collisions::CheckCollision((*item_list).at(j).item_cloud_coll_shape, *game_projectiles.at(i)->GetCollisionShape(), false))
                     {
                         collided_with_item = true;
                         if (game_projectiles.at(i)->GetState() == "main")
@@ -281,7 +281,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
         if (!game_projectiles.at(i)->player_projectile)
         {
             // IF THE PROJECTILE IS ACTIVE AND THERE IS COLLISION WITH PLAYER
-            if (game_projectiles.at(i)->GetState() == "main" && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
+            if (game_projectiles.at(i)->GetState() == "main" && Collisions::CheckCollision(*game_projectiles.at(i)->GetCollisionShape(), *player->GetCollShape(), false))
             {
                 // IF THE PLAYER CAN BE HURT
                 if ((player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") )
@@ -294,7 +294,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     {
                         overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
                             damage_number_color,
-                            player->GetCollRect(),
+                            player->GetDstRect(),
                             damage_numbers_text_time);
                     }
                     
@@ -310,7 +310,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                 game_projectiles.at(i)->UpdateState("impact");
                 
 
-                if (player->GetPlayerState() == "shield" && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetShieldColl(), false))
+                if (player->GetPlayerState() == "shield" && Collisions::CheckCollision(*game_projectiles.at(i)->GetCollisionShape(), *player->GetShieldColl(), false))
                 {
 					// MOVE ME TO A USESHIELD FUNCTION ====================
                     sound_manager->PlaySound("player_shield_hit", 90);
@@ -325,7 +325,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                         {
                             overlay_text_manager->AddMessage(std::to_string(heal_amount),
                                 heal_number_color,
-                                player->GetCollRect(),
+                                player->GetDstRect(),
                                 damage_numbers_text_time);
                         }
 
@@ -335,7 +335,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     // MOVE ME TO A USESHIELD FUNCTION ====================
                 }
 
-                if (player->GetPlayerState() == "iframes" && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), player->GetCollRect(), false))
+                if (player->GetPlayerState() == "iframes" && Collisions::CheckCollision(*game_projectiles.at(i)->GetCollisionShape(), *player->GetCollShape(), false))
                 {
                     game_projectiles.at(i)->UpdateState("impact");
                 }
@@ -348,7 +348,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
         for (int k = 0; k < enemies.size(); k++)
         {
             // PLAYER PROJECTILES HURTING ENEMIES
-            if (game_projectiles.at(i)->player_projectile && Collisions::RectRectCollision(game_projectiles.at(i)->GetDstRect(), enemies.at(k)->GetCollRect(), false))
+            if (game_projectiles.at(i)->player_projectile && Collisions::CheckCollision(*game_projectiles.at(i)->GetDstRect(), *enemies.at(k)->GetCollShape(), false))
             {
                 if (auto* primary_projectile = dynamic_cast<PrimaryFire*>(game_projectiles.at(i)))
                 {
@@ -362,7 +362,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                             {
                                 overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
                                     damage_number_color,
-                                    enemies.at(k)->GetCollRect(),
+                                    enemies.at(k)->GetDstRect(),
                                     damage_numbers_text_time);
                             }
                         }
@@ -374,7 +374,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                             {
                                 overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
                                     damage_number_color,
-                                    enemies.at(k)->GetCollRect(),
+                                    enemies.at(k)->GetDstRect(),
                                     damage_numbers_text_time);
                             }
                         }
@@ -395,54 +395,34 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
     for (auto& enemy : enemies) 
     {
-        SDL_Rect playerRect = *player->GetCollRect();
-        SDL_Rect enemyRect = *enemy->GetCollRect();
+        Collider player_coll = *player->GetCollShape();
+        Collider enemy_coll = *enemy->GetCollShape();
 
-        if (Collisions::RectRectCollision(enemy->GetCollRect(), player->GetCollRect(), false))
+        if (Collisions::CheckCollision(enemy_coll, player_coll, false))
         {
-            // Find overlap distances
-            float overlapX = (playerRect.x + playerRect.w / 2.0f) - (enemyRect.x + enemyRect.w / 2.0f);
-            float overlapY = (playerRect.y + playerRect.h / 2.0f) - (enemyRect.y + enemyRect.h / 2.0f);
+            int pushX = 0, pushY = 0;
+            Collisions::ResolveCollision(*player->GetCollShape(), *enemy->GetCollShape(), pushX, pushY);
 
-            float halfWidths = (playerRect.w + enemyRect.w) / 2.0f;
-            float halfHeights = (playerRect.h + enemyRect.h) / 2.0f;
+            player->SetPosition(pushX, pushY, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-            float penX = halfWidths - fabsf(overlapX);
-            float penY = halfHeights - fabsf(overlapY);
+            // Optional bounce effect:
+            if (pushX != 0)
+                player->SetVX(player->GetVX() * -0.25f);
+            if (pushY != 0)
+                player->SetVY(player->GetVY() * -0.25f);
 
-            // We have overlap
-            if (penX > 0 && penY > 0)
-            {
-                // Resolve along the axis of least penetration
-                if (penX < penY)
-                {
-                    float pushDir = (overlapX > 0) ? 1.0f : -1.0f;
-                    player->SetPosition((int)(penX * pushDir), 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-                    // Reduce X velocity to create a "bounce stop" effect
-                    player->SetVX(player->GetVX() * -0.25f);
-                }
-                else
-                {
-                    float pushDir = (overlapY > 0) ? 1.0f : -1.0f;
-                    player->SetPosition(0, (int)(penY * pushDir), WINDOW_WIDTH, WINDOW_HEIGHT);
-
-                    // Reduce Y velocity to create a "bounce stop" effect
-                    player->SetVX(player->GetVY() * -0.25f);
-                }
-            }
-
+            // Damage logic
             if (player->GetPlayerState() != "iframes")
             {
                 int enemy_collision_damage = 20;
                 player->Hurt(enemy_collision_damage, *sound_manager);
+
                 if (render_coll_boxes)
                 {
                     overlay_text_manager->AddMessage(std::to_string(enemy_collision_damage),
-                        damage_number_color,
-                        player->GetCollRect(),
-                        damage_numbers_text_time);
+                        damage_number_color, player->GetDstRect(), damage_numbers_text_time);
                 }
+
                 player->UpdatePlayerState("iframes");
             }
         }

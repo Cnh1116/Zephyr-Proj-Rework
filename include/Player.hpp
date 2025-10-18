@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include "Collisions.hpp"
 
 class Graphics;
 class Animation;
@@ -32,7 +33,7 @@ class Player
 
         // LOCATION
         SDL_Rect* GetDstRect();
-        SDL_Rect* GetCollRect(); 
+        Collider* GetCollShape(); 
         void SetPosition(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT);
         void Move(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT);
         void SetImageScale(int image_scale);
@@ -65,16 +66,16 @@ class Player
         bool IsSecondaryFireMarkerActive();
         void SetSecondaryFireMarkerActive(bool flag);
         void SetSecondaryFireMarkerPosition();
-        SDL_Rect* GetSecondaryFireMarkerCollision();
+        Collider* GetSecondaryFireMarkerCollision();
         SDL_Rect* GetSecondaryFireMarkerPosition();
-        SDL_Rect* GetSecondaryFireHudColl();
+        Collider* GetSecondaryFireHudColl();
         void ShootSecondaryFire(std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, ItemManager* item_manager);
         bool IsFireSecondaryReady();
         
         
         // SHIELD
         SDL_Rect* GetShieldDstRect();
-        SDL_Rect* GetShieldColl();
+        Collider* GetShieldColl();
         // void UseShield();
         void SetShieldLastTimeUsed(Uint32 last_time_used);
         bool IsShieldReady();
@@ -135,7 +136,7 @@ class Player
         
         // LOCATION DATA
         SDL_Rect player_dest_rect;
-        SDL_Rect player_coll_rect;
+        Collider player_coll_shape = Collider(0, 0, 5);
 
         //States
         std::string state;
@@ -171,13 +172,13 @@ class Player
             // MARKER VARIABLES
             bool marker_active;
             bool ready;
-            SDL_Rect marker_col_rect;
+            Collider marker_col_rect = Collider({ 0, 0, 0, 0 });
             SDL_Rect marker_dest_rect;
             
 
             //HUD VARIABLES
             SDL_Rect source_rect;
-            SDL_Rect hud_coll_rect;
+            Collider hud_coll_rect = Collider({ 0, 0, 0, 0 });
             SDL_Rect hud_dest_rect;
             
             
@@ -191,7 +192,7 @@ class Player
         struct Shield
         {
             SDL_Rect dest_rect;
-            SDL_Rect coll_rect;
+            Collider coll_shape = Collider(0, 0, 5);
             Uint32 shield_cooldown_ms = 5000;
             Uint32 last_time_used = SDL_GetTicks() - shield_cooldown_ms;
             bool shield_ready = true;

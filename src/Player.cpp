@@ -25,7 +25,11 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
     bool invincible = false;
 
     player_dest_rect = {0, 0, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
-    player_coll_rect = { 0, 0, static_cast<int>(BASE_SPRITE_SIZE * 2.75), BASE_SPRITE_SIZE };
+    player_coll_shape.circle.r = BASE_SPRITE_SIZE * image_scale / 3;
+
+	player_coll_shape.type = ColliderType::CIRCLE;
+    player_coll_shape.circle.x = player_dest_rect.x + player_dest_rect.w / 2;
+    player_coll_shape.circle.y = player_dest_rect.y + player_dest_rect.h / 2;
 
 
     // --- Tunable parameters ---
@@ -40,10 +44,10 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
 
 
 
-    
+    // SECONDARY FIRE COLL
     secondary_fire.source_rect = {32, 32, 32, 32}; 
     secondary_fire.hud_dest_rect  = {player_dest_rect.x, player_dest_rect.y, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
-    secondary_fire.hud_coll_rect = { player_dest_rect.x, player_dest_rect.y, BASE_SPRITE_SIZE, BASE_SPRITE_SIZE };
+    secondary_fire.hud_coll_rect.type = ColliderType::RECT;
     secondary_fire.marker_active = false;
     secondary_fire.ready = true;
     shield.shield_ready = true;
@@ -56,7 +60,7 @@ void Player::Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, lon
     Move(dx, dy, SCREEN_WIDTH, SCREEN_HEIGHT);
 	//std::cout << "[*] Player STATE: " << state << std::endl;
     
-    if (!secondary_fire.marker_active) secondary_fire.marker_col_rect = { 0,0,0,0 };
+    if (!secondary_fire.marker_active) secondary_fire.marker_col_rect.rect = { 0,0,0,0 };
     
     
     if (state != "shield" && shield.shield_ready == false && IsShieldReady())
@@ -75,7 +79,8 @@ void Player::Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, lon
     if (state == "main")
     {
         current_animation = animation_manager.Get("zephyr", "main");
-        shield.coll_rect = { 0,0,0,0 };
+        shield.coll_shape.circle.r = 0;
+
         current_speed = base_speed;
     }
 
@@ -104,7 +109,9 @@ void Player::Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, lon
         current_speed = base_speed;
         int shield_width = 125;
         int shield_height = 125;
-        shield.coll_rect = { player_dest_rect.x + (player_dest_rect.w/2) - shield_width/2, player_dest_rect.y + (player_dest_rect.h / 2) - (shield_height / 2), shield_width, shield_height };
+        shield.coll_shape.circle.x = player_dest_rect.x + (player_dest_rect.w / 2);
+        shield.coll_shape.circle.y = player_dest_rect.y + (player_dest_rect.h / 2);
+        
         shield.dest_rect = { player_dest_rect.x, player_dest_rect.y, player_dest_rect.w, player_dest_rect.h };
 
         if (animation_manager.Get("zephyr", "shield")->IsFinished())
@@ -305,14 +312,18 @@ void Player::SetPosition(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT
     player_dest_rect.x = static_cast<int>(posX);
     player_dest_rect.y = static_cast<int>(posY);
 
-    player_coll_rect.x = player_dest_rect.x + (player_dest_rect.w / 2) - (player_coll_rect.w / 2);
-    player_coll_rect.y = player_dest_rect.y + (player_dest_rect.h / 2) - (player_coll_rect.h / 2);
+    player_coll_shape.circle.x = player_dest_rect.x + (player_dest_rect.w / 2);
+    player_coll_shape.circle.y = player_dest_rect.y + (player_dest_rect.h / 2);
 
     secondary_fire.hud_dest_rect.x = player_dest_rect.x;
     secondary_fire.hud_dest_rect.y = player_dest_rect.y - (256 + 64);
 
-    secondary_fire.hud_coll_rect.x = player_dest_rect.x + (player_dest_rect.w / 2) - (secondary_fire.hud_coll_rect.w / 2);
-    secondary_fire.hud_coll_rect.y = player_dest_rect.y - (256 + 64) + (secondary_fire.hud_dest_rect.h / 2) - (secondary_fire.hud_coll_rect.h / 2);
+	int new_hud_width = secondary_fire.hud_dest_rect.w / 4;
+    int new_hud_height = secondary_fire.hud_dest_rect.h / 4;
+    secondary_fire.hud_coll_rect.rect = {secondary_fire.hud_dest_rect.x + secondary_fire.hud_dest_rect.w / 2 - new_hud_width / 2,
+                                        secondary_fire.hud_dest_rect.y + secondary_fire.hud_dest_rect.h / 2 - new_hud_height / 2 ,
+                                        new_hud_width,
+                                        new_hud_height};
 
 
     if (secondary_fire.marker_active)
@@ -345,9 +356,9 @@ bool Player::IsIframesDone()
 }
 
 // Getters and Setters:
-SDL_Rect* Player::GetCollRect()
+Collider* Player::GetCollShape()
 {
-    return &player_coll_rect;
+    return &player_coll_shape;
 }
 
 SDL_Rect* Player::GetDstRect()  
@@ -401,10 +412,10 @@ float Player::GetSecondaryFireSpeed()
 void Player::SetSecondaryFireMarkerPosition()
 {
     secondary_fire.marker_dest_rect = {secondary_fire.hud_dest_rect.x, secondary_fire.hud_dest_rect.y, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
-    secondary_fire.marker_col_rect = {secondary_fire.hud_dest_rect.x, secondary_fire.hud_dest_rect.y - (secondary_fire.hud_dest_rect.h / 2), BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
+    secondary_fire.marker_col_rect.rect = {secondary_fire.hud_dest_rect.x, secondary_fire.hud_dest_rect.y - (secondary_fire.hud_dest_rect.h / 2), BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
 }
 
-SDL_Rect* Player::GetSecondaryFireMarkerCollision()
+Collider* Player::GetSecondaryFireMarkerCollision()
 {
     return &secondary_fire.marker_col_rect;
 }
@@ -414,7 +425,7 @@ SDL_Rect* Player::GetSecondaryFireMarkerPosition()
     return &secondary_fire.marker_dest_rect;
 }
 
-SDL_Rect* Player::GetSecondaryFireHudColl()
+Collider* Player::GetSecondaryFireHudColl()
 {
     return &secondary_fire.hud_coll_rect;
 }
@@ -478,9 +489,9 @@ void Player::UpdatePlayerState(std::string new_state)
 }
 
 
-SDL_Rect* Player::GetShieldColl()
+Collider* Player::GetShieldColl()
 {
-    return &shield.coll_rect;
+    return &shield.coll_shape;
 }
 SDL_Rect* Player::GetShieldDstRect()
 {
@@ -640,14 +651,14 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     if (collision_box_flag)
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        SDL_RenderDrawRect(renderer, &player_coll_rect);
+		Collisions::DrawCircle(renderer, player_coll_shape.circle);
         
         SDL_SetRenderDrawColor(renderer, 255, 150, 0, 255);
-        SDL_RenderDrawRect(renderer, &shield.coll_rect);
-        SDL_RenderDrawRect(renderer, &secondary_fire.hud_coll_rect);
+        Collisions::DrawCircle(renderer, shield.coll_shape.circle);
+        SDL_RenderDrawRect(renderer, &secondary_fire.hud_coll_rect.rect);
        
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        SDL_RenderDrawRect(renderer, &secondary_fire.marker_col_rect);
+        SDL_RenderDrawRect(renderer, &secondary_fire.marker_col_rect.rect);
 
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
         SDL_RenderDrawRect(renderer, &player_dest_rect);

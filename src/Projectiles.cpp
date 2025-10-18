@@ -17,7 +17,7 @@ Projectile::Projectile(AnimationManager& animation_manager,
     damage(projectile_damage),
     player_projectile(player_projectile_flag),
     state("main"),
-    collision_rect(dest_rect),
+    collision_shape(dest_rect),
     shift_impact(shift_impact_arg),
 	animation_manager(animation_manager),
 	shiny(shiny_arg)
@@ -65,9 +65,9 @@ SDL_Rect* Projectile::GetDstRect()
 }
 
 
-SDL_Rect* Projectile::GetCollisionRect()
+Collider* Projectile::GetCollisionShape()
 {
-    return &collision_rect;
+    return &collision_shape;
 }
 
 
@@ -98,6 +98,10 @@ PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& de
     critical = critical_flag;
     sound_effect_noise = 20;
     current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-primary", "main"));
+    collision_shape.type = ColliderType::CIRCLE;
+	collision_shape.circle.x = dest_rect.x + dest_rect.w / 2;
+    collision_shape.circle.y = dest_rect.y + dest_rect.h / 2;
+    collision_shape.circle.r = dest_rect.w / 4;
 
     if (critical)
     {
@@ -110,7 +114,7 @@ PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& de
 void PrimaryFire::MoveProjectile() 
 {
     dest_rect.y -= speed;
-    collision_rect.y = dest_rect.y;
+    collision_shape.circle.y = dest_rect.y;
 }
 
 void PrimaryFire::Update()
@@ -122,15 +126,15 @@ void PrimaryFire::Update()
             current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-primary", "main"));
 		}
         MoveProjectile();
-        collision_rect.w = dest_rect.w / 2;
-        collision_rect.h = dest_rect.h / 2;
-        collision_rect.x = dest_rect.x + (dest_rect.w / 2) - (collision_rect.w / 2);
-        collision_rect.y = dest_rect.y + (dest_rect.h / 2) - (collision_rect.h / 2);
+        collision_shape.circle.x = dest_rect.x + dest_rect.w / 2;
+        collision_shape.circle.y = dest_rect.y + dest_rect.h / 2;
+        collision_shape.circle.r = dest_rect.w / 3;
+
     }
 
     if (state == "impact")
     {
-        collision_rect = { 0,0,0,0 };
+        collision_shape.circle.r = 0;
         
      
         
@@ -172,10 +176,7 @@ void PrimaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     if (collision_box_flag)
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        if (0 != SDL_RenderDrawRect(renderer, &collision_rect))
-        {
-            std::cout << "[*] Error rendering storm genie collision box ...\n";
-        }
+        Collisions::DrawCircle(renderer, collision_shape.circle);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     }
 }
@@ -186,6 +187,7 @@ SecondaryFire::SecondaryFire(AnimationManager& animation_manager, const SDL_Rect
 {
     current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-secondary", "main"));
     sound_effect_noise = 20;
+	collision_shape.type = ColliderType::CIRCLE;
 }
 
 void SecondaryFire::Update()
@@ -232,10 +234,9 @@ void SecondaryFire::Update()
 void SecondaryFire::MoveProjectile() 
 {
     dest_rect.y -= speed;
-    collision_rect = { (dest_rect.x + dest_rect.w / 2) - (32 / 2),
-                        (dest_rect.y + dest_rect.h / 2) - (32 / 2), 
-                            32, 
-                           32};
+    collision_shape.circle.x = (dest_rect.x + dest_rect.w / 2);
+    collision_shape.circle.y = (dest_rect.y + dest_rect.h / 2);
+	collision_shape.circle.r = dest_rect.w / 2;
 }
 
 void SecondaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
@@ -256,10 +257,7 @@ void SecondaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     if (collision_box_flag)
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        if (0 != SDL_RenderDrawRect(renderer, &collision_rect))
-        {
-            std::cout << "[*] Error rendering storm genie collision box ...\n";
-        }
+		Collisions::DrawCircle(renderer, collision_shape.circle);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     }
 }
@@ -271,6 +269,10 @@ IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rec
 {
     sound_effect_impact = "ice_shard_impact";
     sound_effect_noise = 20;
+	collision_shape.type = ColliderType::CIRCLE;
+	collision_shape.circle.x = dest_rect.x + dest_rect.w / 2;
+	collision_shape.circle.y = dest_rect.y + dest_rect.h / 2;
+	collision_shape.circle.r = dest_rect.w / 4;
     state = "spawn";
     if (shiny)
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "spawn_shiny"));
@@ -284,9 +286,11 @@ void IceShard::MoveProjectile()
 
 void IceShard::Update()
 {
-    if (state == "spawn" && current_animation->IsFinished())
+    if (state == "spawn")
     {
-        state = "main";
+		collision_shape.circle.r = 0;
+        if (current_animation->IsFinished())
+            state = "main";
     }
     
     if (state == "main")
@@ -299,14 +303,14 @@ void IceShard::Update()
                 current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "main"));
         }
         MoveProjectile();
-        collision_rect.w = dest_rect.w / 2;
-        collision_rect.h = dest_rect.h / 2;
-        collision_rect.x = dest_rect.x + (dest_rect.w / 2) - (collision_rect.w / 2);
-        collision_rect.y = dest_rect.y + (dest_rect.h / 2) - (collision_rect.h / 2);
+        collision_shape.circle.x = dest_rect.x + dest_rect.w / 2;
+        collision_shape.circle.y = dest_rect.y + dest_rect.h / 2;
+		collision_shape.circle.r = dest_rect.w / 4;
     }
     
     if (state == "impact")
     {
+        collision_shape.circle.r = 0;
         if (current_animation->GetName() != "proj-ice-crystal-attack-impact" and current_animation->GetName() != "proj-ice-crystal-attack-impact_shiny")
         {
             if (shiny)
@@ -314,7 +318,7 @@ void IceShard::Update()
             else
                 current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "impact"));
         }
-        collision_rect = { 0,0,0,0 };
+        
         if (current_animation->IsFinished())
         {
             state = "delete";
@@ -346,10 +350,7 @@ void IceShard::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     if (collision_box_flag)
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        if (0 != SDL_RenderDrawRect(renderer, &collision_rect))
-        {
-            std::cout << "[*] Error rendering storm genie collision box ...\n";
-        }
+		Collisions::DrawCircle(renderer, collision_shape.circle);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     }
 }
@@ -361,6 +362,7 @@ LightningBall::LightningBall(AnimationManager& animation_manager, const SDL_Rect
 {
     sound_effect_impact = "lightning_ball_impact";
     sound_effect_noise = 80;
+	collision_shape.type = ColliderType::CIRCLE;
 
     if (shiny)
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main_shiny"));
@@ -394,10 +396,9 @@ void LightningBall::MoveProjectile()
 
     dest_rect.x = static_cast<int>(position_x) + (dest_rect.w / 2) - (dest_rect.w / 2);
     dest_rect.y = static_cast<int>(position_y) + (dest_rect.h / 2) - (dest_rect.h / 2);
-    collision_rect.x = static_cast<int>(position_x) + (dest_rect.w / 2) - (collision_rect.w / 2);
-    collision_rect.y = static_cast<int>(position_y) + (dest_rect.h / 2) - (collision_rect.h / 2);
-    collision_rect.w = dest_rect.w / 2;
-    collision_rect.h = dest_rect.h / 2;
+    collision_shape.circle.x = static_cast<int>(position_x) + (dest_rect.w / 2);
+    collision_shape.circle.y = static_cast<int>(position_y) + (dest_rect.h / 2);
+	collision_shape.circle.r = dest_rect.w / 2;
 }
 
 void LightningBall::Update()
@@ -412,10 +413,9 @@ void LightningBall::Update()
                 current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main"));
         }
         MoveProjectile();
-        collision_rect.w = dest_rect.w / 2;
-        collision_rect.h = dest_rect.h / 2;
-        collision_rect.x = dest_rect.x + (dest_rect.w / 2) - (collision_rect.w / 2);
-        collision_rect.y = dest_rect.y + (dest_rect.h / 2) - (collision_rect.h / 2);
+        collision_shape.circle.r = dest_rect.w / 2;
+        collision_shape.circle.x = dest_rect.x + (dest_rect.w / 2);
+        collision_shape.circle.y = dest_rect.y + (dest_rect.h / 2);
     }
 
     if (state == "impact")
@@ -427,7 +427,7 @@ void LightningBall::Update()
             else
                 current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "impact"));
         }
-        collision_rect = { 0,0,0,0 };
+        collision_shape.circle.r = 0;
         if (current_animation->IsFinished())
         {
             state = "delete";
@@ -459,10 +459,7 @@ void LightningBall::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     if (collision_box_flag)
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        if (0 != SDL_RenderDrawRect(renderer, &collision_rect))
-        {
-            std::cout << "[*] Error rendering storm genie collision box ...\n";
-        }
+		Collisions::DrawCircle(renderer, collision_shape.circle);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     }
 }
@@ -475,6 +472,10 @@ LightningStrike::LightningStrike(AnimationManager& animation_manager, const SDL_
     sound_effect_impact = "lightning_ball_impact";
     sound_effect_noise = 80;
     right_flag = right_flag_arg;
+
+    collision_shape.type = ColliderType::RECT;
+
+
     if (right_flag)
     {
         if (shiny)
@@ -503,11 +504,18 @@ void LightningStrike::Update()
 
     if (state == "main")
     {
-        collision_rect = dest_rect;
+        float perc_thinner = 0.80;
+		int new_y_pos = dest_rect.y + static_cast<int>(dest_rect.h * (1.0 - perc_thinner));
+		int new_height = static_cast<int>(dest_rect.h * perc_thinner);
+        
+        collision_shape.rect.x = dest_rect.x;
+        collision_shape.rect.w = dest_rect.w;
+		collision_shape.rect.y = new_y_pos;
+        collision_shape.rect.h = new_height;
     }
 
     if (state == "impact")
-        collision_rect = { 0,0,0,0 };
+        collision_shape.rect = { 0,0,0,0 };
 
     current_animation->Update();
     for (auto& animation : overlay_animations)
@@ -534,7 +542,7 @@ void LightningStrike::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     if (collision_box_flag)
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        if (0 != SDL_RenderDrawRect(renderer, &collision_rect))
+        if (0 != SDL_RenderDrawRect(renderer, &collision_shape.rect))
         {
             std::cout << "[*] Error rendering storm genie collision box ...\n";
         }

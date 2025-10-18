@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include "Animation.hpp"
+#include "Collisions.hpp"
 
 class Graphics;
 class Animation;
@@ -31,7 +32,7 @@ protected:
         // Setters and Getters
         SDL_Rect* GetDstRect();
         const char* GetState();
-        SDL_Rect* GetCollisionRect();
+        Collider* GetCollisionShape();
         std::string GetSoundEffectImpact();
 		bool GetSoundPlayed() { return sound_played; }
 		void SetSoundPlayed(bool played) { sound_played = played; }
@@ -69,7 +70,7 @@ protected:
         
 
         SDL_Rect dest_rect;
-        SDL_Rect collision_rect;
+        Collider collision_shape;
 
         
         int BASE_SPRITE_SIZE = 32;

@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <vector>
 #include <iostream>
+#include "Collisions.hpp"
 
 class Graphics;
 class Animation;
@@ -18,7 +19,7 @@ protected:
         {
             SDL_Rect item_dest_rect;
             SDL_Rect item_cloud_dest_rect;
-            SDL_Rect item_cloud_coll_rect;
+            Collider item_cloud_coll_shape = Collider(0,0,0);
             std::string name;
 
             std::vector<std::unique_ptr<Animation>> overlay_animations;

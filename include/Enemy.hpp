@@ -6,18 +6,24 @@
 #include <string>
 #include "Player.hpp"
 #include "Animation.hpp"
+#include "Collisions.hpp"
 
 class Enemy
 {
     protected:
         AnimationManager& animation_manager;
     public:
-        Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, const SDL_Rect& coll_rect,
-            float move_speed, int health_arg, float crit, float start_damage);
+        Enemy(  AnimationManager& animation_manager, 
+                const SDL_Rect& dest_rect,
+                const Collider& coll_rect,
+                float move_speed, 
+                int health_arg, 
+                float crit,
+                float start_damage);
 
        
         // Setters and Getters
-        SDL_Rect* GetCollRect();
+        Collider* GetCollShape();
         SDL_Rect* GetDstRect();
         int GetHealth();
         void ChangeHealth(int health_diff);
@@ -51,7 +57,7 @@ class Enemy
 
         // Location
         SDL_Rect enemy_dest_rect;
-        SDL_Rect enemy_coll_rect;
+        Collider enemy_coll_shape = Collider(0, 0, 5);
 
         int points;
 

@@ -8,11 +8,11 @@
 #include <Projectiles.hpp>
 #include "Sound.hpp"
 
-Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, const SDL_Rect& coll_rect, float move_speed, int health_arg, float crit, float start_damage)
+Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, const Collider& coll_shape, float move_speed, int health_arg, float crit, float start_damage)
 	: animation_manager(animation_manager)
 {
 	enemy_dest_rect = dest_rect;
-	enemy_coll_rect = coll_rect;
+	enemy_coll_shape = coll_shape;
 
 	movement_speed = move_speed;
 	base_health = health_arg;
@@ -34,9 +34,9 @@ Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, con
 }
 
 // Setters and Getters
-SDL_Rect* Enemy::GetCollRect()
+ Collider* Enemy::GetCollShape()
 {
-	return &enemy_coll_rect;
+	return &enemy_coll_shape;
 }
 SDL_Rect* Enemy::GetDstRect()
 {
@@ -89,7 +89,7 @@ bool Enemy::IsDoneAttacking()
 
 // ICE CRYSTAL ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest_rect)
-	: Enemy(animation_manager, dest_rect, dest_rect, 1.0, 100, 0, 35)
+	: Enemy(animation_manager, dest_rect, Collider(0,0,0), 1.0, 100, 0, 35)
 {
 	
 	
@@ -99,10 +99,10 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 	else
 		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "main"));
 
-	enemy_coll_rect = { enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (enemy_dest_rect.w / 4),
-						enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (enemy_dest_rect.h / 4),
-						enemy_dest_rect.w / 2,
-						enemy_dest_rect.h / 2 };
+	enemy_coll_shape.type = ColliderType::CIRCLE;
+	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
+	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);
+	enemy_coll_shape.circle.r = 5;
 	fire_cooldown_ms = 300;
 	points = 10;
 	
@@ -191,7 +191,7 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "death"));
 		}
 
-		enemy_coll_rect = { 0,0,0,0 };
+		enemy_coll_shape.circle.r = 0;
 		if (current_animation->IsFinished())
 		{
 			current_animation->Reset();
@@ -251,10 +251,9 @@ void IceCrystal::Move(Player* player)
 	int coll_box_width = enemy_dest_rect.w / 3;
 	int coll_box_hight = enemy_dest_rect.h / 3;
 	
-	enemy_coll_rect.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (coll_box_width / 2);
-	enemy_coll_rect.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (coll_box_hight / 2);
-	enemy_coll_rect.w = coll_box_width;
-	enemy_coll_rect.h = coll_box_hight;
+	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
+	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);
+	enemy_coll_shape.circle.r = enemy_dest_rect.w / 5;
 }
 
 bool IceCrystal::IsReadyToAttack()
@@ -343,18 +342,14 @@ void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 	if (collision_box_flag)
 	{
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		if (0 != SDL_RenderDrawRect(renderer, &enemy_coll_rect))
-		{
-			std::cout << "[*] Error rendering ice crystal collision box ...\n";
-		}
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		Collisions::DrawCircle(renderer, enemy_coll_shape.circle);
 	}
 
 }
 
 // STORM CLOUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, int screen_height, int player_x, int player_y)
-	: Enemy(animation_manager, { -32,-32,48 * 4 ,32 * 4 }, { -32,-32,48 * 4,32 * 4 }, 4.7, 30, 0, 35)
+	: Enemy(animation_manager, { -32,-32,48 * 4 ,32 * 4 }, Collider(0, 0, 0), 4.7, 30, 0, 35)
 {
 	if (shiny)
 		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "main_shiny"));
@@ -365,6 +360,11 @@ StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, in
 
 	std::cout << "[*] Goal x and y: " << goal_x << " " << goal_y << std::endl;
 	
+	enemy_coll_shape.type = ColliderType::CIRCLE;
+	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
+	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);
+	enemy_coll_shape.circle.r = enemy_dest_rect.w / 4;
+
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> location_zone(0,1000);
@@ -494,7 +494,7 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "death"));
 			
 			
-			enemy_coll_rect = { 0, 0, 0, 0 };
+			enemy_coll_shape.circle.r = 0;
 		}
 
 		// Add overlay once
@@ -529,10 +529,8 @@ void StormCloud::Move(Player* player)
 
 	enemy_dest_rect.x = static_cast<int>(position_x) + (enemy_dest_rect.w / 2) - (enemy_dest_rect.w / 2);
 	enemy_dest_rect.y = static_cast<int>(position_y) + (enemy_dest_rect.h / 2) - (enemy_dest_rect.h / 2);
-	enemy_coll_rect.x = static_cast<int>(position_x) + (enemy_dest_rect.w / 2) - (enemy_coll_rect.w / 2);
-	enemy_coll_rect.y = static_cast<int>(position_y) + (enemy_dest_rect.h / 2) - (enemy_coll_rect.h / 2);
-	enemy_coll_rect.w = enemy_dest_rect.w / 2;
-	enemy_coll_rect.h = enemy_dest_rect.h / 2;
+	enemy_coll_shape.circle.x = static_cast<int>(position_x) + (enemy_dest_rect.w / 2);
+	enemy_coll_shape.circle.y = static_cast<int>(position_y) + (enemy_dest_rect.h / 2);
 }
 
 bool StormCloud::IsReadyToAttack()
@@ -578,7 +576,7 @@ void StormCloud::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
 			SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-			SDL_RenderDrawRect(renderer, &enemy_coll_rect);
+			Collisions::DrawCircle(renderer, enemy_coll_shape.circle);
 
 		}
 	
@@ -593,8 +591,8 @@ void StormCloud::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 														7.5, 
 														3, 
 														base_damage, 
-														(player->GetCollRect()->x + (player->GetCollRect()->w / 2)), 
-														(player->GetCollRect()->y + (player->GetCollRect()->h / 2)), shiny));
+														(player->GetDstRect()->x + (player->GetDstRect()->w / 2)),
+														(player->GetDstRect()->y + (player->GetDstRect()->h / 2)), shiny));
 	}
 }
 
@@ -610,7 +608,7 @@ int StormCloud::GetGoalY()
 
 // STORM GENIE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StormGenie::StormGenie(AnimationManager& animation_manager, const SDL_Rect& dest_rect)
-	: Enemy(animation_manager, dest_rect, dest_rect, 2, 100, 0, 10)
+	: Enemy(animation_manager, dest_rect, Collider(0,0,0), 2, 100, 0, 10)
 {
 	if (shiny)
 		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "spawn_shiny"));
@@ -622,13 +620,17 @@ StormGenie::StormGenie(AnimationManager& animation_manager, const SDL_Rect& dest
 	points = 10;
 	fire_cooldown_ms = 4000;
 	state = "spawn";
+	enemy_coll_shape.type = ColliderType::CIRCLE;
+	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
+	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);
+	enemy_coll_shape.circle.r = 5;
 }
 
 void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager)
 {
 	if (state == "spawn")
 	{
-		enemy_coll_rect = { 0, 0, 0, 0 };
+		enemy_coll_shape.circle.r = 0;
 		if (current_animation->IsFinished())
 		{
 			if (shiny)
@@ -646,6 +648,7 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 	if (state == "main")
 	{
+		enemy_coll_shape.circle.r = enemy_dest_rect.w / 4;
 		if (enemy_dest_rect.y < 5 || enemy_dest_rect.y  > 1020) // SCREEN HEIGHT
 		{
 			movement_speed *= -1;
@@ -744,7 +747,7 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "death_shiny"));
 			else
 				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "death"));
-			enemy_coll_rect = { 0,0,0,0 };  // disable collision
+			enemy_coll_shape.circle.r = 0;  // disable collision
 		}
 
 		// Add heal overlay on first death frame
@@ -817,10 +820,8 @@ void StormGenie::Move(Player* player)
 
 	
 
-	enemy_coll_rect.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (enemy_coll_rect.w / 2);
-	enemy_coll_rect.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2) - (enemy_coll_rect.h / 2);
-	enemy_coll_rect.w = enemy_dest_rect.w / 2;
-	enemy_coll_rect.h = enemy_dest_rect.h / 2;
+	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
+	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);
 }
 
 bool StormGenie::IsReadyToAttack()
@@ -849,11 +850,7 @@ void StormGenie::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 	if (collision_box_flag)
 	{
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		if (0 != SDL_RenderDrawRect(renderer, &enemy_coll_rect))
-		{
-			std::cout << "[*] Error rendering storm genie collision box ...\n";
-		}
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		Collisions::DrawCircle(renderer, enemy_coll_shape.circle);
 	}
 }
 

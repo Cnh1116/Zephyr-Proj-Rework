@@ -4,6 +4,7 @@
 #include <random>
 #include "AnimationManager.hpp"
 #include "Animation.hpp"
+#include "Collisions.hpp"
 
 ItemManager::ItemManager(AnimationManager* animation_manager)
     : animation_manager(animation_manager)
@@ -82,12 +83,6 @@ void ItemManager::UpdateItemList()
                                         new_item.item_cloud_animation->GetFrameHeight() };
 
 
-		SDL_Rect cloud_coll_rect = { cloud_dest_rect.x + (cloud_dest_rect.w - static_cast<int>(new_item.item_cloud_animation->GetFrameWidth() * 0.75)) / 2,
-									cloud_dest_rect.y + (cloud_dest_rect.h - static_cast<int>(new_item.item_cloud_animation->GetFrameHeight() * 0.75)) / 2,
-									static_cast<int>(new_item.item_cloud_animation->GetFrameWidth() * 0.75),
-									static_cast<int>(new_item.item_cloud_animation->GetFrameHeight() * 0.75)};
-
-
         SDL_Rect item_dest_rect = {     cloud_dest_rect.x + (cloud_dest_rect.w - static_cast<int>(new_item.current_animation->GetFrameWidth() * 2)) / 2,
                                         cloud_dest_rect.y + (cloud_dest_rect.h - static_cast<int>(new_item.current_animation->GetFrameHeight() * 2)) / 2,
                                         new_item.current_animation->GetFrameWidth() * 2,
@@ -95,8 +90,11 @@ void ItemManager::UpdateItemList()
         
         
         new_item.item_cloud_dest_rect = cloud_dest_rect;
-        new_item.item_cloud_coll_rect = cloud_coll_rect;
         new_item.item_dest_rect = item_dest_rect;
+        new_item.item_cloud_coll_shape.type = ColliderType::CIRCLE;
+		new_item.item_cloud_coll_shape.circle.x = cloud_dest_rect.x + cloud_dest_rect.w / 2;
+        new_item.item_cloud_coll_shape.circle.y = cloud_dest_rect.y + cloud_dest_rect.h / 2;
+        new_item.item_cloud_coll_shape.circle.r = cloud_dest_rect.w / 3;
 
         new_item.name = item_to_spawn;
         new_item.destroyed = false;
@@ -110,7 +108,7 @@ void ItemManager::UpdateItemList()
     {  
         item_list.at(i).item_dest_rect.y += 1;
         item_list.at(i).item_cloud_dest_rect.y += 1;
-        item_list.at(i).item_cloud_coll_rect.y += 1;
+        item_list.at(i).item_cloud_coll_shape.circle.y += 1;
 
 
     }
@@ -138,8 +136,10 @@ void ItemManager::DrawItems(SDL_Renderer* renderer, bool collision_box_flag, int
                 SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
                 SDL_RenderDrawRect(renderer, &item_list.at(i).item_cloud_dest_rect);
                 SDL_RenderDrawRect(renderer, &item_list.at(i).item_dest_rect);
+                
                 SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-                SDL_RenderDrawRect(renderer, &item_list.at(i).item_cloud_coll_rect);
+                if (!item_list.at(i).destroyed)
+                    Collisions::DrawCircle(renderer, item_list.at(i).item_cloud_coll_shape.circle);
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Black background
             }
         }
