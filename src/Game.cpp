@@ -51,7 +51,7 @@ void Game::RunGame()
     
 
     // Play Starting Song
-    //sound_manager->PlayMusic("first_level_song");
+    sound_manager->PlayMusic("first_level_song");
     
 
     Uint32 last_tick = SDL_GetTicks();
@@ -109,6 +109,16 @@ void Game::RunGame()
             dy *= 0.6;
         }
 
+        if (keystates[SDL_SCANCODE_LEFT])
+        {
+            player.DoSlash(game_projectiles, *sound_manager, true);
+        }
+
+        if (keystates[SDL_SCANCODE_RIGHT])
+        {
+            player.DoSlash(game_projectiles, *sound_manager, false);
+        }
+
         if (keystates[SDL_SCANCODE_DOWN]) // DOWN //
         {
             
@@ -116,7 +126,7 @@ void Game::RunGame()
         }
 
 
-        if (keystates[SDL_SCANCODE_UP]) // UP ARROW //
+        if (keystates[SDL_SCANCODE_UP] and player.GetPlayerState() != "slash") // UP ARROW //
         {
             player.ShootPrimaryFire(game_projectiles, *sound_manager, item_manager);
 
@@ -356,7 +366,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     {
                         if (primary_projectile->critical)
                         {
-                            sound_manager->PlaySound("jade_drum", 90);
+                            sound_manager->PlaySound("player_primary_fire_crit", 90);
                             enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
                             if (render_coll_boxes)
                             {
@@ -388,6 +398,61 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                             player->GivePoints(enemies.at(k)->GetPoints());
                         }
                     }
+                }
+                if (auto* slash_projectile = dynamic_cast<Slash*>(game_projectiles.at(i)))
+                {
+
+                    if (slash_projectile->critical and !slash_projectile->impact_sound_played)
+                    {
+                        sound_manager->PlaySound("jade_drum", 90);
+						slash_projectile->SetImpactSoundPlayed(true);
+                        if (!slash_projectile->damage_applied)
+                        {
+                            enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
+							slash_projectile->SetDamageApplied(true);
+                        }
+                        if (render_coll_boxes)
+                        {
+                            overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
+                                damage_number_color,
+                                enemies.at(k)->GetDstRect(),
+                                damage_numbers_text_time);
+                        }
+                    }
+                    else
+                    {
+                        sound_manager->PlaySound("player_hit", 60);
+                        if (!slash_projectile->damage_applied)
+                        {
+                            enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
+                            slash_projectile->SetDamageApplied(true);
+                        }
+                        if (render_coll_boxes)
+                        {
+                            overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
+                                damage_number_color,
+                                enemies.at(k)->GetDstRect(),
+                                damage_numbers_text_time);
+                        }
+                    }
+                    if (!slash_projectile->overlay_added)
+                    {
+                        enemies.at(k)->AddOverlayAnimation(animation_manager->Get("proj-zephyr-slash", "impact"));
+                        slash_projectile->SetOverlayAdded(true);
+                    }
+
+                    if (!slash_projectile->sound_played)
+                    {
+                        sound_manager->PlaySound("player_secondary_fire_impact", 60);
+                        slash_projectile->SetSoundPlayed(true);
+                    }
+
+                    if (enemies.at(k)->GetHealth() <= 0)
+                    {
+                        enemies.at(k)->UpdateState("death");
+                        player->GivePoints(enemies.at(k)->GetPoints());
+                    }
+
                 }
             }
         }

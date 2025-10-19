@@ -19,13 +19,14 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
     health_bar_animation = animation_manager_arg.Get("ui", "health_bar");
     shield_bar_animation = animation_manager_arg.Get("ui", "shield_bar");
     dash_bar_animation = animation_manager_arg.Get("ui", "dash_bar");
+    slash_bar_animation = animation_manager_arg.Get("ui", "slash_bar");
     health_bar_base_animation = animation_manager_arg.Get("ui", "health_bar_base");
 
     state = "main";
     bool invincible = false;
 
     player_dest_rect = {0, 0, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
-    player_coll_shape.circle.r = BASE_SPRITE_SIZE * image_scale / 4;
+    player_coll_shape.circle.r = BASE_SPRITE_SIZE * image_scale / 5;
 
 	player_coll_shape.type = ColliderType::CIRCLE;
     player_coll_shape.circle.x = player_dest_rect.x + player_dest_rect.w / 2;
@@ -101,6 +102,11 @@ void Player::Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, lon
         }
     }
 
+    if (state == "slash" and slashing_attack.slash_projectile->current_animation->IsFinished())
+    {
+				state = "main";						
+    }
+
     if (state == "shield")
     {
         animation_manager.Get("zephyr","shield")->Update();
@@ -173,6 +179,9 @@ void Player::Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, lon
     if (this->IsShieldReady()) { shield.shield_ready = true; }
 	current_animation->Update();
 
+    if (secondary_fire.marker_active)
+        secondary_fire.marker_col_rect.rect.y += 1;
+
 
 }
 
@@ -218,6 +227,51 @@ bool Player::IsFireSecondaryReady()
     {
         std::cout << "[*] SECONDARY FIRING !\n";
         secondary_fire.last_fire_time = current_time;
+        return(true);
+    }
+
+    else
+    {
+        //std::cout << "[*] Secondary Fire on cooldown\n";
+        return(false);
+    }
+}
+
+void Player::DoSlash(std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, bool left_flag)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 100);
+
+    bool critical = false;
+    // CRIT
+	if (distrib(gen) <= this->GetCrit())
+	{
+		critical = true;
+        
+	}
+    
+    
+    if (IsSlashReady())
+    {
+		if (critical)
+            sound_manager.PlaySound("player_crit", 55);
+        state = "slash";
+        slashing_attack.last_fire_time = SDL_GetTicks();
+        slashing_attack.slash_projectile = new Slash(animation_manager, player_dest_rect, slashing_attack.damage, 1, critical, left_flag);
+        
+		game_projectiles.emplace_back(slashing_attack.slash_projectile);
+		sound_manager.PlaySound("player_slash", 55);
+    }
+}
+
+bool Player::IsSlashReady()
+{
+    Uint32 current_time = SDL_GetTicks();
+
+    if ((current_time - slashing_attack.last_fire_time) >= slashing_attack.cooldown_time_ms)
+    {
+        std::cout << "[*] SLASH FIRING !\n";
         return(true);
     }
 
@@ -411,8 +465,20 @@ float Player::GetSecondaryFireSpeed()
 
 void Player::SetSecondaryFireMarkerPosition()
 {
-    secondary_fire.marker_dest_rect = {secondary_fire.hud_dest_rect.x, secondary_fire.hud_dest_rect.y, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
-    secondary_fire.marker_col_rect.rect = {secondary_fire.hud_dest_rect.x, secondary_fire.hud_dest_rect.y - (secondary_fire.hud_dest_rect.h / 2), BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
+    secondary_fire.marker_dest_rect = {
+    secondary_fire.hud_dest_rect.x,
+    secondary_fire.hud_dest_rect.y,
+    BASE_SPRITE_SIZE * image_scale,
+    BASE_SPRITE_SIZE * image_scale
+};
+
+// Center the marker collision rect on the HUD dest rect
+secondary_fire.marker_col_rect.rect = {
+    secondary_fire.hud_dest_rect.x + (secondary_fire.hud_dest_rect.w / 2) - (BASE_SPRITE_SIZE / 4),
+    secondary_fire.hud_dest_rect.y + (secondary_fire.hud_dest_rect.h / 2) - (BASE_SPRITE_SIZE / 4),
+    BASE_SPRITE_SIZE/2,
+    BASE_SPRITE_SIZE/2
+};
 }
 
 Collider* Player::GetSecondaryFireMarkerCollision()
@@ -593,6 +659,7 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     static float smooth_health = 1.0f;
     static float smooth_shield = 1.0f;
     static float smooth_dash = 1.0f;
+	static float smooth_slash = 1.0f;
     const float SMOOTHING_SPEED = 0.1f; // lower = smoother, higher = snappier
 
 
@@ -646,6 +713,23 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     health_bar_base_animation->Draw(renderer, dash_bar_dst);
     dash_bar_animation->DrawPartial(renderer, dash_bar_dst, smooth_dash, static_cast<float>(dash_bar_animation->GetFrameWidth()/dash_bar_animation->GetScale()), SDL_FLIP_NONE);
 
+    // --- SLASH BAR ---
+    float slash_percentage = clamp(
+        static_cast<float>(SDL_GetTicks() - slashing_attack.last_fire_time) / static_cast<float>(slashing_attack.cooldown_time_ms),
+        0.0f, 1.0f
+    );
+    smooth_slash = lerp(smooth_slash, slash_percentage, SMOOTHING_SPEED);
+
+    SDL_Rect slash_bar_dst = {
+        0,
+        SCREEN_HEIGHT - slash_bar_animation->GetFrameHeight() - 150,
+        slash_bar_animation->GetFrameWidth(),
+        slash_bar_animation->GetFrameHeight()
+    };
+
+    health_bar_base_animation->Draw(renderer, slash_bar_dst);
+    slash_bar_animation->DrawPartial(renderer, slash_bar_dst, smooth_slash, static_cast<float>(slash_bar_animation->GetFrameWidth() / slash_bar_animation->GetScale()), SDL_FLIP_NONE);
+
     
 
     if (collision_box_flag)
@@ -657,7 +741,7 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
         Collisions::DrawCircle(renderer, shield.coll_shape.circle);
         SDL_RenderDrawRect(renderer, &secondary_fire.hud_coll_rect.rect);
        
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_RenderDrawRect(renderer, &secondary_fire.marker_col_rect.rect);
 
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);

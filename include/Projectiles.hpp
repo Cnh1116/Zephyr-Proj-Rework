@@ -103,9 +103,29 @@ class SecondaryFire : public Projectile
         void MoveProjectile() override;
         void Update() override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
+};
 
+class Slash: public Projectile
+{
+public:
+    Slash(AnimationManager& animation_manager, SDL_Rect& rect, float projectile_damage, int PIXEL_SCALE, bool critical, bool left_flag);
+    void MoveProjectile() override;
+    void Update() override;
+    void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
+	void SetSoundPlayed(bool played) { sound_played = played; }
+    void SetOverlayAdded(bool played) { overlay_added = played; }
+    void SetImpactSoundPlayed(bool played) { impact_sound_played = played; }
+	bool GetDamageApplied() { return damage_applied; }
+	void SetDamageApplied(bool applied) { damage_applied = applied; }
+    bool critical;
+    bool sound_played = false;
+    bool overlay_added = false;
+	bool impact_sound_played = false;
+    bool damage_applied = false;
+private:
+	SDL_Rect* player_dest_rect;
+    bool left_flag;
 
-    
 };
 
 class IceShard : public Projectile 

@@ -71,6 +71,10 @@ class Player
         Collider* GetSecondaryFireHudColl();
         void ShootSecondaryFire(std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, ItemManager* item_manager);
         bool IsFireSecondaryReady();
+        bool IsSlashReady();
+
+        // SLASH
+        void DoSlash(std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, bool left_flag);
         
         
         // SHIELD
@@ -183,11 +187,20 @@ class Player
             
             
             // STATS
-            Uint32 last_fire_time = 0;
-            Uint32 cooldown_time_ms = 1500; //ms
-            float speed = 2.1;
+            Uint32 cooldown_time_ms = 1500;
+            Uint32 last_fire_time = SDL_GetTicks() - cooldown_time_ms;
+            float speed = 1.7;
         };
         Secondary_fire secondary_fire;
+
+        struct Slashing_Attack
+        {
+            Uint32 cooldown_time_ms = 1500;
+            Uint32 last_fire_time = SDL_GetTicks() - cooldown_time_ms;
+            int damage = 75;
+			Projectile* slash_projectile = nullptr;
+        };
+        Slashing_Attack slashing_attack;
 
         struct Shield
         {
@@ -211,11 +224,14 @@ class Player
         // ANIMATIONS
         std::vector<std::unique_ptr<Animation>> overlay_animations;
         Animation* current_animation;
+        AnimationManager& animation_manager;
+        
         Animation* health_bar_animation;
         Animation* shield_bar_animation;
         Animation* dash_bar_animation;
+        Animation* slash_bar_animation;
         Animation* health_bar_base_animation;
-        AnimationManager& animation_manager;
+        
 
 };
 

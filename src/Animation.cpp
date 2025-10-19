@@ -31,6 +31,21 @@ Animation::Animation(SDL_Texture* texture,
 		output_name(output_name),
 		scale(scale){}
 
+// Copy constructor
+Animation::Animation(const Animation& other)
+	: texture(other.texture),           // shallow copy of SDL_Texture* (do NOT free)
+	frames(other.frames),             // deep copy of frames vector
+	frame_time_ms(other.frame_time_ms),
+	loop_flag(other.loop_flag),
+	scale(other.scale),
+	current_frame(other.current_frame),
+	finished(other.finished),
+	output_name(other.output_name),
+	last_update_time(other.last_update_time)
+{
+	// Nothing else needed
+}
+
 Animation::~Animation() {}
 
 void Animation::Update() {
@@ -72,24 +87,26 @@ void Animation::Draw(SDL_Renderer* renderer,
 {
 	if (!texture || frames.empty())
 	{
-		std::cerr << "Error: No texture or frames to draw.";
+		std::cerr << "Error: No texture or frames to draw.\n";
 		return;
 	}
+
 	int w, h;
 	if (SDL_QueryTexture(texture, nullptr, nullptr, &w, &h) != 0)
 	{
 		std::cerr << "SDL_QueryTexture Error: " << SDL_GetError() << std::endl;
 		exit(1);
 	}
-	
+
 	SDL_Rect scaled_dest_rect = dest_rect;
 	scaled_dest_rect.w = static_cast<int>(scaled_dest_rect.w);
 	scaled_dest_rect.h = static_cast<int>(scaled_dest_rect.h);
 
-	if (SDL_RenderCopy(renderer, texture, &frames[current_frame], &scaled_dest_rect) != 0)
+	// Use SDL_RenderCopyEx to handle flipping
+	if (SDL_RenderCopyEx(renderer, texture, &frames[current_frame], &scaled_dest_rect,
+		0.0, nullptr, flip) != 0)
 	{
 		std::cerr << "SDL_RenderCopyEx Error: " << SDL_GetError() << std::endl;
-
 	}
 }
 

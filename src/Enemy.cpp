@@ -32,6 +32,10 @@ Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, con
 	shiny = shiny_chance(gen) < 7;
 	
 }
+void Enemy::AddOverlayAnimation(Animation* animation)
+{
+	overlay_animations.emplace_back(std::make_unique<Animation>(*animation));
+}
 
 // Setters and Getters
  Collider* Enemy::GetCollShape()
@@ -178,6 +182,9 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 
 	if (state == "death")
 	{
+		enemy_coll_shape.circle.r = 0;
+		enemy_coll_shape.circle.x = 0;
+		enemy_coll_shape.circle.y = 0;
 		if (!added_death_animation && current_animation->GetCurrentFrameIndex() == 5)
 		{
 			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "ice_burst")));
@@ -191,7 +198,7 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "death"));
 		}
 
-		enemy_coll_shape.circle.r = 0;
+		
 		if (current_animation->IsFinished())
 		{
 			current_animation->Reset();
@@ -363,7 +370,7 @@ StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, in
 	enemy_coll_shape.type = ColliderType::CIRCLE;
 	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
 	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);
-	enemy_coll_shape.circle.r = enemy_dest_rect.w / 4;
+	enemy_coll_shape.circle.r = enemy_dest_rect.w / 6;
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -484,6 +491,9 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 	if (state == "death")
 	{
+		enemy_coll_shape.circle.r = 0;
+		enemy_coll_shape.circle.x = 0;
+		enemy_coll_shape.circle.y = 0;
 		// Only set death animation once
 		if (current_animation->GetName() != "enemy-storm-cloud-death" and current_animation->GetName() != "enemy-storm-cloud-death_shiny")
 		{
@@ -494,7 +504,7 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "death"));
 			
 			
-			enemy_coll_shape.circle.r = 0;
+			
 		}
 
 		// Add overlay once
@@ -731,6 +741,9 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 	if (state == "death")
 	{
+		enemy_coll_shape.circle.r = 0;
+		enemy_coll_shape.circle.x = 0;
+		enemy_coll_shape.circle.y = 0;
 		if (left_lightning_bolt != nullptr)
 		{
 			left_lightning_bolt->UpdateState("delete");
@@ -747,7 +760,6 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "death_shiny"));
 			else
 				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "death"));
-			enemy_coll_shape.circle.r = 0;  // disable collision
 		}
 
 		// Add heal overlay on first death frame

@@ -29,7 +29,7 @@ class Enemy
         void ChangeHealth(int health_diff);
 
 		int GetPoints();
-
+		void AddOverlayAnimation(Animation* animation);
         void UpdateState(std::string state);
         std::string GetState();
     

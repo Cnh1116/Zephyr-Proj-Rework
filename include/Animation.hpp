@@ -16,6 +16,8 @@ public:
 				bool loop_flag,
 				std::string output_name,
 				float scale);
+	Animation(const Animation& other);
+
 
 	~Animation();
 

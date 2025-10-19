@@ -24,6 +24,7 @@ SoundManager::SoundManager()
     
     // Player Sounds
     LoadSoundEffect("player_primary_fire", "../../assets/sounds/player-sounds/primary-fire.wav");
+    LoadSoundEffect("player_primary_fire_crit", "../../assets/sounds/player-sounds/primary-fire-crit.wav");
     LoadSoundEffect("player_secondary_fire", "../../assets/sounds/player-sounds/secondary-fire.wav");
     LoadSoundEffect("player_secondary_fire_impact", "../../assets/sounds/player-sounds/secondary-fire-impact.wav");
     LoadSoundEffect("player_hurt", "../../assets/sounds/player-sounds/player-hit.wav");
@@ -32,12 +33,13 @@ SoundManager::SoundManager()
     LoadSoundEffect("shield_activate", "../../assets/sounds/player-sounds/shield-activate.wav");
     LoadSoundEffect("dash_sound", "../../assets/sounds/player-sounds/dash.wav");
     LoadSoundEffect("player_crit", "../../assets/sounds/player-sounds/player-crit.wav");
+    LoadSoundEffect("player_slash", "../../assets/sounds/player-sounds/slash.mp3");
     LoadSoundEffect("lightning_strike", "../../assets/sounds/enemy-sounds/lightning-strike.mp3");
     
     
     // Overlay Effect Sounds
     LoadSoundEffect("player_heal", "../../assets/sounds/overlay-sounds/healing.wav");    
-    LoadSoundEffect("jade_drum", "../../assets/sounds/enemy-sounds/jade-drum.wav");
+    LoadSoundEffect("jade_drum", "../../assets/sounds/item-sounds/jade-drum.wav");
 
     // Overlay Effect Sounds
     LoadSoundEffect("shiny", "../../assets/sounds/enemy-sounds/shiny.wav");
@@ -50,7 +52,7 @@ SoundManager::SoundManager()
     LoadSoundEffect("item_collection_sound", "../../assets/sounds/item-sounds/collect-item.mp3");
     
     // Music Files
-    music_map["first_level_song"] = "../../assets/soundsmusic/ChrisChristodoulou-TheyMightAsWellBeDeadROR2_SurvivorsoftheVoid(2022).mp3";
+    music_map["first_level_song"] = "../../assets/sounds/music/neon-sky-liquid-jungle-breakbeat-drum-and-bass-no-vocal-samples-356501.mp3";
 }
 
 SoundManager::~SoundManager()
@@ -94,6 +96,7 @@ void SoundManager::PlayMusic(const char* music_key)
         std::cerr << "[!] Failed to load MP3 file: " << Mix_GetError() << std::endl;  
     }
 
+    Mix_VolumeMusic(20);
     std::cout << "[*] Playing Music" << music_map[music_key] << std::endl;
     // Check parameters ! loop_flag, how to pause, switch music ?
     if (-1 == Mix_PlayMusic(music, 1)) 

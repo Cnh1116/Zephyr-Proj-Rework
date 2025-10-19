@@ -36,6 +36,6 @@ private:
     SDL_Rect dest{};
     Uint32 start_time;
     Uint32 duration;
-    int offset_y = -20;
+    int offset_y = -12;
 };
 #endif

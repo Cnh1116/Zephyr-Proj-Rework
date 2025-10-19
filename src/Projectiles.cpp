@@ -45,11 +45,11 @@ void Projectile::UpdateState(const char* state_str)
     if(state_str == "impact" && shift_impact)
         if (player_projectile)
         {
-            dest_rect.y -= dest_rect.h / 2;
+            dest_rect.y -= dest_rect.h / 4;
         }
         else
         {
-            dest_rect.y += dest_rect.h / 2;
+            dest_rect.y += dest_rect.h / 4;
         }
 }
 
@@ -97,7 +97,6 @@ std::string Projectile::GetPrintableDamage()
 }
 
 // PRIMARY FIRE
-
 PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, int PIXEL_SCALE, bool critical_flag)
     : Projectile(animation_manager, {(dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE}, projectile_speed, projectile_damage, true, true, false)
 {
@@ -112,7 +111,7 @@ PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& de
 
     if (critical)
     {
-        projectile_damage *= 2;
+        damage *= 2;
 
     }
 
@@ -190,7 +189,7 @@ void PrimaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
 // SECONDARY FIRE
 SecondaryFire::SecondaryFire(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE)
-    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, 0.0f, true, false, false)
+    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, 0.0f, true, true, false)
 {
     current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-secondary", "main"));
     sound_effect_noise = 20;
@@ -265,6 +264,132 @@ void SecondaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		Collisions::DrawCircle(renderer, collision_shape.circle);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    }
+}
+
+// SLASH
+Slash::Slash(AnimationManager& animation_manager, SDL_Rect& dest_rect_arg, float projectile_damage, int PIXEL_SCALE, bool critical_flag, bool left_flag_arg)
+    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, 0, projectile_damage, true, false, false)
+{
+
+    critical = critical_flag;
+    sound_effect_noise = 20;
+    current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-slash", "main"));
+    collision_shape.type = ColliderType::RECT;
+	left_flag = left_flag_arg;
+
+    player_dest_rect = &dest_rect_arg;
+
+    //float perc_thinner = 0.8;
+	
+    if (left_flag)
+    {
+        dest_rect.x = dest_rect.x - current_animation->GetFrameWidth();
+        dest_rect.y = dest_rect.y + (dest_rect.y / 2) - current_animation->GetFrameHeight();
+        dest_rect.w = current_animation->GetFrameWidth();
+        dest_rect.h = current_animation->GetFrameHeight();
+        
+        collision_shape.rect = dest_rect;
+    }
+
+    else
+    {
+		dest_rect.x = dest_rect.x + dest_rect.w;
+        dest_rect.y = dest_rect.y + (dest_rect.y / 2) - current_animation->GetFrameHeight();
+        dest_rect.w = current_animation->GetFrameWidth();
+        dest_rect.h = current_animation->GetFrameHeight();
+        collision_shape.rect = dest_rect;
+
+    }
+
+    if (critical)
+    {
+        damage *= 2;
+
+    }
+
+}
+
+void Slash::MoveProjectile()
+{
+    int proj_w = current_animation->GetFrameWidth();
+    int proj_h = current_animation->GetFrameHeight();
+
+    // Set dest_rect normally (visual stays same)
+    dest_rect.w = proj_w;
+    dest_rect.h = proj_h;
+    dest_rect.y = player_dest_rect->y + (player_dest_rect->h / 2) - (proj_h / 2);
+
+    if (left_flag)
+        dest_rect.x = player_dest_rect->x - proj_w;
+    else
+        dest_rect.x = player_dest_rect->x + player_dest_rect->w;
+
+    // ---- COLLISION BOX THINNESS ----
+    // Clamp thinness for safety
+    float thinness = 0.6;
+
+    int scaled_h = static_cast<int>(proj_h * thinness);
+    int offset_y = (proj_h - scaled_h) / 2;  // center collision box vertically
+
+    collision_shape.rect.x = dest_rect.x;
+    collision_shape.rect.y = dest_rect.y + offset_y;
+    collision_shape.rect.w = proj_w;
+    collision_shape.rect.h = scaled_h;
+}
+
+void Slash::Update()
+{
+    if (state == "main")
+    {
+        if (current_animation->GetName() != "proj-zephyr-slash-main")
+        {
+            current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-slash", "main"));
+        }
+        MoveProjectile();
+
+    }
+
+    if (current_animation->IsFinished())
+    {
+        state = "delete";
+    }
+
+
+    current_animation->Update();
+    for (auto& animation : overlay_animations)
+    {
+        animation->Update();
+    }
+}
+
+void Slash::Draw(SDL_Renderer* renderer, bool collision_box_flag)
+{
+
+    if (left_flag)
+        current_animation->Draw(renderer, dest_rect, SDL_FLIP_HORIZONTAL);
+    else
+        current_animation->Draw(renderer, dest_rect, SDL_FLIP_NONE);
+    
+    for (auto& animation : overlay_animations)
+    {
+        std::cout << "DRAWING OVERLAY ! ----------------------------------------" << std::endl;
+        SDL_Rect* current_frame = animation->GetCurrentFrame();
+        SDL_Rect temp = { (dest_rect.x + dest_rect.w / 2) - current_frame->w * animation->GetScale() / 2,
+                            (dest_rect.y + dest_rect.h / 2) - current_frame->h * animation->GetScale() / 2,
+                            current_frame->w,
+                            current_frame->h };
+        if (left_flag)
+            animation->Draw(renderer, temp, SDL_FLIP_HORIZONTAL);
+        else
+            animation->Draw(renderer, temp, SDL_FLIP_NONE);
+    }
+
+    if (collision_box_flag)
+    {
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderDrawRect(renderer, &collision_shape.rect);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     }
 }
@@ -405,7 +530,7 @@ void LightningBall::MoveProjectile()
     dest_rect.y = static_cast<int>(position_y) + (dest_rect.h / 2) - (dest_rect.h / 2);
     collision_shape.circle.x = static_cast<int>(position_x) + (dest_rect.w / 2);
     collision_shape.circle.y = static_cast<int>(position_y) + (dest_rect.h / 2);
-	collision_shape.circle.r = dest_rect.w / 2;
+	collision_shape.circle.r = dest_rect.w / 5;
 }
 
 void LightningBall::Update()
@@ -420,9 +545,6 @@ void LightningBall::Update()
                 current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main"));
         }
         MoveProjectile();
-        collision_shape.circle.r = dest_rect.w / 2;
-        collision_shape.circle.x = dest_rect.x + (dest_rect.w / 2);
-        collision_shape.circle.y = dest_rect.y + (dest_rect.h / 2);
     }
 
     if (state == "impact")
@@ -435,6 +557,8 @@ void LightningBall::Update()
                 current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "impact"));
         }
         collision_shape.circle.r = 0;
+        collision_shape.circle.x = 0;
+        collision_shape.circle.y = 0;
         if (current_animation->IsFinished())
         {
             state = "delete";
