@@ -13,8 +13,6 @@
 
 class Projectile;
 
-
-
 class Game
 {
     public:
@@ -36,11 +34,10 @@ class Game
         AnimationManager* animation_manager;
 		OverlayTextManager* overlay_text_manager;
         ItemManager* item_manager;
+
+        std::vector<Projectile*> game_projectiles;
+        std::vector<Enemy*> enemies;
         
-		
-        // player
-        // enemy spawner
-        // item spawner
         bool game_over;
         Player player;
 };

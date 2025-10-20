@@ -55,10 +55,10 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
 }
 
 
-void Player::Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager)
+void Player::Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager)
 {
     
-    Move(dx, dy, SCREEN_WIDTH, SCREEN_HEIGHT);
+    Move(SCREEN_WIDTH, SCREEN_HEIGHT);
 	//std::cout << "[*] Player STATE: " << state << std::endl;
     
     if (!secondary_fire.marker_active) secondary_fire.marker_col_rect.rect = { 0,0,0,0 };
@@ -185,7 +185,7 @@ void Player::Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, lon
 
 }
 
-void Player::Move(float input_dx, float input_dy, int SCREEN_WIDTH, int SCREEN_HEIGHT)
+void Player::Move(int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
     // Compute desired velocities
     float target_vx = input_dx * current_speed;
@@ -280,6 +280,31 @@ bool Player::IsSlashReady()
         //std::cout << "[*] Secondary Fire on cooldown\n";
         return(false);
     }
+}
+
+void Player::DoShield(SoundManager& sound_manager, Projectile* projectile, bool render_coll_boxes, OverlayTextManager* overlay_text_manager)
+{
+    // MOVE ME TO A USESHIELD FUNCTION ====================
+    sound_manager.PlaySound("player_shield_hit", 90);
+    projectile->UpdateState("impact");
+    sound_manager.PlaySound(projectile->GetSoundEffectImpact(), 25);
+
+    if (this->GetNumItem("garnet_shield") > 0 && this->CanParryHeal())
+    {
+        int heal_amount = this->GetNumItem("garnet_shield") * 5;
+        this->Heal(heal_amount, sound_manager);
+        if (render_coll_boxes)
+        {
+            overlay_text_manager->AddMessage(std::to_string(heal_amount),
+                { 44, 214, 58, 255 }, //green color
+                this->GetDstRect(),
+                350); //ms
+        }
+
+
+
+    }
+    // MOVE ME TO A USESHIELD FUNCTION ====================
 }
 
 void Player::ShootPrimaryFire(std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, ItemManager* item_manager)

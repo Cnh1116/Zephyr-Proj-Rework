@@ -15,6 +15,7 @@ class AnimationManager;
 class SoundManager;
 class ItemManager;
 class Projectile;
+class OverlayTextManager;
 
 class Player
 {
@@ -24,8 +25,9 @@ class Player
         Player(int PIXEL_SCALE, AnimationManager& animation_manager);
 
         //UPDATE
-        void Update(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager);
+        void Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager);
         void Draw(SDL_Renderer* renderer, bool collision_box_flag);
+        void SetInput(float dx, float dy) { input_dx = dx; input_dy = dy; };
 
         // STATE
         std::string GetPlayerState();
@@ -35,7 +37,7 @@ class Player
         SDL_Rect* GetDstRect();
         Collider* GetCollShape(); 
         void SetPosition(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT);
-        void Move(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+        void Move(int SCREEN_WIDTH, int SCREEN_HEIGHT);
         void SetImageScale(int image_scale);
         
         //HEALTH
@@ -71,16 +73,17 @@ class Player
         Collider* GetSecondaryFireHudColl();
         void ShootSecondaryFire(std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, ItemManager* item_manager);
         bool IsFireSecondaryReady();
-        bool IsSlashReady();
+        
 
         // SLASH
         void DoSlash(std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, bool left_flag);
+        bool IsSlashReady();
         
         
         // SHIELD
         SDL_Rect* GetShieldDstRect();
         Collider* GetShieldColl();
-        // void UseShield();
+        void DoShield(SoundManager& sound_manager, Projectile* projectile, bool render_coll_boxes, OverlayTextManager* overlay_text_manager);
         void SetShieldLastTimeUsed(Uint32 last_time_used);
         bool IsShieldReady();
         Uint32 GetShieldLastTimeUsed();
@@ -117,6 +120,8 @@ class Player
         float posY = 0.0f;
         float vx = 0.0f;  // velocity X
         float vy = 0.0f;  // velocity Y
+		float input_dx = 0.0f;
+		float input_dy = 0.0f;
 
         float accel = 0.03f;     // acceleration rate
         float base_accel = accel;

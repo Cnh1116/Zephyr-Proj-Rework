@@ -129,14 +129,12 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 
 		if (lateral_diff <= player_distance_threshold)
 		{
-			// Player is close → start shooting immediately
 			state = "shoot";
 			num_proj_shot = 0;
 			last_fire_time = SDL_GetTicks();
 		}
 		else
 		{
-			// Player far → start moving toward their X (snapshot)
 			target_x = static_cast<float>(player->GetDstRect()->x);
 			state = "move";
 		}
@@ -149,9 +147,8 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 	
 	if (state == "move")
 	{
-		Move(player); // Move should move toward target_x (not player->x directly!)
+		Move(player);
 
-		// Check if we’ve reached our stored target position
 		if (fabs(enemy_dest_rect.x - target_x) <= player_distance_threshold)
 		{
 			state = "shoot";
@@ -162,15 +159,13 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 
 	if (state == "shoot")
 	{
-		
-		// Once done shooting, go idle again
 		if (num_proj_shot >= max_proj_shot)
 		{
 			num_proj_shot = 0;
 			state = "wait";
 			last_wait_time = SDL_GetTicks();
 		}
-		// Stay stationary and fire at intervals
+
 		else if (BulletReady())
 		{
 			Attack(game_projectiles, player);
@@ -198,7 +193,6 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "death"));
 		}
 
-		
 		if (current_animation->IsFinished())
 		{
 			current_animation->Reset();
@@ -220,39 +214,21 @@ void IceCrystal::Move(Player* player)
 {
 	
 	float diff = target_x - posX;
-
-	// --- Dead zone ---
-	const float dead_zone = 40.0f;  // pixels of tolerance before moving
-
-	// --- Screen-normalized difference ---
 	float screen_height = static_cast<float>(1080);
 	float norm_diff = diff / screen_height;
-
-	
 	float hover_offset;
 
-	// --- Springy motion ---
 	if (fabs(diff) > dead_zone)
-	{
-		// Only chase player if far enough away
 		velocity = velocity * damping + norm_diff * stiffness;
 
-		// --- Optional hover motion ---
-		//hover_offset = sin(SDL_GetTicks() * hover_freq) * hover_amp;
-	}
 	else
 	{
-		// Within tolerance → slow down gradually
-		velocity *= 0.0f;  // optional: damp to zero smoothly
+		velocity *= 0.0f;
 		hover_offset = 0.0f;
 	}
 
+	posX += velocity;
 
-
-	// --- Apply velocity ---
-	posX += velocity;//+ hover_offset;
-
-	// --- Update render position ---
 	enemy_dest_rect.x = static_cast<int>(posX);
 
 	int coll_box_width = enemy_dest_rect.w / 3;
@@ -292,7 +268,6 @@ bool IceCrystal::BulletReady()
 
 	else
 	{
-
 		return(false);
 	}
 }
@@ -353,7 +328,6 @@ void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 	}
 
 }
-
 // STORM CLOUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, int screen_height, int player_x, int player_y)
 	: Enemy(animation_manager, { -32,-32,48 * 4 ,32 * 4 }, Collider(0, 0, 0), 4.7, 30, 0, 35)
@@ -428,7 +402,6 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 			state = "wait";
 			start_of_wait_state = SDL_GetTicks();
 		}
-
 	}
 
 	if (state == "wait")
@@ -436,11 +409,10 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 		Uint32 elapsed = SDL_GetTicks() - start_of_wait_state;
 		if (elapsed > time_to_wait_ms)
 		{
-			// Transition to shoot only if not already shot
 			if (!shot_fired)
 			{
 				state = "shoot";
-				shot_fired = false;           // reset flag for shooting
+				shot_fired = false;
 				if (shiny)
 					current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "attack_shiny"));
 				else
@@ -448,14 +420,13 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 			}
 			else
 			{
-				state = "retreat"; // move away after shooting
+				state = "retreat";
 			}
 		}
 	}
 
 	if (state == "shoot")
 	{
-		// Only set attack animation once
 		if (!shot_fired)
 		{
 			if (current_animation->GetName() != "enemy-storm-cloud-attack" and current_animation->GetName() != "enemy-storm-cloud-attack_shiny")
@@ -469,7 +440,6 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 			
 		}
 
-		// Example: check if animation finished to fire
 		if (current_animation->IsFinished())
 		{
 			shot_fired = true;
@@ -480,7 +450,7 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 			direction_x *= -1;
 			direction_y *= -1;
 			start_of_wait_state = SDL_GetTicks();
-			state = "wait"; // leave screen / retreat
+			state = "wait"; 
 		}
 	}
 
@@ -494,20 +464,16 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 		enemy_coll_shape.circle.r = 0;
 		enemy_coll_shape.circle.x = 0;
 		enemy_coll_shape.circle.y = 0;
-		// Only set death animation once
+
 		if (current_animation->GetName() != "enemy-storm-cloud-death" and current_animation->GetName() != "enemy-storm-cloud-death_shiny")
 		{
 			
 			if (shiny)
 				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "death_shiny"));
 			else
-				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "death"));
-			
-			
-			
+				current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "death"));			
 		}
 
-		// Add overlay once
 		if (!added_death_animation)
 		{
 			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "heal")));
@@ -531,9 +497,6 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 void StormCloud::Move(Player* player)
 {
-	
-
-	
 	position_x += direction_x * movement_speed;
 	position_y += direction_y * movement_speed;
 
@@ -571,11 +534,11 @@ void StormCloud::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 	
 		SDL_Rect rect;
 		int size = 5;
-		rect.x = this->GetGoalX() - size / 2; // Center the point
-		rect.y = this->GetGoalY() - size / 2; // Center the point
-		rect.w = size;         // Width of the rectangle
+		rect.x = this->GetGoalX() - size / 2;
+		rect.y = this->GetGoalY() - size / 2;
+		rect.w = size;
 		rect.h = size;
-		// Now it's safe to call the special function
+		
 		if (collision_box_flag)
 		{
 			SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
@@ -790,47 +753,27 @@ void StormGenie::Move(Player* player)
 	float targetY = static_cast<float>(player->GetDstRect()->y);
 	float diff = targetY - posY;
 
-	// --- Dead zone ---
-	const float dead_zone = 40.0f;  // pixels of tolerance before moving
 
-	// --- Screen-normalized difference ---
+	const float dead_zone = 40.0f;
+
+	
 	float screen_height = static_cast<float>(1080);
 	float norm_diff = diff / screen_height;
-
-	// --- Tunable parameters ---
-	const float stiffness = 2.0f;     // increase after normalization
-	const float damping = 0.7f;
-	const float hover_amp = 1.5f;
-	const float hover_freq = 0.07f;
 	float hover_offset;
 
-	// --- Springy motion ---
 	if (fabs(diff) > dead_zone)
 	{
-		// Only chase player if far enough away
 		velocity = velocity * damping + norm_diff * stiffness;
-		
-		// --- Optional hover motion ---
-		//hover_offset = sin(SDL_GetTicks() * hover_freq) * hover_amp;
 	}
 	else
 	{
-		// Within tolerance → slow down gradually
-		velocity *= 0.0f;  // optional: damp to zero smoothly
+		velocity *= 0.0f;
 		hover_offset = 0.0f;
 	}
 
-	
-
-	// --- Apply velocity ---
 	posY += velocity;//+ hover_offset;
 
-	// --- Update render position ---
 	enemy_dest_rect.y = static_cast<int>(posY);
-
-
-
-	
 
 	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
 	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);

@@ -5,6 +5,7 @@
 #include <random>
 
 
+
 int PIXEL_SCALE = 4;
 int WINDOW_WIDTH = 1920;
 int WINDOW_HEIGHT = 1080;
@@ -26,8 +27,6 @@ Game::Game() // Game constructor acts as my INIT function for the game.
 {
     // Load Player Sprite
     player.SetPosition( (WINDOW_WIDTH/2) - (player.GetDstRect()->w / 2), WINDOW_HEIGHT - (player.GetDstRect()->h), WINDOW_WIDTH, WINDOW_HEIGHT );
-
-    
 }
 
 Game::~Game()
@@ -37,13 +36,16 @@ Game::~Game()
     delete item_manager;
 }
 
+
+
+
+
 void Game::RunGame()
 {
-
+    
+    
     // Game loop_flag Specific Pieces
     long loop_flag = 0;
-    std::vector<Projectile*> game_projectiles;
-    std::vector<Enemy*> enemies;
     game_projectiles.reserve(30);
     enemies.reserve(10);
 
@@ -67,69 +69,12 @@ void Game::RunGame()
 		SpawnEnemies(enemies);
         
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  HANDLE Discrete EVENTS    ~
+        ~  HANDLE Keyboard           ~
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
         SDL_Event event;
         while (SDL_PollEvent(&event)) 
         {
             HandleKeyInput(event, &player, game_projectiles, render_coll_boxes);
-        }
-
-        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  HANDLE Continous EVENTS    ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        const Uint8* keystates = SDL_GetKeyboardState(NULL);
-        float dx = 0, dy = 0;
-        if (keystates[SDL_SCANCODE_W])
-        {
-            dy += -1.0;
-        }
-        if (keystates[SDL_SCANCODE_A])
-        {
-            dx += -1.0;
-        }
-        if (keystates[SDL_SCANCODE_S])
-        {
-            dy += 1.0;
-        }
-        if (keystates[SDL_SCANCODE_D])
-        {
-            dx += 1.0;
-        }
-
-        float len = sqrtf(dx * dx + dy * dy);
-        if (len > 0.0001f) {
-            dx /= len;
-            dy /= len;
-        }
-
-        if (keystates[SDL_SCANCODE_LCTRL])
-        {
-            dx *= 0.6;
-            dy *= 0.6;
-        }
-
-        if (keystates[SDL_SCANCODE_LEFT])
-        {
-            player.DoSlash(game_projectiles, *sound_manager, true);
-        }
-
-        if (keystates[SDL_SCANCODE_RIGHT])
-        {
-            player.DoSlash(game_projectiles, *sound_manager, false);
-        }
-
-        if (keystates[SDL_SCANCODE_DOWN]) // DOWN //
-        {
-            
-			player.ShootSecondaryFire(game_projectiles, *sound_manager, item_manager);
-        }
-
-
-        if (keystates[SDL_SCANCODE_UP] and player.GetPlayerState() != "slash") // UP ARROW //
-        {
-            player.ShootPrimaryFire(game_projectiles, *sound_manager, item_manager);
-
         }
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~
@@ -145,9 +90,11 @@ void Game::RunGame()
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~  UPDATE Players                              ~
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        player.Update(dx, dy, WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag, time_delta, *sound_manager);
+        player.Update(WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag, time_delta, *sound_manager);
         if (player.GetCurrentHealth() <= 0)
+        {
             game_over = true;
+        }
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~  UPDATE Projectiles                          ~
@@ -205,7 +152,9 @@ void Game::RunGame()
 
 void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectile*>& game_projectiles, bool &render_coll_boxes)
 {
-        
+        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~  HANDLE Discrete           ~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
         if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) // ESC //
         {
             std::cout << "[*] Esc Key Pressed. game_over = True\n";
@@ -242,6 +191,64 @@ void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectil
         {
             std::cout << "[*] ` Key Pressed.\n";
             
+        }
+
+        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~  HANDLE Continous EVENTS    ~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+        const Uint8* keystates = SDL_GetKeyboardState(NULL);
+        float dx = 0, dy = 0;
+        if (keystates[SDL_SCANCODE_W]) // W //
+        {
+            dy += -1.0;
+        }
+        if (keystates[SDL_SCANCODE_A]) // A //
+        {
+            dx += -1.0;
+        }
+        if (keystates[SDL_SCANCODE_S]) // S //
+        {
+            dy += 1.0;
+        }
+        if (keystates[SDL_SCANCODE_D]) // D //
+        {
+            dx += 1.0;
+        }
+
+        float len = sqrtf(dx * dx + dy * dy);
+        if (len > 0.0001f) {
+            dx /= len;
+            dy /= len;
+        }
+
+        if (keystates[SDL_SCANCODE_LCTRL]) // LCTRL //
+        {
+            dx *= 0.6;
+            dy *= 0.6;
+        }
+        player->SetInput(dx, dy);
+
+        if (keystates[SDL_SCANCODE_LEFT]) // LEFT //
+        {
+            player->DoSlash(game_projectiles, *sound_manager, true);
+        }
+
+        if (keystates[SDL_SCANCODE_RIGHT]) // RIGHT//
+        {
+            player->DoSlash(game_projectiles, *sound_manager, false);
+        }
+
+        if (keystates[SDL_SCANCODE_DOWN]) // DOWN //
+        {
+
+            player->ShootSecondaryFire(game_projectiles, *sound_manager, item_manager);
+        }
+
+
+        if (keystates[SDL_SCANCODE_UP] and player->GetPlayerState() != "slash") // UP //
+        {
+            player->ShootPrimaryFire(game_projectiles, *sound_manager, item_manager);
+
         }
 }
 
@@ -294,7 +301,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
             if (game_projectiles.at(i)->GetState() == "main" && Collisions::CheckCollision(*game_projectiles.at(i)->GetCollisionShape(), *player->GetCollShape(), false))
             {
                 // IF THE PLAYER CAN BE HURT
-                if ((player->GetPlayerState() == "main" || player->GetPlayerState() == "dash") )
+                if ((player->GetPlayerState() == "main" || player->GetPlayerState() == "dash" || player->GetPlayerState() == "slash"))
                 {
                     player->UpdatePlayerState("iframes");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
@@ -322,27 +329,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
                 if (player->GetPlayerState() == "shield" && Collisions::CheckCollision(*game_projectiles.at(i)->GetCollisionShape(), *player->GetShieldColl(), false))
                 {
-					// MOVE ME TO A USESHIELD FUNCTION ====================
-                    sound_manager->PlaySound("player_shield_hit", 90);
-                    game_projectiles.at(i)->UpdateState("impact");
-                    sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), 25);
-
-                    if (player->GetNumItem("garnet_shield") > 0 && player->CanParryHeal())
-                    {
-                        int heal_amount = player->GetNumItem("garnet_shield") * 5;
-                        player->Heal(heal_amount, *sound_manager);
-                        if (render_coll_boxes)
-                        {
-                            overlay_text_manager->AddMessage(std::to_string(heal_amount),
-                                heal_number_color,
-                                player->GetDstRect(),
-                                damage_numbers_text_time);
-                        }
-
-                        
-                        
-                    }
-                    // MOVE ME TO A USESHIELD FUNCTION ====================
+                    player->DoShield(*sound_manager, game_projectiles.at(i), render_coll_boxes, overlay_text_manager);
                 }
 
                 if (player->GetPlayerState() == "iframes" && Collisions::CheckCollision(*game_projectiles.at(i)->GetCollisionShape(), *player->GetCollShape(), false))

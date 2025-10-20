@@ -95,15 +95,15 @@ private:
     
     Uint32 last_wait_time;
 	Uint32 wait_duration = 1000;
-    // --- Tunable parameters ---
     float velocity = 1.0f;
-    // --- Tunable parameters ---
-    const float stiffness = 2.0f;     // increase after normalization
+
+	// Movement Parameters
+    const float stiffness = 2.0f;
     const float damping = 0.7f;
     const float hover_amp = 1.5f;
     const float hover_freq = 0.07f;
-    // In your class:
-    float posX = 0.0f; // store precise position
+    const float dead_zone = 40.0f;
+    float posX = 0.0f;
 };
 
 class StormCloud : public Enemy
@@ -160,15 +160,15 @@ private:
 
     bool death_animation_played  = false;
     
-    // --- Tunable parameters ---
+    // Movement Parameters
     float velocity = 1.0f;
-    const float stiffness = 0.03f;   // "pull" toward player
-    const float damping = 0.88f;   // smoothness (0.85–0.92 feels good)
-    const float hover_amp = 0.6f;    // gentle floating motion amplitude
-    const float hover_freq = 0.04f;  // oscillation speed
-    // In your class:
-    float posY = 0.0f; // store precise position
+    float posY = 0.0f;
+    const float stiffness = 2.0f;
+    const float damping = 0.7f;
+    const float hover_amp = 1.5f;
+    const float hover_freq = 0.07f;
     
+
 	
 };
 #endif
