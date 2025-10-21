@@ -26,6 +26,19 @@ class Game
         //Spawning Enemies
         void SpawnEnemies(std::vector<Enemy*>& enemies);
 
+        // Getters
+        Graphics& GetGraphics() { return *graphics_manager; }
+        SoundManager& GetSoundManager() { return *sound_manager; }
+        AnimationManager& GetAnimationManager() { return *animation_manager; }
+        OverlayTextManager& GetOverlayTextManager() { return *overlay_text_manager; }
+        ItemManager& GetItemManager() { return *item_manager; }
+        Player& GetPlayer() { return player; }
+        std::vector<Projectile*>& GetProjectiles() { return game_projectiles; }
+        std::vector<Enemy*>& GetEnemies() { return enemies; }
+		bool& GetRenderCollBoxes() { return render_coll_boxes; }
+		Uint32 GetLoopFlag() { return loop_flag; }
+        void ResetGame();
+
     
     private:
         // ORDER HERE MATTERS
@@ -39,6 +52,8 @@ class Game
         std::vector<Enemy*> enemies;
         
         bool game_over;
+		bool render_coll_boxes = false;
         Player player;
+		Uint32 loop_flag;
 };
 

@@ -799,3 +799,14 @@ void Player::Hurt(int damage, SoundManager& sound_manager)
     sound_manager.PlaySound("player_hurt", 100);
     current_health -= damage;
 }
+
+void Player::ResetPlayer(int window_width, int window_height)
+{
+	current_health = max_health;
+	posX = window_width / 2 - player_dest_rect.w / 2;
+	posY = window_height / 2 - player_dest_rect.h / 2;
+	player_dest_rect.x = static_cast<int>(posX);
+	player_dest_rect.y = static_cast<int>(posY);
+
+	crit_percent = 1.0f;
+}

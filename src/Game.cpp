@@ -1,3 +1,4 @@
+#include "PlayState.hpp"
 #include <iostream>
 #include "Game.hpp"
 #include <iostream>
@@ -36,21 +37,14 @@ Game::~Game()
     delete item_manager;
 }
 
-
-
-
-
 void Game::RunGame()
 {
     
     
     // Game loop_flag Specific Pieces
-    long loop_flag = 0;
+    loop_flag = 0;
     game_projectiles.reserve(30);
-    enemies.reserve(10);
-
-    bool render_coll_boxes = false;
-    
+    enemies.reserve(10);    
 
     // Play Starting Song
     sound_manager->PlayMusic("first_level_song");
@@ -546,7 +540,6 @@ void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
     }
 }
 
-
 void Game::FPSLogic(Uint32 current_tick)
 {
     Uint32 frame_time_ms = SDL_GetTicks() - current_tick;
@@ -554,4 +547,20 @@ void Game::FPSLogic(Uint32 current_tick)
     {
         SDL_Delay( (1000.0 / MAX_FPS ) - frame_time_ms);
     }
+}
+void Game::ResetGame()
+{
+    for (auto* p : game_projectiles)
+        delete p;
+    game_projectiles.clear();
+
+    for (auto* e : enemies)
+        delete e;
+    enemies.clear();
+
+    item_manager->GetItemList()->clear();
+
+	player.ResetPlayer(1920, 1080);
+	game_over = false;
+	loop_flag = 0;
 }

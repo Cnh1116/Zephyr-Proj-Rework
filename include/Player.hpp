@@ -29,6 +29,9 @@ class Player
         void Draw(SDL_Renderer* renderer, bool collision_box_flag);
         void SetInput(float dx, float dy) { input_dx = dx; input_dy = dy; };
 
+        // RESET
+		void ResetPlayer(int SCREEN_WIDTH, int SCREEN_HEIGHT);
+
         // STATE
         std::string GetPlayerState();
         void UpdatePlayerState(std::string new_state);
