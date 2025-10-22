@@ -439,3 +439,37 @@ TTF_Font* Graphics::GetFont(int font_id)
     }
 }
 
+void Graphics::RenderPauseMenu(int current_option)
+{
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 10); // Semi-transparent black
+	SDL_Rect dim_rect = { 0, 0, screen_width, screen_height };
+	SDL_RenderFillRect(renderer, &dim_rect);
+
+	std::string resume_text = "Resume";
+	std::string restart_text = "Restart";
+	std::string quit_text = "Quit";
+
+	SDL_Color normal_color = { 255, 255, 255, 255 };
+	SDL_Color highlight_color = { 20, 156, 0, 255 };
+
+	// Calculate positions
+	int option_width = 200;
+	int option_height = 50;
+	int start_y = screen_height / 2 - option_height * 2;
+
+	// Render Resume
+	SDL_Color color = (current_option == 0) ? highlight_color : normal_color;
+	RenderText(resume_text, { screen_width / 2 - option_width / 2, start_y, option_width, option_height }, color);
+
+	// Render Restart
+	color = (current_option == 1) ? highlight_color : normal_color;
+	RenderText(restart_text, { screen_width / 2 - option_width / 2, start_y + option_height + 10, option_width, option_height }, color);
+
+	// Render Quit
+	color = (current_option == 2) ? highlight_color : normal_color;
+	RenderText(quit_text, { screen_width / 2 - option_width / 2, start_y + 2 * (option_height + 10), option_width, option_height }, color);
+
+	// Present the updated renderer
+	SDL_RenderPresent(renderer);
+}
+
