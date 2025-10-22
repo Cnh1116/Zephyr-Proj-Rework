@@ -1,4 +1,6 @@
+#include "GameStateManager.hpp"
 #include "PlayState.hpp"
+#include "PauseState.hpp"
 #include <iostream>
 #include "Game.hpp"
 #include <iostream>
@@ -28,6 +30,9 @@ Game::Game() // Game constructor acts as my INIT function for the game.
 {
     // Load Player Sprite
     player.SetPosition( (WINDOW_WIDTH/2) - (player.GetDstRect()->w / 2), WINDOW_HEIGHT - (player.GetDstRect()->h), WINDOW_WIDTH, WINDOW_HEIGHT );
+
+    play_state = std::make_unique<PlayState>();
+    game_state_manager.ChangeState(play_state.get(), this);
 }
 
 Game::~Game()
@@ -39,122 +44,100 @@ Game::~Game()
 
 void Game::RunGame()
 {
-    
-    
-    // Game loop_flag Specific Pieces
-    loop_flag = 0;
-    game_projectiles.reserve(30);
-    enemies.reserve(10);    
 
-    // Play Starting Song
-    sound_manager->PlayMusic("first_level_song");
     
+    bool running = true;
+    Uint32 last_frame = SDL_GetTicks();
 
-    Uint32 last_tick = SDL_GetTicks();
-    
-    while(false == game_over)
+    while (running)
     {
-        Uint32 current_tick = SDL_GetTicks();
-        Uint32 time_delta = current_tick - last_tick;
-        last_tick = current_tick;
+        Uint32 now = SDL_GetTicks();
+        float deltaTime = (now - last_frame) / 1000.0f;
+        last_frame = now;
 
+        game_state_manager.HandleInput(this);
+        game_state_manager.Update(this, deltaTime);
+        game_state_manager.Render(this);
 
-
-		SpawnEnemies(enemies);
-        
-        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  HANDLE Keyboard           ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) 
-        {
-            HandleKeyInput(event, &player, game_projectiles, render_coll_boxes);
-        }
-
-        /*~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  HANDLE COLLISIONS     ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~*/
-        HandleCollisions(&player, game_projectiles, item_manager->GetItemList(), enemies, render_coll_boxes);
-
-        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  UPDATE Background Clouds                    ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        graphics_manager->BackgroundUpdate(loop_flag);
-
-        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  UPDATE Players                              ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        player.Update(WINDOW_WIDTH, WINDOW_HEIGHT, loop_flag, time_delta, *sound_manager);
-        if (player.GetCurrentHealth() <= 0)
-        {
-            game_over = true;
-        }
-
-        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  UPDATE Projectiles                          ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        for (int i = 0; i < game_projectiles.size();)
-        {
-            game_projectiles.at(i)->Update(); //proj->update() which calles movePRojectile and should ++animation sprite
-            if (game_projectiles.at(i)->GetState() == "delete")
-            {
-                std::cout << "[*] Deleting a projectile.\n";
-                delete game_projectiles.at(i);
-                game_projectiles.erase(game_projectiles.begin() + i);
-            }
-            else
-            {
-                ++i;
-            }
-        }
-
-        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  UPDATE Enemies                              ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        for (int i = 0; i < enemies.size();)
-        {
-            enemies.at(i)->Update(&player, game_projectiles, *sound_manager); 
-
-            if (enemies.at(i)->GetState() == "delete")
-            {
-                std::cout << "[*] Deleting an enemy.\n";
-                delete enemies.at(i);
-                enemies.erase(enemies.begin() + i);
-            }
-            else
-            {
-                ++i;
-            }
-        }
-        item_manager->UpdateItemList();
-
-        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  RENDER Player, Projectiles and Enemies     ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        graphics_manager->RenderGameItems(&player, game_projectiles, *item_manager, enemies, *overlay_text_manager, render_coll_boxes);
-        overlay_text_manager->Update();
-
-
-        /*~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  FPS Control Logic     ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~*/
-        FPSLogic(current_tick);
-
-        loop_flag++;
+        if (game_over)
+            running = false;
     }
 }
 
-void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectile*>& game_projectiles, bool &render_coll_boxes)
+void Game::HandleKeyInput(Player* player, std::vector<Projectile*>& game_projectiles, bool &render_coll_boxes)
 {
-        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  HANDLE Discrete           ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~  HANDLE Continous EVENTS    ~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    const Uint8* keystates = SDL_GetKeyboardState(NULL);
+    float dx = 0, dy = 0;
+    if (keystates[SDL_SCANCODE_W]) // W //
+    {
+        dy += -1.0;
+    }
+    if (keystates[SDL_SCANCODE_A]) // A //
+    {
+        dx += -1.0;
+    }
+    if (keystates[SDL_SCANCODE_S]) // S //
+    {
+        dy += 1.0;
+    }
+    if (keystates[SDL_SCANCODE_D]) // D //
+    {
+        dx += 1.0;
+    }
+
+    float len = sqrtf(dx * dx + dy * dy);
+    if (len > 0.0001f) {
+        dx /= len;
+        dy /= len;
+    }
+
+    if (keystates[SDL_SCANCODE_LCTRL]) // LCTRL //
+    {
+        dx *= 0.6;
+        dy *= 0.6;
+    }
+    player->SetInput(dx, dy);
+
+    if (keystates[SDL_SCANCODE_LEFT]) // LEFT //
+    {
+        player->DoSlash(game_projectiles, *sound_manager, true);
+    }
+
+    if (keystates[SDL_SCANCODE_RIGHT]) // RIGHT//
+    {
+        player->DoSlash(game_projectiles, *sound_manager, false);
+    }
+
+    if (keystates[SDL_SCANCODE_DOWN]) // DOWN //
+    {
+
+        player->ShootSecondaryFire(game_projectiles, *sound_manager, item_manager);
+    }
+
+
+    if (keystates[SDL_SCANCODE_UP] and player->GetPlayerState() != "slash") // UP //
+    {
+        player->ShootPrimaryFire(game_projectiles, *sound_manager, item_manager);
+
+    }
+    
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~  HANDLE Discrete           ~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+
+
         if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) // ESC //
         {
             std::cout << "[*] Esc Key Pressed. game_over = True\n";
-            game_over = true;
-            graphics_manager->DeactivateWindow();
-            SDL_Quit(); 
+            this->GetGameStateManager().ChangeState(new PauseState(), this);
+            return;
+            //Quit();
         }
 
         if (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_COMMA) // , //
@@ -180,70 +163,13 @@ void Game::HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectil
                 player->UpdatePlayerState("dash");
             }
         }
-                   
+
         if (event.key.keysym.scancode == SDL_SCANCODE_BACKSLASH) // ` //
         {
             std::cout << "[*] ` Key Pressed.\n";
-            
-        }
-
-        /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~  HANDLE Continous EVENTS    ~
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        const Uint8* keystates = SDL_GetKeyboardState(NULL);
-        float dx = 0, dy = 0;
-        if (keystates[SDL_SCANCODE_W]) // W //
-        {
-            dy += -1.0;
-        }
-        if (keystates[SDL_SCANCODE_A]) // A //
-        {
-            dx += -1.0;
-        }
-        if (keystates[SDL_SCANCODE_S]) // S //
-        {
-            dy += 1.0;
-        }
-        if (keystates[SDL_SCANCODE_D]) // D //
-        {
-            dx += 1.0;
-        }
-
-        float len = sqrtf(dx * dx + dy * dy);
-        if (len > 0.0001f) {
-            dx /= len;
-            dy /= len;
-        }
-
-        if (keystates[SDL_SCANCODE_LCTRL]) // LCTRL //
-        {
-            dx *= 0.6;
-            dy *= 0.6;
-        }
-        player->SetInput(dx, dy);
-
-        if (keystates[SDL_SCANCODE_LEFT]) // LEFT //
-        {
-            player->DoSlash(game_projectiles, *sound_manager, true);
-        }
-
-        if (keystates[SDL_SCANCODE_RIGHT]) // RIGHT//
-        {
-            player->DoSlash(game_projectiles, *sound_manager, false);
-        }
-
-        if (keystates[SDL_SCANCODE_DOWN]) // DOWN //
-        {
-
-            player->ShootSecondaryFire(game_projectiles, *sound_manager, item_manager);
-        }
-
-
-        if (keystates[SDL_SCANCODE_UP] and player->GetPlayerState() != "slash") // UP //
-        {
-            player->ShootPrimaryFire(game_projectiles, *sound_manager, item_manager);
 
         }
+    }
 }
 
 void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies, bool render_coll_boxes)
@@ -563,4 +489,11 @@ void Game::ResetGame()
 	player.ResetPlayer(1920, 1080);
 	game_over = false;
 	loop_flag = 0;
+}
+
+void Game::Quit()
+{
+    game_over = true;
+    graphics_manager->DeactivateWindow();
+    SDL_Quit();
 }

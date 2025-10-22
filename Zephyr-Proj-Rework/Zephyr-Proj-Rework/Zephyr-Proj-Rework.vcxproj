@@ -145,6 +145,7 @@
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\OverlayText.cpp" />
     <ClCompile Include="..\..\src\OverlayTextManager.cpp" />
+    <ClCompile Include="..\..\src\PauseState.cpp" />
     <ClCompile Include="..\..\src\Player.cpp" />
     <ClCompile Include="..\..\src\PlayState.cpp" />
     <ClCompile Include="..\..\src\Projectiles.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="..\..\include\ItemManager.hpp" />
     <ClInclude Include="..\..\include\OverlayText.hpp" />
     <ClInclude Include="..\..\include\OverlayTextManager.hpp" />
+    <ClInclude Include="..\..\include\PauseState.hpp" />
     <ClInclude Include="..\..\include\Player.hpp" />
     <ClInclude Include="..\..\include\PlayState.hpp" />
     <ClInclude Include="..\..\include\Projectiles.hpp" />

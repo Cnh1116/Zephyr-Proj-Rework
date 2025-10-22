@@ -1,25 +1,26 @@
 #include "GameStateManager.hpp"
 #include "Game.hpp"
 
-void GameStateManager::ChangeState(std::unique_ptr<GameState> new_state, Game* game) {
-    if (current_state)
-        current_state->Exit(game);
-    current_state = std::move(new_state);
-    if (current_state)
-        current_state->Enter(game);
+GameStateManager::GameStateManager() : active_state(nullptr) {}
+
+void GameStateManager::ChangeState(GameState* new_state, Game* game) 
+{
+    if (active_state) active_state->Exit(game);
+        active_state = new_state;
+    if (active_state) active_state->Enter(game);
 }
 
-void GameStateManager::HandleInput(Game* game, SDL_Event& e) {
-    if (current_state)
-        current_state->HandleInput(game, e);
+void GameStateManager::HandleInput(Game* game) 
+{ 
+    if (active_state) active_state->HandleInput(game); 
 }
 
-void GameStateManager::Update(Game* game, float dt) {
-    if (current_state)
-        current_state->Update(game, dt);
+void GameStateManager::Update(Game* game, float dt) 
+{ 
+    if (active_state) active_state->Update(game, dt); 
 }
 
-void GameStateManager::Render(Game* game) {
-    if (current_state)
-        current_state->Render(game);
+void GameStateManager::Render(Game* game) 
+{ 
+    if (active_state) active_state->Render(game); 
 }

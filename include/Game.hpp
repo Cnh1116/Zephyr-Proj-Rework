@@ -1,5 +1,7 @@
+#include "GameStateManager.hpp"
 #include "Graphics.hpp"
 #include "Sound.hpp"
+#include "PlayState.hpp"
 #include <vector>
 #include <memory>
 
@@ -19,7 +21,9 @@ class Game
         Game();
         ~Game();
         void RunGame();
-        void HandleKeyInput(SDL_Event event, Player* player, std::vector<Projectile*> &game_projectile, bool &render_coll_boxes);
+        void ResetGame();
+        void Quit();
+        void HandleKeyInput(Player* player, std::vector<Projectile*> &game_projectile, bool &render_coll_boxes);
         void FPSLogic(Uint32 current_tick);
         void HandleCollisions(Player* player, std::vector<Projectile*> &game_projectiles, std::vector<ItemManager::item>* item_list, std::vector<Enemy*>& enemies, bool render_coll_boxes);
         
@@ -35,9 +39,17 @@ class Game
         Player& GetPlayer() { return player; }
         std::vector<Projectile*>& GetProjectiles() { return game_projectiles; }
         std::vector<Enemy*>& GetEnemies() { return enemies; }
+		GameStateManager& GetGameStateManager() { return game_state_manager; }
+        PlayState* GetPlayStateInstance() { return play_state.get(); }
+
 		bool& GetRenderCollBoxes() { return render_coll_boxes; }
 		Uint32 GetLoopFlag() { return loop_flag; }
-        void ResetGame();
+		Uint32 GetLastTick() { return last_tick; }
+
+        // Setters
+		void SetGameOver(bool state) { game_over = state; }
+        void SetLastTick(Uint32 last_tick) { this->last_tick = last_tick; }
+		void SetLoopFlag(Uint32 loop_flag) { this->loop_flag = loop_flag; }
 
     
     private:
@@ -50,10 +62,15 @@ class Game
 
         std::vector<Projectile*> game_projectiles;
         std::vector<Enemy*> enemies;
+
+		GameStateManager game_state_manager;
+        std::unique_ptr<PlayState> play_state;
+
         
         bool game_over;
 		bool render_coll_boxes = false;
         Player player;
 		Uint32 loop_flag;
+        Uint32 last_tick = 0;
 };
 

@@ -7,13 +7,17 @@
 class Game;
 
 class GameStateManager {
-private:
-    std::unique_ptr<GameState> current_state;
-
 public:
-    void ChangeState(std::unique_ptr<GameState> new_state, Game* game);
-    void HandleInput(Game* game, SDL_Event& e);
+    GameStateManager();
+
+    void ChangeState(GameState* new_state, Game* game);
+
+    void HandleInput(Game* game);
     void Update(Game* game, float dt);
     void Render(Game* game);
+
+private:
+    GameState* active_state; // raw pointer, does NOT own state
 };
+
 #endif
