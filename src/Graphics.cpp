@@ -48,7 +48,7 @@ Graphics::Graphics(const char* title, int width, int height, int scale)
 
     LoadTextures();
 
-    font_1 = TTF_OpenFont("../../assets/fonts/dash-horizon-font/Dashhorizon-eZ5wg.otf",50);
+    font_1 = TTF_OpenFont("../../assets/fonts/raster-forge-font/RasterForgeRegular-JpBgm.ttf",50);
     if (!font_1) 
     {
         std::cout << "[!] font 1 not initialized.";
@@ -148,6 +148,15 @@ bool Graphics::init(const char* title, int width, int height)
     }
 
     return true;
+}
+
+SDL_Texture* Graphics::GetCurrentScreenTexture()
+{
+	SDL_Texture* screen_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, screen_width, screen_height);
+	SDL_SetRenderTarget(renderer, screen_texture);
+	SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA8888, NULL, 0);
+	SDL_SetRenderTarget(renderer, NULL);
+	return screen_texture;
 }
 
 
@@ -439,6 +448,8 @@ TTF_Font* Graphics::GetFont(int font_id)
     }
 }
 
+
+// Might be moved to Pause State Render function instead
 void Graphics::RenderPauseMenu(int current_option)
 {
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 10); // Semi-transparent black

@@ -66,6 +66,7 @@ class Game
 		GameStateManager game_state_manager;
         std::unique_ptr<PlayState> play_state;
 
+        bool pause_requested = false;
         
         bool game_over;
 		bool render_coll_boxes = false;

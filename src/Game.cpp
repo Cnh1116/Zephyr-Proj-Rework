@@ -58,6 +58,26 @@ void Game::RunGame()
         game_state_manager.HandleInput(this);
         game_state_manager.Update(this, deltaTime);
         game_state_manager.Render(this);
+        if (pause_requested)
+        {
+            SDL_Renderer* renderer = graphics_manager->GetRenderer();
+
+            SDL_Texture* snapshot = graphics_manager->GetCurrentScreenTexture();
+
+            SDL_Texture* prev_target = SDL_GetRenderTarget(renderer);
+            SDL_SetRenderTarget(renderer, snapshot);
+
+            // Re-render the current state into the snapshot texture
+            game_state_manager.Render(this);
+
+            SDL_SetRenderTarget(renderer, prev_target);
+
+            // Now the snapshot has a copy of the current screen
+            this->GetGameStateManager().ChangeState(new PauseState(snapshot), this);
+            pause_requested = false;
+            continue;
+        }
+        //this->GetGameStateManager().ChangeState(new PauseState(), this);
 
         if (game_over)
             running = false;
@@ -135,7 +155,7 @@ void Game::HandleKeyInput(Player* player, std::vector<Projectile*>& game_project
         if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) // ESC //
         {
             std::cout << "[*] Esc Key Pressed. game_over = True\n";
-            this->GetGameStateManager().ChangeState(new PauseState(), this);
+            pause_requested = true;
             return;
             //Quit();
         }

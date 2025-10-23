@@ -49,6 +49,8 @@ public:
     // Menu Render Functions
 	void RenderPauseMenu(int current_option);
 
+	SDL_Texture* GetCurrentScreenTexture();
+
 
     int GetScreenHeight();
     int GetScreenWidth();
