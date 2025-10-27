@@ -784,6 +784,11 @@ int Player::GetNumItem(std::string item_name)
         return player_items.num_garnet_shields;
 }
 
+void Player::AddOverlayAnimation(Animation* animation)
+{
+    overlay_animations.emplace_back(std::make_unique<Animation>(*animation));
+}
+
 
 void Player::Heal(int recovery_amount, SoundManager& sound_manager)
 {

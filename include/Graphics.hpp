@@ -31,7 +31,7 @@ public:
     void DeactivateWindow();
 
     // Text
-    void RenderDebugText(Player* player);
+    void RenderDebugText(Player* player, Uint32 game_timer);
     void RenderPlayerUI(Player* player);
 
     // Textures
@@ -43,7 +43,13 @@ public:
     TTF_Font* GetFont(int font_id);
 
     // Main Render Functions
-    void RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, ItemManager& item_manager, std::vector<Enemy*>& enemies, OverlayTextManager& overlay_text_manager, bool render_coll_boxes);
+    void RenderGameItems(Player* player,
+                        std::vector<Projectile*> &game_projectiles, 
+                        ItemManager& item_manager, 
+                        std::vector<Enemy*>& enemies, 
+                        OverlayTextManager& overlay_text_manager, 
+                        bool render_coll_boxes,
+                        Uint32 game_timer);
     void BackgroundUpdate(Uint32 loop_flag);
 
     // Menu Render Functions

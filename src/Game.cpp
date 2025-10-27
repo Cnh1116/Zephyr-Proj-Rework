@@ -1,5 +1,6 @@
 #include "GameStateManager.hpp"
 #include "PlayState.hpp"
+#include "MenuState.hpp"
 #include "PauseState.hpp"
 #include <iostream>
 #include "Game.hpp"
@@ -32,7 +33,7 @@ Game::Game() // Game constructor acts as my INIT function for the game.
     player.SetPosition( (WINDOW_WIDTH/2) - (player.GetDstRect()->w / 2), WINDOW_HEIGHT - (player.GetDstRect()->h), WINDOW_WIDTH, WINDOW_HEIGHT );
 
     play_state = std::make_unique<PlayState>();
-    game_state_manager.ChangeState(play_state.get(), this);
+    game_state_manager.ChangeState(new MenuState(), this);
 }
 
 Game::~Game()
@@ -45,7 +46,6 @@ Game::~Game()
 void Game::RunGame()
 {
 
-    
     bool running = true;
     Uint32 last_frame = SDL_GetTicks();
 
@@ -77,7 +77,6 @@ void Game::RunGame()
             pause_requested = false;
             continue;
         }
-        //this->GetGameStateManager().ChangeState(new PauseState(), this);
 
         if (game_over)
             running = false;
@@ -247,6 +246,9 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
                     player->Hurt(game_projectiles.at(i)->damage, *sound_manager);
                     player->UpdatePlayerState("iframes");
+                    
+                    if (dynamic_cast<LightningStrike*>(game_projectiles.at(i)))
+                        player->AddOverlayAnimation(animation_manager->Get("overlays", "lightning_explosion"));
                     if (render_coll_boxes)
                     {
                         overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
@@ -509,6 +511,8 @@ void Game::ResetGame()
 	player.ResetPlayer(1920, 1080);
 	game_over = false;
 	loop_flag = 0;
+
+    this->ResetGameTimer();
 }
 
 void Game::Quit()

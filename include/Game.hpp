@@ -50,6 +50,11 @@ class Game
 		void SetGameOver(bool state) { game_over = state; }
         void SetLastTick(Uint32 last_tick) { this->last_tick = last_tick; }
 		void SetLoopFlag(Uint32 loop_flag) { this->loop_flag = loop_flag; }
+		
+        // Timer Functions
+        void ResetGameTimer() { game_timer = SDL_GetTicks(); }
+        Uint32 GetElapsedTimeMs() const { return SDL_GetTicks() - game_timer;}
+        float GetElapsedTimeSeconds() const { return (SDL_GetTicks() - game_timer) / 1000.0f; }
 
     
     private:
@@ -73,5 +78,7 @@ class Game
         Player player;
 		Uint32 loop_flag;
         Uint32 last_tick = 0;
+
+        Uint32 game_timer;
 };
 

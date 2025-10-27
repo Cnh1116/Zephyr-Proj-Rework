@@ -28,6 +28,7 @@ class Player
         void Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager);
         void Draw(SDL_Renderer* renderer, bool collision_box_flag);
         void SetInput(float dx, float dy) { input_dx = dx; input_dy = dy; };
+        void AddOverlayAnimation(Animation* animation);
 
         // RESET
 		void ResetPlayer(int SCREEN_WIDTH, int SCREEN_HEIGHT);

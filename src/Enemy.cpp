@@ -476,7 +476,7 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 		if (!added_death_animation)
 		{
-			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "heal")));
+			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "lightning_burst")));
 			added_death_animation = true;
 		}
 
@@ -715,6 +715,8 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 		{
 			right_lightning_bolt->UpdateState("delete");
 		}
+
+		sound_manager.StopSoundChannel(lightning_strike_channel); // NEED TO CHECK IF NOT EMPTY ?
 		
 		// Only set the death animation once
 		if (current_animation->GetName() != "enemy-storm-genie-death" and current_animation->GetName() != "enemy-storm-genie-death_shiny")
@@ -729,7 +731,7 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 		if (!death_animation_played)
 		{
 			death_animation_played = true;
-			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "heal")));
+			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "lightning_burst")));
 		}
 
 		// If death animation finished, mark for deletion

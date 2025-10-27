@@ -53,10 +53,10 @@ Graphics::Graphics(const char* title, int width, int height, int scale)
     {
         std::cout << "[!] font 1 not initialized.";
     }
-    font_2 = TTF_OpenFont("../../assets/fonts/Times-New-Roman/Times New Roman/times new roman bold.ttf", 30);
+    font_2 = TTF_OpenFont("../../assets/fonts/raster-forge-font/RasterForgeRegular-JpBgm.ttf", 25);
     if (!font_2)
     {
-        std::cout << "[!] font 1 not initialized.";
+        std::cout << "[!] font 2 not initialized.";
     }
 
 }
@@ -175,7 +175,13 @@ SDL_Texture* Graphics::GetTexture(const char* png_path)
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_projectiles, ItemManager& item_manager, std::vector<Enemy*>& enemies, OverlayTextManager& overlay_text_manager, bool render_coll_boxes)
+void Graphics::RenderGameItems(Player* player, 
+                                std::vector<Projectile*> &game_projectiles, 
+                                ItemManager& item_manager, 
+                                std::vector<Enemy*>& enemies, 
+                                OverlayTextManager& overlay_text_manager, 
+                                bool render_coll_boxes,
+                                Uint32 game_timer)
 {
     
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -261,7 +267,7 @@ void Graphics::RenderGameItems(Player* player, std::vector<Projectile*> &game_pr
 
     //  UI //
     if (render_coll_boxes)
-        RenderDebugText(player);
+        RenderDebugText(player, game_timer);
 
 	RenderPlayerUI(player);
 
@@ -388,7 +394,7 @@ void Graphics::BackgroundUpdate(Uint32 loop_flag)
     
 }
 
-void Graphics::RenderDebugText(Player* player)
+void Graphics::RenderDebugText(Player* player, Uint32 game_timer)
 {
     // Weird logic to make the crit string be 2 decimal places.
     float crit_percent = player->GetCrit();
@@ -403,6 +409,15 @@ void Graphics::RenderDebugText(Player* player)
     std::string player_health = std::string("Health ") + std::to_string(static_cast<int>(player->GetCurrentHealth())) + " / " + std::to_string(static_cast<int>(player->GetMaxHealth()));
     std::string player_speed = std::string("Speed ") + std::to_string(static_cast<int>(player->GetSpeed()));
     std::string state = std::string("State: ") + player->GetPlayerState();
+    
+    int total_seconds = static_cast<int>(game_timer);
+    int minutes = total_seconds / 60;
+    int seconds = total_seconds % 60;
+
+    char time_str[6]; // "MM:SS" + null terminator
+    snprintf(time_str, sizeof(time_str), "%02d:%02d", minutes, seconds);
+    std::string formatted_time = time_str;
+    std::string game_timer_str = std::string("Time: ") + time_str;
 
     RenderText(player_pos, { screen_width - static_cast<int>(player_pos.length()) * 12, 0, static_cast<int>(player_pos.length()) * 12, 30 }, { 0,0,0,0 });
     RenderText(player_damage, { screen_width - static_cast<int>(player_damage.length()) * 12, 30, static_cast<int>(player_damage.length()) * 12, 30 }, { 0,0,0,0 });
@@ -410,6 +425,7 @@ void Graphics::RenderDebugText(Player* player)
     RenderText(player_health, { screen_width - static_cast<int>(player_health.length()) * 12, 90, static_cast<int>(player_health.length()) * 12, 30 }, { 0,0,0,0 });
     RenderText(player_speed, { screen_width - static_cast<int>(player_speed.length()) * 12, 120, static_cast<int>(player_speed.length()) * 12, 30 }, { 0,0,0,0 });
     RenderText(state, { screen_width - static_cast<int>(state.length()) * 12, 150, static_cast<int>(state.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(game_timer_str, { screen_width - static_cast<int>(game_timer_str.length()) * 12, 180, static_cast<int>(game_timer_str.length()) * 12, 30 }, { 0,0,0,0 });
 
 }
 

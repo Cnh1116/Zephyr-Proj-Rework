@@ -20,6 +20,7 @@ void PlayState::Enter(Game* game)
         game->SetGameOver(false);
         game->ResetGame();
         first_time = false;
+        game->ResetGameTimer();
     }
     
 }
@@ -79,7 +80,7 @@ void PlayState::Update(Game* game, float dt)
 
 void PlayState::Render(Game* game) 
 {
-    game->GetGraphics().RenderGameItems(&game->GetPlayer(), game->GetProjectiles(), game->GetItemManager(), game->GetEnemies(), game->GetOverlayTextManager(), game->GetRenderCollBoxes());
+    game->GetGraphics().RenderGameItems(&game->GetPlayer(), game->GetProjectiles(), game->GetItemManager(), game->GetEnemies(), game->GetOverlayTextManager(), game->GetRenderCollBoxes(), game->GetElapsedTimeSeconds());
 }
 
 void PlayState::Exit(Game* game) 

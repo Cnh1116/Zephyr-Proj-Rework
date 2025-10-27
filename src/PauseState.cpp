@@ -1,5 +1,6 @@
 #include "PauseState.hpp"
 #include "PlayState.hpp"
+#include "MenuState.hpp"
 #include "Game.hpp"
 
 #include <iostream>
@@ -8,7 +9,7 @@ enum PauseMenuOptions
 {
 	RESUME,
 	RESTART,
-    QUIT
+    MAINMENU
 };
 
 
@@ -29,13 +30,13 @@ void PauseState::HandleInput(Game* game)
             {
             case SDL_SCANCODE_UP:
                 if (current_option == RESUME)
-                    current_option = QUIT; // wrap to bottom
+                    current_option = MAINMENU; // wrap to bottom
                 else
                     current_option = static_cast<PauseMenuOptions>(current_option - 1);
                 break;
 
             case SDL_SCANCODE_DOWN:
-                if (current_option == QUIT)
+                if (current_option == MAINMENU)
                     current_option = RESUME; // wrap to top
                 else
                     current_option = static_cast<PauseMenuOptions>(current_option + 1);
@@ -55,10 +56,11 @@ void PauseState::HandleInput(Game* game)
                     game->GetGameStateManager().ChangeState(game->GetPlayStateInstance(), game);
                     return;
                 }
-                else if (current_option == QUIT)
+                else if (current_option == MAINMENU)
                 {
                     std::cout << "[*] Quit selected.\n";
-                    game->Quit();
+                    game->ResetGame();
+                    game->GetGameStateManager().ChangeState(new MenuState(), game);
                     return;
                 }
                 break;
@@ -94,7 +96,7 @@ void PauseState::Render(Game* game)
 
     std::string resume_text = "Resume";
     std::string restart_text = "Restart";
-    std::string quit_text = "Quit";
+    std::string mainmenu_text = "Main Menu";
 
     SDL_Color normal_color = { 255, 255, 255, 255 };
     SDL_Color highlight_color = { 20, 156, 0, 255 };
@@ -114,7 +116,7 @@ void PauseState::Render(Game* game)
 
     // Render Quit
     color = (current_option == 2) ? highlight_color : normal_color;
-    game->GetGraphics().RenderText(quit_text, { screen_width / 2 - option_width / 2, start_y + 2 * (option_height + 10), option_width, option_height }, color);
+    game->GetGraphics().RenderText(mainmenu_text, { screen_width / 2 - option_width / 2, start_y + 2 * (option_height + 10), option_width, option_height }, color);
 
     // Present the updated renderer
     SDL_RenderPresent(renderer);

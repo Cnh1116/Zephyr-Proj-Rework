@@ -143,6 +143,7 @@
     <ClCompile Include="..\..\src\Graphics.cpp" />
     <ClCompile Include="..\..\src\ItemManager.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\MenuState.cpp" />
     <ClCompile Include="..\..\src\OverlayText.cpp" />
     <ClCompile Include="..\..\src\OverlayTextManager.cpp" />
     <ClCompile Include="..\..\src\PauseState.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="..\..\include\GameStateManager.hpp" />
     <ClInclude Include="..\..\include\Graphics.hpp" />
     <ClInclude Include="..\..\include\ItemManager.hpp" />
+    <ClInclude Include="..\..\include\MenuState.hpp" />
     <ClInclude Include="..\..\include\OverlayText.hpp" />
     <ClInclude Include="..\..\include\OverlayTextManager.hpp" />
     <ClInclude Include="..\..\include\PauseState.hpp" />
