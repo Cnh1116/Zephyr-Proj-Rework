@@ -116,8 +116,9 @@ class Player
     
     private:
         //STATS
-        float base_speed = 5.0;
-        float current_speed = 5.0;
+		float BASE_SPEED = 5.0f;
+        float base_speed = BASE_SPEED;
+        float current_speed = base_speed;
 
         // POSITION 
         float posX = 0.0f;
@@ -132,12 +133,13 @@ class Player
         float decel = 0.001f;     // deceleration rate
         float max_speed = 5.0f; // max movement speed
         
-
+        int BASE_DAMAGE = 20.0;
         int base_damage = 20;
         float crit_percent = 1.0; // Percentage
         
 
         // HEALTH
+        int BASE_HEALTH = 200;
         int max_health = 200;
         int current_health = max_health;
         Uint32 last_parry_heal_time = 0;

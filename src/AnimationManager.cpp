@@ -9,7 +9,7 @@ using json = nlohmann::json;
 
 AnimationManager::AnimationManager(SDL_Renderer* renderer)
     : renderer(renderer) {
-    LoadFromFile("..\\..\\configs\\animations.json");
+    LoadFromFile("configs/animations.json");
 }
 
 AnimationManager::~AnimationManager() {

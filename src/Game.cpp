@@ -217,7 +217,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                             
                             {
                                 player->AddItem(item_list->at(j).name);
-                                sound_manager->PlaySound("item_collection_sound", 45);
+                                sound_manager->PlaySound("item_collection_sound", 80);
                             }
                             
                             sound_manager->PlaySound("player_secondary_fire_impact", 50);
@@ -245,6 +245,12 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     player->UpdatePlayerState("iframes");
                     std::cout << "[*] Hurting the player. STATE: " << player->GetPlayerState() << std::endl;
                     player->Hurt(game_projectiles.at(i)->damage, *sound_manager);
+                    // PLAY SOUND AND SET STATE TO IMPACT
+                    if (!game_projectiles.at(i)->GetSoundPlayed())
+                    {
+                        sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), game_projectiles.at(i)->GetSoundEffectImpactNoise()); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
+                        game_projectiles.at(i)->SetSoundPlayed(true);
+                    }
                     player->UpdatePlayerState("iframes");
                     
                     if (dynamic_cast<LightningStrike*>(game_projectiles.at(i)))
@@ -259,19 +265,14 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     
                 }
 
-				// PLAY SOUND AND SET STATE TO IMPACT
-                if (!game_projectiles.at(i)->GetSoundPlayed())
-                {
-                    sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), game_projectiles.at(i)->GetSoundEffectImpactNoise()); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
-                    game_projectiles.at(i)->SetSoundPlayed(true);
-                }
-
                 game_projectiles.at(i)->UpdateState("impact");
                 
 
                 if (player->GetPlayerState() == "shield" && Collisions::CheckCollision(*game_projectiles.at(i)->GetCollisionShape(), *player->GetShieldColl(), false))
                 {
                     player->DoShield(*sound_manager, game_projectiles.at(i), render_coll_boxes, overlay_text_manager);
+                    sound_manager->PlaySound(game_projectiles.at(i)->GetSoundEffectImpact(), game_projectiles.at(i)->GetSoundEffectImpactNoise()); // PLAY SOUND PROJECTILE GET SOUND EFFECT KEY
+                    game_projectiles.at(i)->SetSoundPlayed(true);
                 }
 
                 if (player->GetPlayerState() == "iframes" && Collisions::CheckCollision(*game_projectiles.at(i)->GetCollisionShape(), *player->GetCollShape(), false))
@@ -295,7 +296,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     {
                         if (primary_projectile->critical)
                         {
-                            sound_manager->PlaySound("player_primary_fire_crit", 90);
+                            sound_manager->PlaySound(primary_projectile->GetSoundEffectImpact(), 90);
                             enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
                             if (render_coll_boxes)
                             {
@@ -307,7 +308,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                         }
                         else
                         {
-                            sound_manager->PlaySound("player_hit", 60);
+                            sound_manager->PlaySound(primary_projectile->GetSoundEffectImpact(), 55);
                             enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
                             if (render_coll_boxes)
                             {
@@ -333,20 +334,12 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
                     if (slash_projectile->critical and !slash_projectile->impact_sound_played)
                     {
-                        sound_manager->PlaySound("jade_drum", 90);
-						slash_projectile->SetImpactSoundPlayed(true);
                         if (!slash_projectile->damage_applied)
                         {
                             enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
 							slash_projectile->SetDamageApplied(true);
                         }
-                        if (render_coll_boxes)
-                        {
-                            overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
-                                damage_number_color,
-                                enemies.at(k)->GetDstRect(),
-                                damage_numbers_text_time);
-                        }
+
                     }
                     else
                     {
@@ -356,6 +349,12 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                             enemies.at(k)->ChangeHealth(-game_projectiles.at(i)->damage); //NEEDS TO BE CRIT DAMAGE
                             slash_projectile->SetDamageApplied(true);
                         }
+                        
+                    }
+                    if (!slash_projectile->overlay_added)
+                    {
+                        enemies.at(k)->AddOverlayAnimation(animation_manager->Get("proj-zephyr-slash", "impact"));
+                        slash_projectile->SetOverlayAdded(true);
                         if (render_coll_boxes)
                         {
                             overlay_text_manager->AddMessage(game_projectiles.at(i)->GetPrintableDamage(),
@@ -363,11 +362,6 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                                 enemies.at(k)->GetDstRect(),
                                 damage_numbers_text_time);
                         }
-                    }
-                    if (!slash_projectile->overlay_added)
-                    {
-                        enemies.at(k)->AddOverlayAnimation(animation_manager->Get("proj-zephyr-slash", "impact"));
-                        slash_projectile->SetOverlayAdded(true);
                     }
 
                     if (!slash_projectile->sound_played)
@@ -425,6 +419,10 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
 
 void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
 {
+    
+    if (this->GetElapsedTimeSeconds() < 5)
+        return;
+
     if (enemies.size() == 0 or enemies.size() == 1 or enemies.size() == 2)
     {
         

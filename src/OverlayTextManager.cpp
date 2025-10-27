@@ -21,9 +21,19 @@ void OverlayTextManager::AddMessage(const std::string& text, SDL_Color color,
 }
 
 void OverlayTextManager::Update() {
+    Uint32 now = SDL_GetTicks();
+
+    // First, update all active messages
+    for (auto& msg : messages) {
+        msg->Update(); // Animate each text (floating/falling)
+    }
+
+    // Then remove expired messages
     messages.erase(
         std::remove_if(messages.begin(), messages.end(),
-            [](const std::unique_ptr<OverlayText>& msg) { return msg->IsExpired(); }),
+            [](const std::unique_ptr<OverlayText>& msg) {
+                return msg->IsExpired();
+            }),
         messages.end());
 }
 

@@ -13,6 +13,21 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Resource Files\fonts">
+      <UniqueIdentifier>{5fdb0c21-35c8-45aa-b572-7111c772c4b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\music">
+      <UniqueIdentifier>{9556c824-49d5-4c9d-bbff-f13f465b353e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\sounds">
+      <UniqueIdentifier>{0358a729-fcd2-4ef1-ada4-877627d93653}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\sprites">
+      <UniqueIdentifier>{3e6fb216-940d-4c12-8b76-c475f1018d93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\fonts\NewFilter1">
+      <UniqueIdentifier>{85ef1aa4-7daa-41a1-95f2-6943bfbc93c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Enemy.cpp">
@@ -119,10 +134,62 @@
     <ClInclude Include="..\..\include\MenuState.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\configs\animations.json">
       <Filter>Source Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\heal.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\player-shield-OLD.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\shield-prime.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\shield-prime2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr_front.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-dash.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-iframes.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-iframes-prime.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-main.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-secondary-fire-hud.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-secondary-fire-marker.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-shield.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\assets\icon\IDI_ICON1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\icon\IDI_ICON1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\GameResources.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

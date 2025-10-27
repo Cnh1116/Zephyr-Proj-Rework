@@ -26,7 +26,7 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
     bool invincible = false;
 
     player_dest_rect = {0, 0, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
-    player_coll_shape.circle.r = BASE_SPRITE_SIZE * image_scale / 5;
+    player_coll_shape.circle.r = BASE_SPRITE_SIZE * image_scale / 4;
 
 	player_coll_shape.type = ColliderType::CIRCLE;
     player_coll_shape.circle.x = player_dest_rect.x + player_dest_rect.w / 2;
@@ -109,6 +109,7 @@ void Player::Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 
 
     if (state == "shield")
     {
+        shield.coll_shape.circle.r = shield.dest_rect.w / 4;
         animation_manager.Get("zephyr","shield")->Update();
 
         shield.shield_ready = false;
@@ -153,8 +154,7 @@ void Player::Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 
         }
     }
 
-    // ITEM STATS UPDATE
-    crit_percent = player_items.num_glass_toucans * 2 + 1;
+    
 
     for (auto it = overlay_animations.begin(); it != overlay_animations.end();)
     {
@@ -255,7 +255,7 @@ void Player::DoSlash(std::vector<Projectile*>& game_projectiles, SoundManager& s
     if (IsSlashReady())
     {
 		if (critical)
-            sound_manager.PlaySound("player_crit", 55);
+            sound_manager.PlaySound("player_slash_crit", 55);
         state = "slash";
         slashing_attack.last_fire_time = SDL_GetTicks();
         slashing_attack.slash_projectile = new Slash(animation_manager, player_dest_rect, slashing_attack.damage, 1, critical, left_flag);
@@ -284,8 +284,7 @@ bool Player::IsSlashReady()
 
 void Player::DoShield(SoundManager& sound_manager, Projectile* projectile, bool render_coll_boxes, OverlayTextManager* overlay_text_manager)
 {
-    // MOVE ME TO A USESHIELD FUNCTION ====================
-    sound_manager.PlaySound("player_shield_hit", 90);
+    sound_manager.PlaySound("player_shield_hit", 45);
     projectile->UpdateState("impact");
     sound_manager.PlaySound(projectile->GetSoundEffectImpact(), 25);
 
@@ -300,11 +299,7 @@ void Player::DoShield(SoundManager& sound_manager, Projectile* projectile, bool 
                 this->GetDstRect(),
                 350); //ms
         }
-
-
-
     }
-    // MOVE ME TO A USESHIELD FUNCTION ====================
 }
 
 void Player::ShootPrimaryFire(std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, ItemManager* item_manager)
@@ -318,14 +313,14 @@ void Player::ShootPrimaryFire(std::vector<Projectile*>& game_projectiles, SoundM
         // CRIT
         if (distrib(gen) <= this->GetCrit())
         {
-            sound_manager.PlaySound("player_crit", 45);
-            sound_manager.PlaySound("player_primary_fire", 55);
+            sound_manager.PlaySound("player_crit", 40);
+            sound_manager.PlaySound("player_primary_fire", 30);
             game_projectiles.emplace_back(new PrimaryFire(animation_manager, player_dest_rect, 5.0, base_damage, 2, true));
         }
         // NORMAL
         else
         {
-            sound_manager.PlaySound("player_primary_fire", 55);
+            sound_manager.PlaySound("player_primary_fire", 30);
             game_projectiles.emplace_back(new PrimaryFire(animation_manager, player_dest_rect, 5.0, base_damage, 2, false));
         }
     }
@@ -414,7 +409,10 @@ void Player::SetPosition(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT
 void Player::AddItem(std::string item_name)
 {
     if (item_name == "glass_toucan")
+    {
+        crit_percent += 2.0f;
         player_items.num_glass_toucans++;
+    }
     if (item_name == "garnet_shield")
         player_items.num_garnet_shields++;
 }
@@ -762,7 +760,7 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		Collisions::DrawCircle(renderer, player_coll_shape.circle);
         
-        SDL_SetRenderDrawColor(renderer, 255, 150, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 255, 150, 56, 255);
         Collisions::DrawCircle(renderer, shield.coll_shape.circle);
         SDL_RenderDrawRect(renderer, &secondary_fire.hud_coll_rect.rect);
        
@@ -809,9 +807,24 @@ void Player::ResetPlayer(int window_width, int window_height)
 {
 	current_health = max_health;
 	posX = window_width / 2 - player_dest_rect.w / 2;
-	posY = window_height / 2 - player_dest_rect.h / 2;
+	posY = window_height * 3 / 4;
 	player_dest_rect.x = static_cast<int>(posX);
 	player_dest_rect.y = static_cast<int>(posY);
 
+    // Reset Stats
+    max_health = BASE_HEALTH;
+	current_health = max_health;
+	base_speed = BASE_SPEED;
+	base_damage = BASE_DAMAGE;
+
 	crit_percent = 1.0f;
+
+    // Reset ITems
+    player_items.num_glass_toucans = 0;
+    player_items.num_garnet_shields = 0;
+
+	shield.last_time_used = SDL_GetTicks() - shield.shield_cooldown_ms;
+	last_dash_time = SDL_GetTicks() - dash_cooldown_ms;
+	slashing_attack.last_fire_time = SDL_GetTicks() - slashing_attack.cooldown_time_ms;
+	primary_fire.last_fire_time = SDL_GetTicks() - primary_fire.cooldown_time_ms;
 }

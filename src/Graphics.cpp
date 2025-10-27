@@ -5,6 +5,7 @@
 #include <SDL_ttf.h>
 #include <sstream>
 #include <random>
+#include <filesystem>
 
 #include "Graphics.hpp"
 #include "Projectiles.hpp"
@@ -25,6 +26,7 @@ Graphics::Graphics(const char* title, int width, int height, int scale)
 
     
     // BACKGROUND STUFF
+
     clouds1L_dest = { GenRandomNumber(-1200, -870), 0, 324 * 5, 576 * 5}; //FILE SIZE * arbitrary scale factor
     clouds1R_dest = { GenRandomNumber(1050, 1400), -45, 324 * 6, 576 * 6 };
     clouds2L_dest = { GenRandomNumber(-1100, -870), 0, 324 * 5, 576 * 5 };
@@ -48,12 +50,12 @@ Graphics::Graphics(const char* title, int width, int height, int scale)
 
     LoadTextures();
 
-    font_1 = TTF_OpenFont("../../assets/fonts/raster-forge-font/RasterForgeRegular-JpBgm.ttf",50);
+    font_1 = TTF_OpenFont("assets/fonts/raster-forge-font/RasterForgeRegular-JpBgm.ttf",50);
     if (!font_1) 
     {
         std::cout << "[!] font 1 not initialized.";
     }
-    font_2 = TTF_OpenFont("../../assets/fonts/raster-forge-font/RasterForgeRegular-JpBgm.ttf", 25);
+    font_2 = TTF_OpenFont("assets/fonts/raster-forge-font/RasterForgeRegular-JpBgm.ttf", 25);
     if (!font_2)
     {
         std::cout << "[!] font 2 not initialized.";
@@ -82,15 +84,24 @@ void Graphics::LoadTextures()
 {
     // [ LIST OF TEXTURES ]
     // Background
-    texture_map["light_blue_background"] = GetTexture("../../assets/sprites/background-sprites/sunset-background.png");
-    texture_map["clouds1_texture"] =  GetTexture("../../assets/sprites/background-sprites/clouds1.png");
-    texture_map["clouds2_texture"] = GetTexture("../../assets/sprites/background-sprites/clouds2.png");
-    texture_map["clouds3_texture"] = GetTexture("../../assets/sprites/background-sprites/clouds3.png");
+     
+    std::filesystem::path cwd = std::filesystem::current_path();
+    std::cout << "Current Working Directory: " << cwd << std::endl;
+
+	std::filesystem::path two_back = std::filesystem::absolute("../..");
+	std::cout << "Two Back Directory: " << two_back << std::endl;
+
+    
+
+    texture_map["light_blue_background"] = GetTexture("assets/sprites/background-sprites/sunset-background.png");
+    texture_map["clouds1_texture"] =  GetTexture("assets/sprites/background-sprites/clouds1.png");
+    texture_map["clouds2_texture"] = GetTexture("assets/sprites/background-sprites/clouds2.png");
+    texture_map["clouds3_texture"] = GetTexture("assets/sprites/background-sprites/clouds3.png");
 
     // Items
-    texture_map["item_cloud"] = GetTexture("../../assets/sprites/item-sprites/item-cloud.png");
-    texture_map["glass_toucan"] = GetTexture("../../assets/sprites/item-sprites/glass-toucan.png");
-    texture_map["garnet_shield"] = GetTexture("../../assets/sprites/item-sprites/garnet-shield.png");
+    texture_map["item_cloud"] = GetTexture("assets/sprites/item-sprites/item-cloud.png");
+    texture_map["glass_toucan"] = GetTexture("assets/sprites/item-sprites/glass-toucan.png");
+    texture_map["garnet_shield"] = GetTexture("assets/sprites/item-sprites/garnet-shield.png");
 
     
 }

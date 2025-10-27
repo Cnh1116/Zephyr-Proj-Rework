@@ -116,6 +116,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -170,9 +174,29 @@
     <ClInclude Include="..\..\include\PlayState.hpp" />
     <ClInclude Include="..\..\include\Projectiles.hpp" />
     <ClInclude Include="..\..\include\Sound.hpp" />
+    <ClInclude Include="..\..\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\configs\animations.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\assets\icon\IDI_ICON1.ico" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\heal.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\player-shield-OLD.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\shield-prime.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\shield-prime2.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-dash.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-iframes-prime.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-iframes.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-main.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-secondary-fire-hud.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-secondary-fire-marker.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr-shield.png" />
+    <Image Include="..\..\assets\sprites\zephyr-sprites\zephyr_front.png" />
+    <Image Include="assets\icon\IDI_ICON1.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\GameResources.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

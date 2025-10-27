@@ -108,6 +108,11 @@ PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& de
 	collision_shape.circle.x = dest_rect.x + dest_rect.w / 2;
     collision_shape.circle.y = dest_rect.y + dest_rect.h / 2;
     collision_shape.circle.r = dest_rect.w / 4;
+    
+    if (!critical)
+        sound_effect_impact = "player_primary_fire_impact";
+    else
+        sound_effect_impact = "player_primary_fire_crit";
 
     if (critical)
     {
@@ -600,7 +605,7 @@ void LightningBall::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 LightningStrike::LightningStrike(AnimationManager& animation_manager, const SDL_Rect& dest_rect, int PIXEL_SCALE, float damage, bool right_flag_arg, bool shiny)
     : Projectile(animation_manager, dest_rect, 0, damage, false, false, shiny)
 {
-    sound_effect_impact = "lightning_ball_impact";
+    sound_effect_impact = "lightning_strike_impact";
     sound_effect_noise = 80;
     right_flag = right_flag_arg;
 
@@ -635,7 +640,7 @@ void LightningStrike::Update()
 
     if (state == "main")
     {
-        float perc_thinner = 0.45;
+        float perc_thinner = 0.35;
         int new_height = static_cast<int>(dest_rect.h * perc_thinner);
         int new_y_pos = dest_rect.y + (dest_rect.h - new_height) / 2;  // center it vertically
         

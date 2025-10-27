@@ -27,9 +27,9 @@ Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, con
 	// IS SHINY ?
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> shiny_chance(0, 1000);
+	std::uniform_int_distribution<> shiny_chance(0, 999);
 	std::cout << "[*] Updating Enemies since size is 0\n";
-	shiny = shiny_chance(gen) < 7;
+	shiny = shiny_chance(gen) < 6;
 	
 }
 void Enemy::AddOverlayAnimation(Animation* animation)
@@ -306,27 +306,23 @@ void IceCrystal::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 
 void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 {
-	
-
-	for (auto& animation : overlay_animations)
-	{
-		std::cout << "DRAWING OVERLAY !" << std::endl;
-		SDL_Rect* current_frame = animation->GetCurrentFrame();
-		SDL_Rect temp = {	enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
-							enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
-							current_frame->w * animation->GetScale(),
-							current_frame->h * animation->GetScale() };
-		animation->Draw(renderer, temp, SDL_FLIP_NONE);
-	}
 
 	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
-
 	if (collision_box_flag)
 	{
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		Collisions::DrawCircle(renderer, enemy_coll_shape.circle);
 	}
-
+	for (auto& animation : overlay_animations)
+	{
+		std::cout << "DRAWING OVERLAY !" << std::endl;
+		SDL_Rect* current_frame = animation->GetCurrentFrame();
+		SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
+							enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
+							current_frame->w * animation->GetScale(),
+							current_frame->h * animation->GetScale() };
+		animation->Draw(renderer, temp, SDL_FLIP_NONE);
+	}
 }
 // STORM CLOUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, int screen_height, int player_x, int player_y)

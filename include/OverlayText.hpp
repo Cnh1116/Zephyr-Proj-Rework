@@ -27,6 +27,7 @@ public:
     ~OverlayText();
 
     bool IsExpired() const;
+    void Update();
     void Render() const;
 
 private:
@@ -36,6 +37,10 @@ private:
     SDL_Rect dest{};
     Uint32 start_time;
     Uint32 duration;
-    int offset_y = -12;
+    int offset_y = 0;
+
+    float offset_y_prime;
+    float velocity_y;
+    Uint32 last_tick = 0; 
 };
 #endif
