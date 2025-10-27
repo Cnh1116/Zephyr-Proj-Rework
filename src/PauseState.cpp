@@ -15,7 +15,7 @@ enum PauseMenuOptions
 void PauseState::Enter(Game* game)
 {
     std::cout << "[PaudeState] Entering gameplay...\n";
-	game->GetSoundManager().StopSoundChannel(-1);
+	game->GetSoundManager().PauseSoundChannel(-1);
 }
 
 void PauseState::HandleInput(Game* game)
@@ -127,4 +127,5 @@ void PauseState::Exit(Game* game)
         SDL_DestroyTexture(screen_texture);
         screen_texture = nullptr;
     }
+	game->GetSoundManager().ResumeSoundChannel(-1);
 }

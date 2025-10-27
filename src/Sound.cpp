@@ -160,6 +160,16 @@ int SoundManager::PlaySoundTracking(std::string current_key, int volume_percent)
 }
 void SoundManager::StopSoundChannel(int sound_channel)
 {
-    Mix_FadeOutChannel(sound_channel , 500);
+    Mix_FadeOutChannel(sound_channel , 100);
+}
+
+void SoundManager::PauseSoundChannel(int sound_channel)
+{
+	Mix_Pause(sound_channel);
+}
+
+void SoundManager::ResumeSoundChannel(int sound_channel)
+{
+	Mix_Resume(sound_channel);
 }
 
