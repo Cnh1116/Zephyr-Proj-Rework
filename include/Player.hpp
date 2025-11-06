@@ -135,7 +135,8 @@ class Player
         
         int BASE_DAMAGE = 20.0;
         int base_damage = 20;
-        float crit_percent = 1.0; // Percentage
+        float BASE_CRIT = 1.0f;
+        float crit_percent = BASE_CRIT; // Percentage
         
 
         // HEALTH
@@ -220,6 +221,9 @@ class Player
             Uint32 shield_cooldown_ms = 5000;
             Uint32 last_time_used = SDL_GetTicks() - shield_cooldown_ms;
             bool shield_ready = true;
+			
+            Uint32 shield_duration_ms = 750;
+			Uint32 shield_start_time = 0;
 
         };
         Shield shield;
@@ -242,6 +246,7 @@ class Player
         Animation* dash_bar_animation;
         Animation* slash_bar_animation;
         Animation* health_bar_base_animation;
+		Animation* shield_ready_animation;
         
 
 };

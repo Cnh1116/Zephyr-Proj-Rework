@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 
+
 Animation::Animation()
 	: texture(nullptr),
 	frames(),
@@ -29,7 +30,21 @@ Animation::Animation(SDL_Texture* texture,
 		last_update_time(SDL_GetTicks()),
 		finished(false),
 		output_name(output_name),
-		scale(scale){}
+		scale(scale),
+		order(Animation::Order::FRONT) {};
+
+// Copy constructor
+Animation::Animation(const Animation& other, Order order_arg)
+	: texture(other.texture),           // shallow copy of SDL_Texture* (do NOT free)
+	frames(other.frames),             // deep copy of frames vector
+	frame_time_ms(other.frame_time_ms),
+	loop_flag(other.loop_flag),
+	scale(other.scale),
+	current_frame(other.current_frame),
+	finished(other.finished),
+	output_name(other.output_name),
+	last_update_time(other.last_update_time),
+	order(order_arg) {}
 
 // Copy constructor
 Animation::Animation(const Animation& other)
@@ -41,7 +56,8 @@ Animation::Animation(const Animation& other)
 	current_frame(other.current_frame),
 	finished(other.finished),
 	output_name(other.output_name),
-	last_update_time(other.last_update_time)
+	last_update_time(other.last_update_time),
+	order(Animation::Order::FRONT)
 {
 	// Nothing else needed
 }

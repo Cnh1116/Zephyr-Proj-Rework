@@ -5,9 +5,17 @@
 #include <vector>
 #include <string>
 
+
+
 class Animation
 {
 public:
+
+	enum class Order
+	{
+		FRONT,
+		BACK
+	};
 
 	Animation();
 	Animation(	SDL_Texture* texture,
@@ -17,6 +25,9 @@ public:
 				std::string output_name,
 				float scale);
 	Animation(const Animation& other);
+	
+	Animation(const Animation& other, Order order);
+
 
 
 	~Animation();
@@ -44,6 +55,7 @@ public:
 	bool IsFinished() const;
 	void OutputInformation();
 	bool IsFrameDone();
+	Order GetOrder() const { return order; }
 	
 	// Set loop_flag_flag false ? Player iframes?
 
@@ -67,6 +79,7 @@ private:
 	int current_frame;
 	bool finished;
 	std::string output_name;
+	Order order;
 
 	Uint32 last_update_time;
 };

@@ -25,11 +25,14 @@ Enemy::Enemy(AnimationManager& animation_manager, const SDL_Rect& dest_rect, con
 	
 
 	// IS SHINY ?
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> shiny_chance(0, 999);
-	std::cout << "[*] Updating Enemies since size is 0\n";
-	shiny = shiny_chance(gen) < 6;
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+	std::uniform_real_distribution<float> dist(0.0f, 100.0f);
+	float roll = dist(gen);
+	shiny = roll < SHINY_CHANCE;
+
+	if (shiny)
+		this->AddOverlayAnimation(new Animation(*animation_manager.Get("overlays", "shiny")));
 	
 }
 void Enemy::AddOverlayAnimation(Animation* animation)
@@ -182,7 +185,10 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 		enemy_coll_shape.circle.y = 0;
 		if (!added_death_animation && current_animation->GetCurrentFrameIndex() == 5)
 		{
-			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "ice_burst")));
+			if (!shiny)
+				overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "ice_burst"), Animation::Order::BACK));
+			else
+				overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "ice_burst_shiny"), Animation::Order::BACK));
 			added_death_animation = true;
 		}
 		if (current_animation->GetName() != "enemy-ice-crystal-death" and current_animation->GetName() != "enemy-ice-crystal-death_shiny")
@@ -306,22 +312,42 @@ void IceCrystal::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 
 void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 {
+	// DRAW BACK OVERLAYS
+	for (auto& animation : overlay_animations)
+	{
+		if (animation->GetOrder() == Animation::Order::BACK)
+		{
+			//std::cout << "DRAWING OVERLAY !" << std::endl;
+			SDL_Rect* current_frame = animation->GetCurrentFrame();
+			SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
+								enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
+								current_frame->w * animation->GetScale(),
+								current_frame->h * animation->GetScale() };
+			animation->Draw(renderer, temp, SDL_FLIP_NONE);
+		}
+	}
 
 	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
+	
 	if (collision_box_flag)
 	{
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		Collisions::DrawCircle(renderer, enemy_coll_shape.circle);
 	}
+	
+	// DRAW FRONT OVERLAYS
 	for (auto& animation : overlay_animations)
 	{
-		std::cout << "DRAWING OVERLAY !" << std::endl;
-		SDL_Rect* current_frame = animation->GetCurrentFrame();
-		SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
-							enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
-							current_frame->w * animation->GetScale(),
-							current_frame->h * animation->GetScale() };
-		animation->Draw(renderer, temp, SDL_FLIP_NONE);
+		if (animation->GetOrder() == Animation::Order::FRONT)
+		{
+			//std::cout << "DRAWING OVERLAY !" << std::endl;
+			SDL_Rect* current_frame = animation->GetCurrentFrame();
+			SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
+								enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
+								current_frame->w * animation->GetScale(),
+								current_frame->h * animation->GetScale() };
+			animation->Draw(renderer, temp, SDL_FLIP_NONE);
+		}
 	}
 }
 // STORM CLOUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -515,39 +541,60 @@ bool StormCloud::IsReadyToAttack()
 
 void StormCloud::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 {
-	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
+	
 
+	// DRAW BACK OVERLAYS
 	for (auto& animation : overlay_animations)
 	{
-		std::cout << "DRAWING OVERLAY !" << std::endl;
-		SDL_Rect* current_frame = animation->GetCurrentFrame();
-		SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
-							enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
-							current_frame->w * animation->GetScale(),
-							current_frame->h * animation->GetScale() };
-		animation->Draw(renderer, temp, SDL_FLIP_NONE);
+		if (animation->GetOrder() == Animation::Order::BACK)
+		{
+			//std::cout << "DRAWING OVERLAY !" << std::endl;
+			SDL_Rect* current_frame = animation->GetCurrentFrame();
+			SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
+								enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
+								current_frame->w * animation->GetScale(),
+								current_frame->h * animation->GetScale() };
+			animation->Draw(renderer, temp, SDL_FLIP_NONE);
+		}
+	}
+	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
+
+	// DRAW FRONT OVERLAYS
+	for (auto& animation : overlay_animations)
+	{
+		if (animation->GetOrder() == Animation::Order::FRONT)
+		{
+			//std::cout << "DRAWING OVERLAY !" << std::endl;
+			SDL_Rect* current_frame = animation->GetCurrentFrame();
+			SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
+								enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
+								current_frame->w * animation->GetScale(),
+								current_frame->h * animation->GetScale() };
+			animation->Draw(renderer, temp, SDL_FLIP_NONE);
+		}
 	}
 	
-		SDL_Rect rect;
-		int size = 5;
-		rect.x = this->GetGoalX() - size / 2;
-		rect.y = this->GetGoalY() - size / 2;
-		rect.w = size;
-		rect.h = size;
+	SDL_Rect rect;
+	int size = 5;
+	rect.x = this->GetGoalX() - size / 2;
+	rect.y = this->GetGoalY() - size / 2;
+	rect.w = size;
+	rect.h = size;
 		
-		if (collision_box_flag)
+	if (collision_box_flag)
+	{
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+		if (0 != SDL_RenderFillRect(renderer, &rect))
 		{
-			SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-			if (0 != SDL_RenderFillRect(renderer, &rect))
-			{
-				std::cout << "[*] Error rendering point storm cloud goal point ...\n";
-			}
-			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-
-			SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-			Collisions::DrawCircle(renderer, enemy_coll_shape.circle);
-
+			std::cout << "[*] Error rendering point storm cloud goal point ...\n";
 		}
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+		Collisions::DrawCircle(renderer, enemy_coll_shape.circle);
+
+	}
+
 	
 }
 
@@ -788,7 +835,37 @@ bool StormGenie::IsReadyToAttack()
 
 void StormGenie::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 {
+	// DRAW BACK OVERLAYS
+	for (auto& animation : overlay_animations)
+	{
+		if (animation->GetOrder() == Animation::Order::BACK)
+		{
+			//std::cout << "DRAWING OVERLAY !" << std::endl;
+			SDL_Rect* current_frame = animation->GetCurrentFrame();
+			SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
+								enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
+								current_frame->w * animation->GetScale(),
+								current_frame->h * animation->GetScale() };
+			animation->Draw(renderer, temp, SDL_FLIP_NONE);
+		}
+	}
+	
 	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
+
+	// DRAW FRONT OVERLAYS
+	for (auto& animation : overlay_animations)
+	{
+		if (animation->GetOrder() == Animation::Order::FRONT)
+		{
+			//std::cout << "DRAWING OVERLAY !" << std::endl;
+			SDL_Rect* current_frame = animation->GetCurrentFrame();
+			SDL_Rect temp = { enemy_dest_rect.x + (enemy_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
+								enemy_dest_rect.y + (enemy_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
+								current_frame->w * animation->GetScale(),
+								current_frame->h * animation->GetScale() };
+			animation->Draw(renderer, temp, SDL_FLIP_NONE);
+		}
+	}
 	for (auto& animation : overlay_animations)
 	{
 		std::cout << "DRAWING OVERLAY !" << std::endl;

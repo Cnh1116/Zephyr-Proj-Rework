@@ -33,6 +33,7 @@ SoundManager::SoundManager()
     LoadSoundEffect("player_shield_activate", "assets/sounds/player-sounds/secondary-fire-impact.wav");
     LoadSoundEffect("player_shield_hit", "assets/sounds/player-sounds/parry-sfx.wav");
     LoadSoundEffect("shield_activate", "assets/sounds/player-sounds/shield-activate.wav");
+    LoadSoundEffect("shield_ready", "assets/sounds/player-sounds/shield_ready.mp3");
     LoadSoundEffect("dash_sound", "assets/sounds/player-sounds/dash.wav");
     
     

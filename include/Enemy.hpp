@@ -49,6 +49,7 @@ class Enemy
         int image_scale;
         
         bool shiny;
+		float SHINY_CHANCE = 05.0f;
         bool shiny_sound_played = false;
 
         // ANIMATIONS

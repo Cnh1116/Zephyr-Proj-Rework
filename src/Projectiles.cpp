@@ -152,7 +152,7 @@ void PrimaryFire::Update()
         if (current_animation->GetName() != "proj-zephyr-primary-impact")
         {
             current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-primary", "impact"));
-            //if (critical) overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "critical")));
+            if (critical) overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-primary", "crit-effect")));
         }
 		
 
@@ -179,8 +179,8 @@ void PrimaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
         SDL_Rect* current_frame = animation->GetCurrentFrame();
         SDL_Rect temp = { (dest_rect.x + dest_rect.w / 2) - current_frame->w * animation->GetScale() / 2,
                             (dest_rect.y + dest_rect.h / 2) - current_frame->h * animation->GetScale() / 2,
-                            current_frame->w,
-                            current_frame->h };
+                            current_frame->w * animation->GetScale(),
+                            current_frame->h * animation->GetScale() };
         animation->Draw(renderer, temp, SDL_FLIP_NONE);
     }
 

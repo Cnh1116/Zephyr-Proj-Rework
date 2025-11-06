@@ -21,6 +21,7 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
     dash_bar_animation = animation_manager_arg.Get("ui", "dash_bar");
     slash_bar_animation = animation_manager_arg.Get("ui", "slash_bar");
     health_bar_base_animation = animation_manager_arg.Get("ui", "health_bar_base");
+    shield_ready_animation = animation_manager_arg.Get("ui", "shield_ready");
 
     state = "main";
     bool invincible = false;
@@ -74,7 +75,7 @@ void Player::Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 
         animation_manager.Get("overlays", "shield_ready")->Reset();
         overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "shield_ready")));
 
-		sound_manager.PlaySound("jade_drum", 55);
+		sound_manager.PlaySound("shield_ready", 80);
     }
     
     if (state == "main")
@@ -109,7 +110,7 @@ void Player::Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 
 
     if (state == "shield")
     {
-        shield.coll_shape.circle.r = shield.dest_rect.w / 4;
+        shield.coll_shape.circle.r = shield.dest_rect.w / 2;
         animation_manager.Get("zephyr","shield")->Update();
 
         shield.shield_ready = false;
@@ -121,7 +122,7 @@ void Player::Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 
         
         shield.dest_rect = { player_dest_rect.x, player_dest_rect.y, player_dest_rect.w, player_dest_rect.h };
 
-        if (animation_manager.Get("zephyr", "shield")->IsFinished())
+        if (SDL_GetTicks() - this->GetShieldLastTimeUsed() >= shield.shield_duration_ms)
         {
             state = "main";
 			
@@ -133,7 +134,7 @@ void Player::Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 
 		if (!dash_overlay_added)
 		{
             dash_overlay_added = true;
-			overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "dash")));
+            overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "dash"), Animation::Order::BACK));
             dash_overlay_dest_rect = player_dest_rect;
             
             double angle = 0.0;
@@ -638,6 +639,32 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 {
     
     
+    for (auto& animation : overlay_animations)
+    {
+        if (animation->GetOrder() == Animation::Order::BACK)
+        {
+            std::cout << "DRAWING OVERLAY !" << std::endl;
+            if (animation->GetName() == "overlays-dash")
+            {
+                animation->DrawRotated(renderer, dash_overlay_dest_rect, SDL_FLIP_NONE, dash_overlay_angle);
+            }
+
+            SDL_Rect* current_frame = animation->GetCurrentFrame();
+            SDL_Rect temp = { player_dest_rect.x + (player_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
+                                player_dest_rect.y + (player_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
+                                current_frame->w * animation->GetScale(),
+                                current_frame->h * animation->GetScale() };
+            animation->Draw(renderer, temp, SDL_FLIP_NONE);
+        }
+    }
+    if (state == "shield")
+    {
+        SDL_Rect temp = { player_dest_rect.x - (animation_manager.Get("zephyr", "shield")->GetFrameWidth() * animation_manager.Get("zephyr", "shield")->GetScale() - player_dest_rect.w) / 2,
+                          player_dest_rect.y - (animation_manager.Get("zephyr", "shield")->GetFrameWidth() * animation_manager.Get("zephyr", "shield")->GetScale() - player_dest_rect.h) / 2,
+            animation_manager.Get("zephyr", "shield")->GetFrameWidth() * animation_manager.Get("zephyr", "shield")->GetScale(),
+                          animation_manager.Get("zephyr", "shield")->GetFrameWidth() * animation_manager.Get("zephyr", "shield")->GetScale() };
+        animation_manager.Get("zephyr", "shield")->Draw(renderer, temp, SDL_FLIP_NONE);
+    }
     current_animation->Draw(renderer, player_dest_rect, SDL_FLIP_NONE);
     current_animation->OutputInformation();
 
@@ -648,26 +675,20 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
         animation_manager.Get("zephyr", "secondary_fire_marker")->Draw(renderer, secondary_fire.marker_dest_rect, SDL_FLIP_NONE);
     }
 
-    if (state == "shield")
-    {
-		animation_manager.Get("zephyr", "shield")->Draw(renderer, player_dest_rect, SDL_FLIP_NONE);
-    }
+    
     
     
     for (auto& animation : overlay_animations) 
     {  
-		std::cout << "DRAWING OVERLAY !" << std::endl;
-        if (animation->GetName() == "overlays-dash")
-        {   
-            animation->DrawRotated(renderer, dash_overlay_dest_rect, SDL_FLIP_NONE, dash_overlay_angle);
+        if (animation->GetOrder() == Animation::Order::FRONT)
+        {
+            SDL_Rect* current_frame = animation->GetCurrentFrame();
+            SDL_Rect temp = { player_dest_rect.x + (player_dest_rect.w - current_frame->w * animation->GetScale()) / 2,
+                                player_dest_rect.y + (player_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
+                                current_frame->w * animation->GetScale(),
+                                current_frame->h * animation->GetScale() };
+            animation->Draw(renderer, temp, SDL_FLIP_NONE);
         }
-
-        SDL_Rect* current_frame = animation->GetCurrentFrame();
-        SDL_Rect temp = {   player_dest_rect.x + (player_dest_rect.w - current_frame->w *  animation->GetScale()) / 2, 
-                            player_dest_rect.y + (player_dest_rect.h - current_frame->h * animation->GetScale()) / 2,
-                            current_frame->w * animation->GetScale(),
-                            current_frame->h * animation->GetScale() };
-        animation->Draw(renderer, temp, SDL_FLIP_NONE);
     }
     
     auto clamp = [](float value, float min, float max) {
@@ -690,6 +711,19 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     int SCREEN_HEIGHT = 1080;
     float health_percent = clamp(static_cast<float>(current_health) / static_cast<float>(max_health), 0.0f, 1.0f);
     smooth_health = lerp(smooth_health, health_percent, SMOOTHING_SPEED);
+
+    if (shield.shield_ready)
+	{
+        float icon_offset_x = 0;
+        float icon_offset_y = -50;
+        SDL_Rect shield_ready_dst = {
+			secondary_fire.hud_dest_rect.x + secondary_fire.hud_dest_rect.w / 2 - (shield_ready_animation->GetFrameWidth() * shield_ready_animation->GetScale() / 2),
+            (secondary_fire.hud_dest_rect.y + secondary_fire.hud_dest_rect.h / 2 - (shield_ready_animation->GetFrameHeight() * shield_ready_animation->GetScale() / 2)) + icon_offset_y,
+			shield_ready_animation->GetFrameWidth() * shield_ready_animation->GetScale(),
+			shield_ready_animation->GetFrameHeight() * shield_ready_animation->GetScale()
+		};
+		shield_ready_animation->Draw(renderer, shield_ready_dst);
+	}
 
     SDL_Rect health_bar_dst = {
         0,
@@ -718,6 +752,8 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
     health_bar_base_animation->Draw(renderer, shield_bar_dst);
     shield_bar_animation->DrawPartial(renderer, shield_bar_dst, smooth_shield, static_cast<float>(shield_bar_animation->GetFrameWidth() / shield_bar_animation->GetScale()), SDL_FLIP_NONE);
+
+
 
     // --- DASH BAR ---
     float dash_percentage = clamp(
@@ -817,7 +853,7 @@ void Player::ResetPlayer(int window_width, int window_height)
 	base_speed = BASE_SPEED;
 	base_damage = BASE_DAMAGE;
 
-	crit_percent = 1.0f;
+	crit_percent = BASE_CRIT;
 
     // Reset ITems
     player_items.num_glass_toucans = 0;
