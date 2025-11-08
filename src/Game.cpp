@@ -439,7 +439,8 @@ void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
     if (this->GetElapsedTimeSeconds() < 5)
         return;
 
-    if (enemies.size() == 0 or enemies.size() == 1 or enemies.size() == 2)
+    //if (enemies.size() == 0 or enemies.size() == 1 or enemies.size() == 2)
+    if (enemies.size() == 0)
     {
         
         // PICK A RANDOM ENEMY
@@ -449,7 +450,7 @@ void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
         std::cout << "[*] Updating Enemies since size is 0\n";
         int enemy_index = distrib_enemy(gen) % 3;
 
-        
+        enemy_index = 0;
 
         
         switch (enemy_index)

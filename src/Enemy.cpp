@@ -304,17 +304,28 @@ bool IceCrystal::WaitDone()
 
 void IceCrystal::Attack(std::vector<Projectile*>& game_projectiles, Player* player)
 {
-	std::string texture_key;
-	if (shiny)
-		texture_key = "spawn_shiny";
-	else
-		texture_key = "spawn";
-	const SDL_Rect ice_shard_dest = { (enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameWidth()) / 2),
-										enemy_dest_rect.y + (enemy_dest_rect.h * 0.8),
-											animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameWidth() + (num_proj_shot * 10) ,
-											animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameHeight() };
+	std::string texture_key = shiny ? "spawn_shiny" : "spawn";
+	int proj_w = animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameWidth() * animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetScale();
+	int proj_h = animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameHeight() * animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetScale();
+	std::cout << "[*] PROJECTILE SIZE: " << proj_w << "x" << proj_h << "=============================================" << std::endl;
+
+	// Base center position
+	int enemy_center_x = enemy_dest_rect.x + enemy_dest_rect.w / 2;
+	std::cout << "[*] VELOCITY " << velocity << std::endl;
 	
-	game_projectiles.emplace_back(new IceShard(animation_manager, ice_shard_dest, 2.0, 3, base_damage, shiny));
+
+	// Apply offset based on how many have been shot in the burst
+	int final_x = enemy_center_x + (proj_w/2);
+
+	// Vertical placement
+	int final_y = enemy_dest_rect.y + (enemy_dest_rect.h * 0.75);
+
+	// Build destination rect
+	SDL_Rect ice_shard_dest = { final_x, final_y, proj_w, proj_h };
+
+	game_projectiles.emplace_back(
+		new IceShard(animation_manager, ice_shard_dest, 2.0, 3, base_damage, shiny)
+	);
 }
 
 void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
@@ -340,6 +351,8 @@ void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 	{
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		Collisions::DrawCircle(renderer, enemy_coll_shape.circle);
+		SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+		SDL_RenderDrawRect(renderer, &enemy_dest_rect);
 	}
 	
 	// DRAW FRONT OVERLAYS

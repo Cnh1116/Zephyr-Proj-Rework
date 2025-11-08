@@ -456,6 +456,8 @@ void IceShard::Update()
     if (state == "spawn")
     {
 		collision_shape.circle.r = 0;
+        collision_shape.circle.x = 0;
+        collision_shape.circle.y = 0;
         if (current_animation->IsFinished())
             state = "main";
     }
