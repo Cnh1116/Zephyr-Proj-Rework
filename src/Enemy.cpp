@@ -106,6 +106,9 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 	else
 		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "main"));
 
+	enemy_dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+	enemy_dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
+
 	enemy_coll_shape.type = ColliderType::CIRCLE;
 	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
 	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);
@@ -115,7 +118,7 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 	
 }
 
-void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager)
+void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, int screen_width, int screen_height)
 {
 	int player_distance_threshold = 40;
 	//std::cout << "ICE STATE: " << "---------------------------------------------------" << state << std::endl;
@@ -150,7 +153,7 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 	
 	if (state == "move")
 	{
-		Move(player);
+		Move(player, screen_width, screen_height);
 
 		if (fabs(enemy_dest_rect.x - target_x) <= player_distance_threshold)
 		{
@@ -216,11 +219,12 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 	
 }
 
-void IceCrystal::Move(Player* player)
+void IceCrystal::Move(Player* player, int screen_width, int screen_height)
 {
+	float max_speed = 0.01f * screen_width;
 	
 	float diff = target_x - posX;
-	float screen_height = static_cast<float>(1080);
+
 	float norm_diff = diff / screen_height;
 	float hover_offset;
 
@@ -232,6 +236,9 @@ void IceCrystal::Move(Player* player)
 		velocity *= 0.0f;
 		hover_offset = 0.0f;
 	}
+
+	if (velocity > max_speed) velocity = max_speed;
+	if (velocity < -max_speed) velocity = -max_speed;
 
 	posX += velocity;
 
@@ -304,10 +311,10 @@ void IceCrystal::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 		texture_key = "spawn";
 	const SDL_Rect ice_shard_dest = { (enemy_dest_rect.x + (enemy_dest_rect.w / 2) - (animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameWidth()) / 2),
 										enemy_dest_rect.y + (enemy_dest_rect.h * 0.8),
-											animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameWidth() + (num_proj_shot * 30) ,
+											animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameWidth() + (num_proj_shot * 10) ,
 											animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameHeight() };
 	
-	game_projectiles.emplace_back(new IceShard(animation_manager, ice_shard_dest, 5.0, 3, base_damage, shiny));
+	game_projectiles.emplace_back(new IceShard(animation_manager, ice_shard_dest, 2.0, 3, base_damage, shiny));
 }
 
 void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
@@ -352,12 +359,16 @@ void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 }
 // STORM CLOUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, int screen_height, int player_x, int player_y)
-	: Enemy(animation_manager, { -32,-32,48 * 4 ,32 * 4 }, Collider(0, 0, 0), 4.7, 30, 0, 35)
+	: Enemy(animation_manager, { -32,-32,48 * 4 ,32 * 4 }, Collider(0, 0, 0), 2.9, 30, 0, 35)
 {
 	if (shiny)
 		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "main_shiny"));
 	else
 		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-cloud", "main"));
+	enemy_dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+	enemy_dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
+
+
 	
 	points = 10;
 
@@ -376,7 +387,7 @@ StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, in
 	std::uniform_int_distribution<> within_land_position_x(screen_width * 0.25, screen_width * 0.75);
 
 
-	enemy_dest_rect = { within_screen_x(gen), -32, 48 * 3, 32 * 3 };
+	enemy_dest_rect = { within_screen_x(gen), -32, static_cast<int>(current_animation->GetFrameWidth() * current_animation->GetScale()), static_cast<int>(current_animation->GetFrameHeight() * current_animation->GetScale()) };
 	goal_x = within_land_position_x(gen);
 	goal_y = within_land_position_y(gen);
 
@@ -405,7 +416,7 @@ StormCloud::StormCloud(AnimationManager& animation_manager, int screen_width, in
 	
 }
 
-void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager)
+void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, int screen_width, int screen_height)
 {
 	float threshhold = 85;
 	//std::cout << "STATE: " << state <<  "Shot Fired: " << shot_fired << "=============================================" << std::endl;
@@ -418,7 +429,7 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 			shiny_sound_played = true;
 		}
 		
-		Move(player);
+		Move(player, screen_width, screen_height);
 		if ((std::abs(enemy_dest_rect.x - goal_x) < threshhold) && (std::abs(enemy_dest_rect.y - goal_y) < threshhold))
 		{
 			state = "wait";
@@ -478,7 +489,7 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 	if (state == "retreat")
 	{
-		Move(player);
+		Move(player, screen_width, screen_height);
 	}
 
 	if (state == "death")
@@ -517,7 +528,7 @@ void StormCloud::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 
 
-void StormCloud::Move(Player* player)
+void StormCloud::Move(Player* player, int screen_width, int screen_height)
 {
 	position_x += direction_x * movement_speed;
 	position_y += direction_y * movement_speed;
@@ -604,7 +615,7 @@ void StormCloud::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 	{
 		game_projectiles.emplace_back(new LightningBall(animation_manager, 
 														enemy_dest_rect, 
-														7.5, 
+														3.0, 
 														3, 
 														base_damage, 
 														(player->GetDstRect()->x + (player->GetDstRect()->w / 2)),
@@ -630,6 +641,11 @@ StormGenie::StormGenie(AnimationManager& animation_manager, const SDL_Rect& dest
 		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "spawn_shiny"));
 	else
 		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-storm-genie", "spawn"));
+
+	enemy_dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+	enemy_dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
+
+
 	shot_fired = false;
 	spawned_lightning = false;
 	posY = static_cast<float>(enemy_dest_rect.y);
@@ -642,7 +658,7 @@ StormGenie::StormGenie(AnimationManager& animation_manager, const SDL_Rect& dest
 	enemy_coll_shape.circle.r = 5;
 }
 
-void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager)
+void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, int screen_width, int screen_height)
 {
 	if (state == "spawn")
 	{
@@ -670,13 +686,13 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 			movement_speed *= -1;
 		}
 
-		Move(player);
+		Move(player, screen_width, screen_height);
 		
 		// READY TO ATTACK
 		Uint32 current_time = SDL_GetTicks();
 		int vertical_difference = enemy_dest_rect.y - player->GetDstRect()->y;
 
-		if ((current_time - last_fire_time) >= fire_cooldown_ms && abs(vertical_difference) <  100)
+		if ((current_time - last_fire_time) >= fire_cooldown_ms && abs(vertical_difference) <  35)
 		{
 			if (!shot_fired)
 			{
@@ -793,7 +809,7 @@ void StormGenie::Update(Player* player, std::vector<Projectile*>& game_projectil
 
 }
 
-void StormGenie::Move(Player* player)
+void StormGenie::Move(Player* player, int screen_width, int screen_height)
 {
 	float targetY = static_cast<float>(player->GetDstRect()->y);
 	float diff = targetY - posY;
@@ -802,7 +818,7 @@ void StormGenie::Move(Player* player)
 	const float dead_zone = 40.0f;
 
 	
-	float screen_height = static_cast<float>(1080);
+	
 	float norm_diff = diff / screen_height;
 	float hover_offset;
 
@@ -888,7 +904,7 @@ void StormGenie::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 {
 	if (this->IsReadyToAttack())
 	{
-		int bolt_height_diff = -30;
+		int bolt_height_diff = -10;
 		int width_adjustment = 5;
 		float width_scaling = 1;
 

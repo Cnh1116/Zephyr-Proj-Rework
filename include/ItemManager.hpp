@@ -18,6 +18,8 @@ protected:
        struct item
         {
             SDL_Rect item_dest_rect;
+            float pos_x;
+            float pos_y;
             SDL_Rect item_cloud_dest_rect;
             Collider item_cloud_coll_shape = Collider(0,0,0);
             std::string name;
@@ -32,7 +34,7 @@ protected:
 
         ItemManager(AnimationManager* animation_manager);
         std::vector<item>* GetItemList();
-        void UpdateItemList(); // This is where the logic of when to spawn items occurs.
+        void UpdateItemList(int screen_width, int screen_height); // This is where the logic of when to spawn items occurs.
 		void DrawItems(SDL_Renderer* renderer, bool collision_box_flag, int screen_width, int screen_height);
 
     private:
@@ -40,6 +42,7 @@ protected:
         Uint32 time_last_item_spawned;
         Uint32 cooldown_item_spawn_ms = 3000;
 
+        float ITEM_SPEED = 0.6f;
         std::vector<item> item_list;
 };
 

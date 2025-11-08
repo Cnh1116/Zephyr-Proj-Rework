@@ -26,7 +26,8 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
     state = "main";
     bool invincible = false;
 
-    player_dest_rect = {0, 0, BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
+
+    player_dest_rect = {0, 0,  BASE_SPRITE_SIZE * image_scale, BASE_SPRITE_SIZE * image_scale};
     player_coll_shape.circle.r = BASE_SPRITE_SIZE * image_scale / 4;
 
 	player_coll_shape.type = ColliderType::CIRCLE;
@@ -43,6 +44,7 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
     const float hover_freq = 0.07f;
     // In your class:
     float posX = 0.0f; // store precise position
+
 
 
 
@@ -261,6 +263,8 @@ void Player::DoSlash(std::vector<Projectile*>& game_projectiles, SoundManager& s
         slashing_attack.last_fire_time = SDL_GetTicks();
         slashing_attack.slash_projectile = new Slash(animation_manager, player_dest_rect, slashing_attack.damage, 1, critical, left_flag);
         
+
+
 		game_projectiles.emplace_back(slashing_attack.slash_projectile);
 		sound_manager.PlaySound("player_slash", 55);
     }
@@ -316,13 +320,13 @@ void Player::ShootPrimaryFire(std::vector<Projectile*>& game_projectiles, SoundM
         {
             sound_manager.PlaySound("player_crit", 40);
             sound_manager.PlaySound("player_primary_fire", 30);
-            game_projectiles.emplace_back(new PrimaryFire(animation_manager, player_dest_rect, 5.0, base_damage, 2, true));
+            game_projectiles.emplace_back(new PrimaryFire(animation_manager, player_dest_rect, primary_fire.bullet_speed, base_damage, 2, true));
         }
         // NORMAL
         else
         {
             sound_manager.PlaySound("player_primary_fire", 30);
-            game_projectiles.emplace_back(new PrimaryFire(animation_manager, player_dest_rect, 5.0, base_damage, 2, false));
+            game_projectiles.emplace_back(new PrimaryFire(animation_manager, player_dest_rect, primary_fire.bullet_speed, base_damage, 2, false));
         }
     }
 }
@@ -391,7 +395,7 @@ void Player::SetPosition(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT
     player_coll_shape.circle.y = player_dest_rect.y + (player_dest_rect.h / 2);
 
     secondary_fire.hud_dest_rect.x = player_dest_rect.x;
-    secondary_fire.hud_dest_rect.y = player_dest_rect.y - (256 + 64);
+    secondary_fire.hud_dest_rect.y = player_dest_rect.y - (80);
 
 	int new_hud_width = secondary_fire.hud_dest_rect.w / 4;
     int new_hud_height = secondary_fire.hud_dest_rect.h / 4;
@@ -403,7 +407,14 @@ void Player::SetPosition(float dx, float dy, int SCREEN_WIDTH, int SCREEN_HEIGHT
 
     if (secondary_fire.marker_active)
     {
-        secondary_fire.marker_dest_rect.y += 1;
+        secondary_fire.marker_pos_y += secondary_fire.item_speed;
+
+        // Move marker rect
+        secondary_fire.marker_dest_rect.y = static_cast<int>(secondary_fire.marker_pos_y);
+
+        // Keep collision rect centered on marker
+        secondary_fire.marker_col_rect.rect.y =
+            static_cast<int>(secondary_fire.marker_pos_y + (BASE_SPRITE_SIZE * image_scale) / 2 - (secondary_fire.marker_col_rect.rect.h / 2));
     }
 }
 
@@ -489,20 +500,32 @@ float Player::GetSecondaryFireSpeed()
 
 void Player::SetSecondaryFireMarkerPosition()
 {
-    secondary_fire.marker_dest_rect = {
-    secondary_fire.hud_dest_rect.x,
-    secondary_fire.hud_dest_rect.y,
-    BASE_SPRITE_SIZE * image_scale,
-    BASE_SPRITE_SIZE * image_scale
-};
+    
+    // Get center of HUD
+    int hud_center_x = secondary_fire.hud_dest_rect.x + secondary_fire.hud_dest_rect.w / 2;
+    int hud_center_y = secondary_fire.hud_dest_rect.y + secondary_fire.hud_dest_rect.h / 2;
 
-// Center the marker collision rect on the HUD dest rect
-secondary_fire.marker_col_rect.rect = {
-    secondary_fire.hud_dest_rect.x + (secondary_fire.hud_dest_rect.w / 2) - (BASE_SPRITE_SIZE / 4),
-    secondary_fire.hud_dest_rect.y + (secondary_fire.hud_dest_rect.h / 2) - (BASE_SPRITE_SIZE / 4),
-    BASE_SPRITE_SIZE/2,
-    BASE_SPRITE_SIZE/2
-};
+    // Set marker rect so it's centered
+    secondary_fire.marker_dest_rect = {
+        hud_center_x - (BASE_SPRITE_SIZE * image_scale) / 2,
+        hud_center_y - (BASE_SPRITE_SIZE * image_scale) / 2,
+        BASE_SPRITE_SIZE * image_scale,
+        BASE_SPRITE_SIZE * image_scale
+    };
+
+    // Marker collision rect
+    int hud_coll_w = BASE_SPRITE_SIZE / 8;
+    int hud_coll_h = BASE_SPRITE_SIZE / 8;
+    secondary_fire.marker_col_rect.rect = {
+        hud_center_x - hud_coll_w / 2,
+        hud_center_y - hud_coll_h / 2,
+        hud_coll_w,
+        hud_coll_h
+    };
+
+    // Store posY as the top-left of the marker for movement
+    secondary_fire.marker_pos_y = secondary_fire.marker_dest_rect.y;
+    
 }
 
 Collider* Player::GetSecondaryFireMarkerCollision()
@@ -635,7 +658,7 @@ bool Player::IsDashDone()
     }
 }
 
-void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
+void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag, int screen_width, int screen_height)
 {
     
     
@@ -707,15 +730,10 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
     const float SMOOTHING_SPEED = 0.1f; // lower = smoother, higher = snappier
 
 
-    // --- HEALTH BAR ---
-    int SCREEN_HEIGHT = 1080;
-    float health_percent = clamp(static_cast<float>(current_health) / static_cast<float>(max_health), 0.0f, 1.0f);
-    smooth_health = lerp(smooth_health, health_percent, SMOOTHING_SPEED);
-
     if (shield.shield_ready)
 	{
         float icon_offset_x = 0;
-        float icon_offset_y = -50;
+        float icon_offset_y = -15;
         SDL_Rect shield_ready_dst = {
 			secondary_fire.hud_dest_rect.x + secondary_fire.hud_dest_rect.w / 2 - (shield_ready_animation->GetFrameWidth() * shield_ready_animation->GetScale() / 2),
             (secondary_fire.hud_dest_rect.y + secondary_fire.hud_dest_rect.h / 2 - (shield_ready_animation->GetFrameHeight() * shield_ready_animation->GetScale() / 2)) + icon_offset_y,
@@ -725,18 +743,23 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 		shield_ready_animation->Draw(renderer, shield_ready_dst);
 	}
 
+    float ui_offset = screen_height * 0.05;
+    
+    // --- HEALTH BAR ---
+    float health_percent = clamp(static_cast<float>(current_health) / static_cast<float>(max_health), 0.0f, 1.0f);
+    smooth_health = lerp(smooth_health, health_percent, SMOOTHING_SPEED);
+
     SDL_Rect health_bar_dst = {
         0,
-        SCREEN_HEIGHT - health_bar_animation->GetFrameHeight() - 100,
-        health_bar_animation->GetFrameWidth(),
-        health_bar_animation->GetFrameHeight()
+        screen_height - health_bar_animation->GetFrameHeight() * health_bar_animation->GetScale() - 1 * ui_offset,
+        health_bar_animation->GetFrameWidth() * health_bar_animation->GetScale(),
+        health_bar_animation->GetFrameHeight() * health_bar_animation->GetScale()
     };
 
     health_bar_base_animation->Draw(renderer, health_bar_dst);
     health_bar_animation->DrawPartial(renderer, health_bar_dst, smooth_health, static_cast<float>(health_bar_animation->GetFrameWidth() / health_bar_animation->GetScale()), SDL_FLIP_NONE);
 
     // --- SHIELD BAR ---
-    int SCREEN_WIDTH = 1920;
     float shield_percentage = clamp(
         static_cast<float>(SDL_GetTicks() - shield.last_time_used) / static_cast<float>(shield.shield_cooldown_ms),
         0.0f, 1.0f
@@ -745,7 +768,7 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
     SDL_Rect shield_bar_dst = {
         0,
-        SCREEN_HEIGHT - shield_bar_animation->GetFrameHeight() - 50,
+        screen_height - shield_bar_animation->GetFrameHeight() * health_bar_animation->GetScale() - 2*ui_offset,
         shield_bar_animation->GetFrameWidth(),
         shield_bar_animation->GetFrameHeight()
     };
@@ -764,7 +787,7 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
     SDL_Rect dash_bar_dst = {
         0,
-        SCREEN_HEIGHT - dash_bar_animation->GetFrameHeight(),
+        screen_height - dash_bar_animation->GetFrameHeight() * health_bar_animation->GetScale() - 3 * ui_offset,
         dash_bar_animation->GetFrameWidth(),
         dash_bar_animation->GetFrameHeight()
     };
@@ -781,7 +804,7 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
     SDL_Rect slash_bar_dst = {
         0,
-        SCREEN_HEIGHT - slash_bar_animation->GetFrameHeight() - 150,
+        screen_height - slash_bar_animation->GetFrameHeight() * health_bar_animation->GetScale() - 4 * ui_offset,
         slash_bar_animation->GetFrameWidth(),
         slash_bar_animation->GetFrameHeight()
     };

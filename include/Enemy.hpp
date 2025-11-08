@@ -49,7 +49,7 @@ class Enemy
         int image_scale;
         
         bool shiny;
-		float SHINY_CHANCE = 05.0f;
+		float SHINY_CHANCE = 50.0f;
         bool shiny_sound_played = false;
 
         // ANIMATIONS
@@ -67,9 +67,9 @@ class Enemy
         bool invincible;
 
         // Override Functions
-        virtual void Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager) = 0;
+        virtual void Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, int screen_width, int screen_height) = 0;
         virtual void Attack(std::vector<Projectile*>& game_projectiles, Player* player) = 0;
-        virtual void Move(Player* player) = 0;
+        virtual void Move(Player* player,int screen_width, int screen_height) = 0;
         virtual bool IsReadyToAttack() = 0;
         virtual void Draw(SDL_Renderer* renderer, bool collision_box_flag) = 0;
 };
@@ -78,8 +78,8 @@ class IceCrystal : public Enemy
 {
     public:
         IceCrystal(AnimationManager& animation_manager, const SDL_Rect& rect);
-        void Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager) override;
-        void Move(Player* player) override;
+        void Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, int screen_width, int screen_height) override;
+        void Move(Player* player, int screen_width, int screen_height) override;
         bool IsReadyToAttack() override;
         bool BulletReady();
         bool WaitDone();
@@ -96,10 +96,10 @@ private:
     
     Uint32 last_wait_time;
 	Uint32 wait_duration = 1000;
-    float velocity = 1.0f;
+    float velocity = 0.05f;
 
 	// Movement Parameters
-    const float stiffness = 2.0f;
+    const float stiffness = 1.1f;
     const float damping = 0.7f;
     const float hover_amp = 1.5f;
     const float hover_freq = 0.07f;
@@ -111,8 +111,8 @@ class StormCloud : public Enemy
 {
     public:
         StormCloud(AnimationManager& animation_manager, int screen_width, int screen_height, int player_x, int player_y);
-        void Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager) override;
-        void Move(Player* player) override;
+        void Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, int screen_width, int screen_height) override;
+        void Move(Player* player, int screen_width, int screen_height) override;
         bool IsReadyToAttack() override;
         void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
@@ -140,8 +140,8 @@ class
 {
 public:
     StormGenie(AnimationManager& animation_manager, const SDL_Rect& rect);
-    void Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager) override;
-    void Move(Player* player) override;
+    void Update(Player* player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, int screen_width, int screen_height) override;
+    void Move(Player* player, int screen_width, int screen_height) override;
     bool IsReadyToAttack() override;
     void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
     void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
@@ -162,9 +162,9 @@ private:
     bool death_animation_played  = false;
     
     // Movement Parameters
-    float velocity = 1.0f;
+    float velocity = 0.5f;
     float posY = 0.0f;
-    const float stiffness = 2.0f;
+    const float stiffness = 1.1f;
     const float damping = 0.7f;
     const float hover_amp = 1.5f;
     const float hover_freq = 0.07f;

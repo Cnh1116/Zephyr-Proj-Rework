@@ -16,10 +16,11 @@
 
 
 // Constructor
-Graphics::Graphics(const char* title, int width, int height, int scale)
+Graphics::Graphics(const char* title, int log_width, int log_height, int width, int height, int scale)
     : window(nullptr), renderer(nullptr), is_shown(false) , clouds1_animation_index(0)
 {
-    
+	logical_width = log_width;
+    logical_height = log_height;
     screen_width = width;
     screen_height = height;
     pixel_scale = scale;
@@ -27,10 +28,10 @@ Graphics::Graphics(const char* title, int width, int height, int scale)
     
     // BACKGROUND STUFF
 
-    clouds1L_dest = { GenRandomNumber(-1200, -870), 0, 324 * 5, 576 * 5}; //FILE SIZE * arbitrary scale factor
-    clouds1R_dest = { GenRandomNumber(1050, 1400), -45, 324 * 6, 576 * 6 };
-    clouds2L_dest = { GenRandomNumber(-1100, -870), 0, 324 * 5, 576 * 5 };
-    clouds2R_dest = { GenRandomNumber(450, 600),    -45, 324 * 6, 576 * 6 };
+    clouds1L_dest = { GenRandomNumber(-1200, -870), 0, 324, 576}; //FILE SIZE * arbitrary scale factor
+    clouds1R_dest = { GenRandomNumber(1050, 1400), -45, 324, 576 };
+    clouds2L_dest = { GenRandomNumber(-1100, -870), 0, 324, 576 };
+    clouds2R_dest = { GenRandomNumber(450, 600), -45, 324, 576 };
     //clouds3L_dest
     //clouds3R_dest = 
     //clouds2_dest = { -450, 700, 576 * 4, 324 * 4 }; //FILE SIZE * arbitrary scale factor
@@ -120,6 +121,7 @@ void Graphics::ShowWindow()
     SDL_ShowWindow(window);
 }
 
+
 void Graphics::DeactivateWindow()
 {
     is_shown = false;
@@ -143,8 +145,10 @@ bool Graphics::init(const char* title, int width, int height)
     window = SDL_CreateWindow(title,
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
-                              width, height,
+                              screen_width, screen_height,
                               SDL_WINDOW_SHOWN);
+
+	SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     if (!window) 
     {
         std::cerr << "[!] Window creation error: " << SDL_GetError() << std::endl;
@@ -157,17 +161,51 @@ bool Graphics::init(const char* title, int width, int height)
         std::cerr << "[!] Renderer creation error: " << SDL_GetError() << std::endl;
         return false;
     }
+    SDL_RenderSetLogicalSize(renderer, logical_width, logical_height);
 
     return true;
 }
 
 SDL_Texture* Graphics::GetCurrentScreenTexture()
 {
-	SDL_Texture* screen_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, screen_width, screen_height);
-	SDL_SetRenderTarget(renderer, screen_texture);
-	SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA8888, NULL, 0);
-	SDL_SetRenderTarget(renderer, NULL);
-	return screen_texture;
+    // Get actual output size of renderer
+    int w, h;
+    if (SDL_GetRendererOutputSize(renderer, &w, &h) != 0)
+    {
+        std::cerr << "SDL_GetRendererOutputSize failed: " << SDL_GetError() << std::endl;
+        return nullptr;
+    }
+
+    // Allocate buffer for all pixels
+    std::vector<Uint32> pixels(w * h);
+
+    // Read from the **backbuffer**
+    if (SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA8888,
+        pixels.data(), w * sizeof(Uint32)) != 0)
+    {
+        std::cerr << "SDL_RenderReadPixels failed: " << SDL_GetError() << std::endl;
+        return nullptr;
+    }
+
+    // Create texture from pixel buffer
+    SDL_Texture* screen_texture = SDL_CreateTexture(renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STATIC,
+        w, h);
+    if (!screen_texture)
+    {
+        std::cerr << "SDL_CreateTexture failed: " << SDL_GetError() << std::endl;
+        return nullptr;
+    }
+
+    if (SDL_UpdateTexture(screen_texture, NULL, pixels.data(), w * sizeof(Uint32)) != 0)
+    {
+        std::cerr << "SDL_UpdateTexture failed: " << SDL_GetError() << std::endl;
+        SDL_DestroyTexture(screen_texture);
+        return nullptr;
+    }
+
+    return screen_texture;
 }
 
 
@@ -237,9 +275,9 @@ void Graphics::RenderGameItems(Player* player,
     for (int i = 0; i < enemies.size(); i++)
     {
         if (enemies.at(i)->GetDstRect()->x >= 0 &&
-            enemies.at(i)->GetDstRect()->x <= screen_width + enemies.at(i)->GetDstRect()->w &&
+            enemies.at(i)->GetDstRect()->x <= logical_width + enemies.at(i)->GetDstRect()->w &&
             enemies.at(i)->GetDstRect()->y + enemies.at(i)->GetDstRect()->h >= 0 &&
-            enemies.at(i)->GetDstRect()->y <= screen_height)
+            enemies.at(i)->GetDstRect()->y <= logical_height)
         {
 			enemies.at(i)->Draw(renderer, render_coll_boxes);
         }
@@ -253,28 +291,23 @@ void Graphics::RenderGameItems(Player* player,
     // PROJECTILES //
     for (int i = 0; i < game_projectiles.size(); i++)
     {
-        // IF PROJ IS INSIDE SCREEN
-        if (game_projectiles.at(i)->GetDstRect()->x >= 0 &&
-            game_projectiles.at(i)->GetDstRect()->x <= screen_width - game_projectiles.at(i)->GetDstRect()->w &&
-            game_projectiles.at(i)->GetDstRect()->y + game_projectiles.at(i)->GetDstRect()->h >= 0 &&
-            game_projectiles.at(i)->GetDstRect()->y <= screen_height)
-        {
+        SDL_Rect* r = game_projectiles.at(i)->GetDstRect();
+
+        // Check if completely outside logical screen
+        bool out_of_bounds = (r->x + r->w < 0) || (r->x > logical_width) ||
+            (r->y + r->h < 0) || (r->y > logical_height);
+
+        if (!out_of_bounds || dynamic_cast<LightningStrike*>(game_projectiles.at(i))) {
             game_projectiles.at(i)->Draw(renderer, render_coll_boxes);
         }
-        
-        else if(dynamic_cast<LightningStrike*>(game_projectiles.at(i))) //Lightning Strike is special, can ignore thie screen check
-        {
-            game_projectiles.at(i)->Draw(renderer, render_coll_boxes);
-        }
-        else
-        {
+        else {
             game_projectiles.at(i)->UpdateState("delete");
         }
         
     }
 
 	// PLAYER //
-    player->Draw(renderer, render_coll_boxes);
+    player->Draw(renderer, render_coll_boxes, logical_width, logical_height);
 
     //  UI //
     if (render_coll_boxes)
@@ -320,10 +353,20 @@ void Graphics::RenderText( const std::string& text, const SDL_Rect& rect, SDL_Co
 
 int Graphics::GetScreenWidth()
 {
-    return screen_width;
+    return logical_width;
 }
 
 int Graphics::GetScreenHeight()
+{
+    return logical_height;
+}
+
+int Graphics::GetTrueScreenWidth()
+{
+    return screen_width;
+}
+
+int Graphics::GetTrueScreenHeight()
 {
     return screen_height;
 }
@@ -351,7 +394,7 @@ void Graphics::BackgroundUpdate(Uint32 loop_flag)
     if (clouds1L_dest.y >= (screen_height)) 
     { 
         std::cout << "[*] loop_flaging cloud 1L back to the top\n";
-        clouds1L_dest.x = GenRandomNumber(-1200, -870);; //INSTEAD OF ALWAYS AT ORIGIN, 
+        clouds1L_dest.x = GenRandomNumber(static_cast<int>(-clouds1L_dest.w * 0.85), static_cast<int>(-clouds1L_dest.w * 0.45)); //INSTEAD OF ALWAYS AT ORIGIN, 
         clouds1L_dest.y = 0 - (clouds1L_dest.h / 2);
         cloud1L_speed = GenRandomNumber(4, 8);
     }
@@ -430,13 +473,13 @@ void Graphics::RenderDebugText(Player* player, Uint32 game_timer)
     std::string formatted_time = time_str;
     std::string game_timer_str = std::string("Time: ") + time_str;
 
-    RenderText(player_pos, { screen_width - static_cast<int>(player_pos.length()) * 12, 0, static_cast<int>(player_pos.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(player_damage, { screen_width - static_cast<int>(player_damage.length()) * 12, 30, static_cast<int>(player_damage.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(player_crit, { screen_width - static_cast<int>(player_crit.length()) * 12, 60, static_cast<int>(player_crit.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(player_health, { screen_width - static_cast<int>(player_health.length()) * 12, 90, static_cast<int>(player_health.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(player_speed, { screen_width - static_cast<int>(player_speed.length()) * 12, 120, static_cast<int>(player_speed.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(state, { screen_width - static_cast<int>(state.length()) * 12, 150, static_cast<int>(state.length()) * 12, 30 }, { 0,0,0,0 });
-    RenderText(game_timer_str, { screen_width - static_cast<int>(game_timer_str.length()) * 12, 180, static_cast<int>(game_timer_str.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(player_pos, { logical_width - static_cast<int>(player_pos.length()) * 6, 0, static_cast<int>(player_pos.length()) * 6, 15 }, { 0,0,0,0 });
+    RenderText(player_damage, { logical_width - static_cast<int>(player_damage.length()) * 6, 15, static_cast<int>(player_damage.length()) * 6, 15 }, { 0,0,0,0 });
+    RenderText(player_crit, { logical_width - static_cast<int>(player_crit.length()) * 6, 30, static_cast<int>(player_crit.length()) * 6, 15 }, { 0,0,0,0 });
+    RenderText(player_health, { logical_width - static_cast<int>(player_health.length()) * 6, 45, static_cast<int>(player_health.length()) * 6, 15 }, { 0,0,0,0 });
+    RenderText(player_speed, { logical_width - static_cast<int>(player_speed.length()) * 6, 60, static_cast<int>(player_speed.length()) * 6, 15 }, { 0,0,0,0 });
+    RenderText(state, { logical_width - static_cast<int>(state.length()) * 6, 75, static_cast<int>(state.length()) * 6, 15 }, { 0,0,0,0 });
+    RenderText(game_timer_str, { logical_width - static_cast<int>(game_timer_str.length()) * 6, 90, static_cast<int>(game_timer_str.length()) * 6, 15 }, { 0,0,0,0 });
 
 }
 
@@ -447,7 +490,7 @@ void Graphics::RenderPlayerUI(Player* player)
 
     //POINTS
     std::string points = std::string("Points:") + std::to_string(player->GetPoints());
-    RenderText(points, { screen_width / 2 - static_cast<int>(points.length()) * 12, 0, static_cast<int>(points.length()) * 12, 30 }, { 0,0,0,0 });
+    RenderText(points, { logical_width / 2 - static_cast<int>(points.length()) * 6 / 2, 0, static_cast<int>(points.length()) * 6, 15 }, { 0,0,0,0 });
 }
 
 SDL_Renderer* Graphics::GetRenderer()

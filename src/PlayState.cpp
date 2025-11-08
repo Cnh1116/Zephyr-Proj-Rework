@@ -4,8 +4,6 @@
 #include <iostream>
 
 
-int WINDOW_HEIGHT_prime = 1080;
-int WINDOW_WIDTH_prime = 1920;
 
 void PlayState::Enter(Game* game) 
 {
@@ -42,7 +40,7 @@ void PlayState::Update(Game* game, float dt)
     game->GetGraphics().BackgroundUpdate(game->GetLoopFlag());
 
     // Player
-    game->GetPlayer().Update(WINDOW_WIDTH_prime, WINDOW_HEIGHT_prime, game->GetLoopFlag(), time_delta, game->GetSoundManager());
+    game->GetPlayer().Update(game->GetGraphics().GetScreenWidth(), game->GetGraphics().GetScreenHeight(), game->GetLoopFlag(), time_delta, game->GetSoundManager());
     if (game->GetPlayer().GetCurrentHealth() <= 0)
         game->Quit();
 
@@ -61,7 +59,7 @@ void PlayState::Update(Game* game, float dt)
     // Enemies
     for (int i = 0; i < game->GetEnemies().size();)
     {
-        game->GetEnemies()[i]->Update(&game->GetPlayer(), game->GetProjectiles(), game->GetSoundManager());
+        game->GetEnemies()[i]->Update(&game->GetPlayer(), game->GetProjectiles(), game->GetSoundManager(), game->GetGraphics().GetScreenWidth(), game->GetGraphics().GetScreenHeight());
         if (game->GetEnemies()[i]->GetState() == "delete")
         {
             delete game->GetEnemies()[i];
@@ -70,7 +68,7 @@ void PlayState::Update(Game* game, float dt)
         else ++i;
     }
 
-    game->GetItemManager().UpdateItemList();
+    game->GetItemManager().UpdateItemList(game->GetGraphics().GetScreenWidth(), game->GetGraphics().GetScreenHeight());
     game->GetOverlayTextManager().Update();
 
     game->FPSLogic(current_tick);

@@ -13,7 +13,7 @@ enum PauseMenuOptions
 
 void MenuState::Enter(Game* game)
 {
-   
+    game->GetSoundManager().StopSoundChannel(-1);
 }
 
 void MenuState::HandleInput(Game* game)

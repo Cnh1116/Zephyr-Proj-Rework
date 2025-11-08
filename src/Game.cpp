@@ -10,9 +10,21 @@
 
 
 
-int PIXEL_SCALE = 4;
+int PIXEL_SCALE = 1;
+int LOGICAL_WIDTH = 640;
+int LOGICAL_HEIGHT = 360;
+
+
+//int WINDOW_WIDTH = 2560;
+//int WINDOW_HEIGHT = 1440;
+
 int WINDOW_WIDTH = 1920;
 int WINDOW_HEIGHT = 1080;
+
+//int WINDOW_WIDTH = 640;
+//int WINDOW_HEIGHT = 360;
+
+
 float MAX_FPS = 120.0;
 
 
@@ -21,7 +33,7 @@ SDL_Color damage_number_color = { 212, 47, 47, 255 };
 SDL_Color heal_number_color= { 44, 214, 58, 255 };
 
 Game::Game() // Game constructor acts as my INIT function for the game.
-    : graphics_manager(new Graphics("Main Window", WINDOW_WIDTH, WINDOW_HEIGHT, PIXEL_SCALE)), //Screen name, dimensions and pixel scale
+    : graphics_manager(new Graphics("Zephyr the Avenger", LOGICAL_WIDTH, LOGICAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, PIXEL_SCALE)), //Screen name, dimensions and pixel scale
       sound_manager(new SoundManager()),
 	  animation_manager(new AnimationManager(graphics_manager->GetRenderer())),
       game_over(false),
@@ -332,6 +344,7 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                 if (auto* slash_projectile = dynamic_cast<Slash*>(game_projectiles.at(i)))
                 {
 
+
                     if (slash_projectile->critical and !slash_projectile->impact_sound_played)
                     {
                         if (!slash_projectile->damage_applied)
@@ -353,7 +366,10 @@ void Game::HandleCollisions(Player* player, std::vector<Projectile*> &game_proje
                     }
                     if (!slash_projectile->overlay_added)
                     {
-                        enemies.at(k)->AddOverlayAnimation(animation_manager->Get("proj-zephyr-slash", "impact"));
+                        if (slash_projectile->GetLeftFlag())
+                            enemies.at(k)->AddOverlayAnimation(animation_manager->Get("proj-zephyr-slash", "impact"));
+                        else
+                            enemies.at(k)->AddOverlayAnimation(animation_manager->Get("proj-zephyr-slash", "impact_right"));
                         slash_projectile->SetOverlayAdded(true);
                         if (render_coll_boxes)
                         {
@@ -443,13 +459,13 @@ void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
                 std::uniform_int_distribution<> distrib_x(0, graphics_manager->GetScreenWidth());
                 int random_location_x = distrib_x(gen);
 
-                std::uniform_int_distribution<> distrib_y(0, 200);
+                std::uniform_int_distribution<> distrib_y(0, static_cast<int>(graphics_manager->GetScreenHeight() * 0.15));
                 int random_location_y = distrib_y(gen);
                 enemies.emplace_back(new IceCrystal(*animation_manager,
                                                     { random_location_x,
                                                       random_location_y,
-                                                      64 * 3,
-                                                      64 * 3 }));
+                                                      1,
+                                                      1}));
                 break;
             }
 
@@ -473,8 +489,8 @@ void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
                 enemies.emplace_back(new StormGenie(*animation_manager, 
                                                     { random_location_x,
                                                       random_location_y,
-                                                      64 * 3,
-                                                      64 * 3 }));
+                                                      1,
+                                                      1}));
                 break;
             }
             default:
@@ -506,7 +522,7 @@ void Game::ResetGame()
 
     item_manager->GetItemList()->clear();
 
-	player.ResetPlayer(1920, 1080);
+	player.ResetPlayer(graphics_manager->GetScreenWidth(), graphics_manager->GetScreenHeight());
 	game_over = false;
 	loop_flag = 0;
 

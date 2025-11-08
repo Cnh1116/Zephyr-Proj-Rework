@@ -19,8 +19,8 @@ SoundManager::SoundManager()
         exit(1);
     }
 
-    std::cout << "[*] Allocating 32 channels for sound!\n";
-    Mix_AllocateChannels(32); //8 Player, 16 Enemies, 8 items
+    std::cout << "[*] Allocating 64 channels for sound!\n";
+    Mix_AllocateChannels(64); //8 Player, 16 Enemies, 8 items
     
     // Player Sounds
     LoadSoundEffect("player_primary_fire", "assets/sounds/player-sounds/primary-fire.wav");

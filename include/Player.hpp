@@ -26,7 +26,7 @@ class Player
 
         //UPDATE
         void Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 tick, SoundManager& sound_manager);
-        void Draw(SDL_Renderer* renderer, bool collision_box_flag);
+        void Draw(SDL_Renderer* renderer, bool collision_box_flag, int screen_width, int screen_height);
         void SetInput(float dx, float dy) { input_dx = dx; input_dy = dy; };
         void AddOverlayAnimation(Animation* animation);
 
@@ -116,7 +116,7 @@ class Player
     
     private:
         //STATS
-		float BASE_SPEED = 5.0f;
+		float BASE_SPEED = 2.0f;
         float base_speed = BASE_SPEED;
         float current_speed = base_speed;
 
@@ -128,9 +128,9 @@ class Player
 		float input_dx = 0.0f;
 		float input_dy = 0.0f;
 
-        float accel = 0.03f;     // acceleration rate
+        float accel = 0.3f;     // acceleration rate
         float base_accel = accel;
-        float decel = 0.001f;     // deceleration rate
+        float decel = 0.01f;     // deceleration rate
         float max_speed = 5.0f; // max movement speed
         
         int BASE_DAMAGE = 20.0;
@@ -170,8 +170,8 @@ class Player
         Uint32 dash_cooldown_ms = 1500;
         Uint32 last_dash_time = SDL_GetTicks() - dash_cooldown_ms;
         Uint32 dash_duration = 230;
-        float dash_accel = 0.3f;
-        float dash_speed = 8.0;
+        float dash_accel = 0.31;
+        float dash_speed = 4.0;
         bool dash_overlay_added = false;
 		SDL_Rect dash_overlay_dest_rect;
         float dash_overlay_angle;
@@ -180,6 +180,7 @@ class Player
         {
             Uint32 last_fire_time = 0;
             Uint32 cooldown_time_ms = 350; //ms
+            float bullet_speed = 1.7;
         };
         Primary_fire primary_fire;
 
@@ -190,6 +191,7 @@ class Player
             bool ready;
             Collider marker_col_rect = Collider({ 0, 0, 0, 0 });
             SDL_Rect marker_dest_rect;
+            float marker_pos_y;
             
 
             //HUD VARIABLES
@@ -201,7 +203,8 @@ class Player
             // STATS
             Uint32 cooldown_time_ms = 1500;
             Uint32 last_fire_time = SDL_GetTicks() - cooldown_time_ms;
-            float speed = 1.7;
+            float speed = 0.6;
+            float item_speed = 0.6;
         };
         Secondary_fire secondary_fire;
 

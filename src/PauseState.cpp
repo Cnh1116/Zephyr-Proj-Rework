@@ -86,7 +86,10 @@ void PauseState::Render(Game* game)
 
 
     SDL_SetRenderTarget(renderer, nullptr);
-    SDL_RenderCopy(renderer, screen_texture, nullptr, nullptr);;
+	std::cout << "Rendering pause screen texture.\n";
+    SDL_RenderCopy(renderer, screen_texture, nullptr, nullptr);
+	std::cout << "Rendered pause screen texture.\n";
+
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 128);

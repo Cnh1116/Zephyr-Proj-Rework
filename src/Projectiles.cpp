@@ -97,17 +97,24 @@ std::string Projectile::GetPrintableDamage()
 }
 
 // PRIMARY FIRE
-PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, float projectile_damage, int PIXEL_SCALE, bool critical_flag)
-    : Projectile(animation_manager, {(dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE}, projectile_speed, projectile_damage, true, true, false)
+PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& dest_rect_arg, float projectile_speed, float projectile_damage, int PIXEL_SCALE, bool critical_flag)
+    : Projectile(animation_manager, {(dest_rect_arg.x + dest_rect_arg.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect_arg.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE}, projectile_speed, projectile_damage, true, true, false)
 {
 
     critical = critical_flag;
     sound_effect_noise = 20;
     current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-primary", "main"));
+    
+	dest_rect.x = (dest_rect_arg.x + dest_rect_arg.w / 2) - (current_animation->GetFrameWidth() * current_animation->GetScale() / 2);
+	dest_rect.y = dest_rect_arg.y;
+    pos_y = dest_rect.y;
+    dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+    dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
     collision_shape.type = ColliderType::CIRCLE;
 	collision_shape.circle.x = dest_rect.x + dest_rect.w / 2;
     collision_shape.circle.y = dest_rect.y + dest_rect.h / 2;
     collision_shape.circle.r = dest_rect.w / 4;
+
     
     if (!critical)
         sound_effect_impact = "player_primary_fire_impact";
@@ -124,7 +131,8 @@ PrimaryFire::PrimaryFire(AnimationManager& animation_manager, const SDL_Rect& de
 
 void PrimaryFire::MoveProjectile() 
 {
-    dest_rect.y -= speed;
+	pos_y -= speed;
+    dest_rect.y = static_cast<int>(pos_y);
     collision_shape.circle.y = dest_rect.y;
 }
 
@@ -193,10 +201,15 @@ void PrimaryFire::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 }
 
 // SECONDARY FIRE
-SecondaryFire::SecondaryFire(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE)
-    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, 0.0f, true, true, false)
+SecondaryFire::SecondaryFire(AnimationManager& animation_manager, const SDL_Rect& dest_rect_arg, float projectile_speed, int PIXEL_SCALE)
+    : Projectile(animation_manager, { (dest_rect_arg.x + dest_rect_arg.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect_arg.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, 0.0f, true, true, false)
 {
     current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-secondary", "main"));
+    dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+    dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
+	dest_rect.x = (dest_rect_arg.x + dest_rect_arg.w / 2) - (dest_rect.w / 2);
+    pos_y = dest_rect.y;
+
     sound_effect_noise = 20;
 	collision_shape.type = ColliderType::CIRCLE;
 }
@@ -219,16 +232,22 @@ void SecondaryFire::Update()
         if (current_animation->GetName() != "proj-zephyr-secondary-impact")
         {
             current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-zephyr-secondary", "impact"));
+
         }
         
-        
-        //Laterally Middle of current sizing minus half width of new smaller size
-        dest_rect.x = (dest_rect.x + dest_rect.w / 2) - (32 * 2 / 2);
-        dest_rect.y = (dest_rect.y + dest_rect.h / 2) - (32 * 2 / 2);
+        // Store old center
+        int old_center_x = dest_rect.x + dest_rect.w / 2;
+        int old_center_y = dest_rect.y + dest_rect.h / 2;
 
-        dest_rect.w = 32 * 2;
-        dest_rect.h = 32 * 2;
-        speed = -1;
+        // Set new size
+        dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+        dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
+
+        // Re-center
+        dest_rect.x = old_center_x - dest_rect.w / 2;
+        dest_rect.y = old_center_y - dest_rect.h / 2;
+
+        speed = -0.6;
     }
     if (state == "impact" && current_animation->IsFinished())
     {
@@ -244,7 +263,8 @@ void SecondaryFire::Update()
 
 void SecondaryFire::MoveProjectile() 
 {
-    dest_rect.y -= speed;
+    pos_y -= speed;
+    dest_rect.y = static_cast<int>(pos_y);
     collision_shape.circle.x = (dest_rect.x + dest_rect.w / 2);
     collision_shape.circle.y = (dest_rect.y + dest_rect.h / 2);
 	collision_shape.circle.r = dest_rect.w / 4;
@@ -284,16 +304,18 @@ Slash::Slash(AnimationManager& animation_manager, SDL_Rect& dest_rect_arg, float
     collision_shape.type = ColliderType::RECT;
 	left_flag = left_flag_arg;
 
+
+
     player_dest_rect = &dest_rect_arg;
 
     //float perc_thinner = 0.8;
 	
     if (left_flag)
     {
-        dest_rect.x = dest_rect.x - current_animation->GetFrameWidth();
-        dest_rect.y = dest_rect.y + (dest_rect.y / 2) - current_animation->GetFrameHeight();
-        dest_rect.w = current_animation->GetFrameWidth();
-        dest_rect.h = current_animation->GetFrameHeight();
+        dest_rect.x = dest_rect.x - current_animation->GetFrameWidth() * current_animation->GetScale();
+        dest_rect.y = dest_rect.y + (dest_rect.y / 2) - current_animation->GetFrameHeight() * current_animation->GetScale();
+        dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+        dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
         
         collision_shape.rect = dest_rect;
     }
@@ -301,9 +323,9 @@ Slash::Slash(AnimationManager& animation_manager, SDL_Rect& dest_rect_arg, float
     else
     {
 		dest_rect.x = dest_rect.x + dest_rect.w;
-        dest_rect.y = dest_rect.y + (dest_rect.y / 2) - current_animation->GetFrameHeight();
-        dest_rect.w = current_animation->GetFrameWidth();
-        dest_rect.h = current_animation->GetFrameHeight();
+        dest_rect.y = dest_rect.y + (dest_rect.y / 2) - current_animation->GetFrameHeight() * current_animation->GetScale();
+        dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+        dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
         collision_shape.rect = dest_rect;
 
     }
@@ -318,8 +340,8 @@ Slash::Slash(AnimationManager& animation_manager, SDL_Rect& dest_rect_arg, float
 
 void Slash::MoveProjectile()
 {
-    int proj_w = current_animation->GetFrameWidth();
-    int proj_h = current_animation->GetFrameHeight();
+    int proj_w = current_animation->GetFrameWidth() * current_animation->GetScale();
+    int proj_h = current_animation->GetFrameHeight() * current_animation->GetScale();
 
     // Set dest_rect normally (visual stays same)
     dest_rect.w = proj_w;
@@ -354,6 +376,12 @@ void Slash::Update()
         }
         MoveProjectile();
 
+    }
+
+    if (current_animation->GetCurrentFrameIndex() > 0)
+    {
+        collision_shape.rect.w = 0;
+        collision_shape.rect.h = 0;
     }
 
     if (current_animation->IsFinished())
@@ -401,8 +429,8 @@ void Slash::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
 // ICE SHARD
 
-IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, bool shiny)
-    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false, shiny)
+IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rect_arg, float projectile_speed, int PIXEL_SCALE, float damage, bool shiny)
+    : Projectile(animation_manager, { (dest_rect_arg.x + dest_rect_arg.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect_arg.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false, shiny)
 {
     sound_effect_impact = "ice_shard_impact";
     sound_effect_noise = 20;
@@ -415,6 +443,8 @@ IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rec
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "spawn_shiny"));
     else
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "spawn"));
+	dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+	dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
 }
 void IceShard::MoveProjectile()
 {
@@ -494,8 +524,8 @@ void IceShard::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
 // LIGHTNING BALL
 
-LightningBall::LightningBall(AnimationManager& animation_manager, const SDL_Rect& dest_rect, float projectile_speed, int PIXEL_SCALE, float damage, int player_x, int player_y, bool shiny)
-    : Projectile(animation_manager, { (dest_rect.x + dest_rect.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false, shiny)
+LightningBall::LightningBall(AnimationManager& animation_manager, const SDL_Rect& dest_rect_arg, float projectile_speed, int PIXEL_SCALE, float damage, int player_x, int player_y, bool shiny)
+    : Projectile(animation_manager, { (dest_rect_arg.x + dest_rect_arg.w / 2) - (32 * PIXEL_SCALE / 2), dest_rect_arg.y, 32 * PIXEL_SCALE, 32 * PIXEL_SCALE }, projectile_speed, damage, false, false, shiny)
 {
     sound_effect_impact = "lightning_ball_impact";
     sound_effect_noise = 80;
@@ -505,6 +535,8 @@ LightningBall::LightningBall(AnimationManager& animation_manager, const SDL_Rect
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main_shiny"));
     else
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-cloud-attack", "main"));
+	dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+	dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
     
     float delta_x = static_cast<double>(player_x) - (dest_rect.x + (dest_rect.w / 2));
     float delta_y = static_cast<double>(player_y) - (dest_rect.y + (dest_rect.h / 2));
@@ -602,8 +634,8 @@ void LightningBall::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 
 // Lightning Strike ===============================================
 
-LightningStrike::LightningStrike(AnimationManager& animation_manager, const SDL_Rect& dest_rect, int PIXEL_SCALE, float damage, bool right_flag_arg, bool shiny)
-    : Projectile(animation_manager, dest_rect, 0, damage, false, false, shiny)
+LightningStrike::LightningStrike(AnimationManager& animation_manager, const SDL_Rect& dest_rect_arg, int PIXEL_SCALE, float damage, bool right_flag_arg, bool shiny)
+    : Projectile(animation_manager, dest_rect_arg, 0, damage, false, false, shiny)
 {
     sound_effect_impact = "lightning_strike_impact";
     sound_effect_noise = 80;
@@ -625,8 +657,9 @@ LightningStrike::LightningStrike(AnimationManager& animation_manager, const SDL_
             current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left_shiny"));
         else
             current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-storm-genie-attack", "storm-genie-attack-left"));
-        
     }
+	dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
+	dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale(); 
 }
 void LightningStrike::MoveProjectile()
 {
@@ -640,7 +673,7 @@ void LightningStrike::Update()
 
     if (state == "main")
     {
-        float perc_thinner = 0.35;
+        float perc_thinner = 0.27;
         int new_height = static_cast<int>(dest_rect.h * perc_thinner);
         int new_y_pos = dest_rect.y + (dest_rect.h - new_height) / 2;  // center it vertically
         

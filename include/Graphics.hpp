@@ -22,7 +22,7 @@ class Graphics
 {
 public:
     // Constructor
-    Graphics(const char* title, int width, int height, int pixel_scale);
+    Graphics(const char* title, int logical_width, int logical_height, int width, int height, int pixel_scale);
     ~Graphics();
 
     //Window Manipulation
@@ -60,6 +60,8 @@ public:
 
     int GetScreenHeight();
     int GetScreenWidth();
+    int GetTrueScreenWidth();
+    int GetTrueScreenHeight();
 
     SDL_Renderer* GetRenderer();
 
@@ -76,6 +78,8 @@ private:
     SDL_Rect clouds1L_dest, clouds1R_dest,  clouds2L_dest, clouds2R_dest, clouds3L_dest, clouds3R_dest;
     int clouds1_animation_index;
 
+    int logical_width;
+    int logical_height;
     int screen_width;
     int screen_height;
     int pixel_scale;

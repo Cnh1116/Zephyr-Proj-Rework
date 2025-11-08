@@ -93,6 +93,8 @@ class PrimaryFire : public Projectile
         void Update() override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
         bool critical;
+    private:
+        float pos_y;
 
 };
 
@@ -103,6 +105,8 @@ class SecondaryFire : public Projectile
         void MoveProjectile() override;
         void Update() override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
+    private:
+        float pos_y;
 };
 
 class Slash: public Projectile
@@ -117,6 +121,7 @@ public:
     void SetImpactSoundPlayed(bool played) { impact_sound_played = played; }
 	bool GetDamageApplied() { return damage_applied; }
 	void SetDamageApplied(bool applied) { damage_applied = applied; }
+	bool GetLeftFlag() { return left_flag; }
     bool critical;
     bool sound_played = false;
     bool overlay_added = false;

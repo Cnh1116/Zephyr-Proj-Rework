@@ -18,7 +18,7 @@ std::vector<ItemManager::item>* ItemManager::GetItemList()
     return &item_list;
 }
 
-void ItemManager::UpdateItemList()
+void ItemManager::UpdateItemList(int screen_width, int screen_height)
 {
     Uint32 current_time = SDL_GetTicks();
 
@@ -28,8 +28,9 @@ void ItemManager::UpdateItemList()
         // RANDOM X LOCATION
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_int_distribution<> distrib(0, 2000);
+        std::uniform_int_distribution<> distrib(static_cast<float>(screen_width) * 0.10, static_cast<float>(screen_width) * 0.90);
         int x_spawn_location = distrib(gen);
+
 
 
         // RANDOM ITEM ID
@@ -66,12 +67,13 @@ void ItemManager::UpdateItemList()
         new_item.current_animation = std::make_unique<Animation>(*animation_manager->Get("items", item_to_spawn));
         new_item.overlay_animations.emplace_back(std::make_unique<Animation>(*animation_manager->Get("overlays", "heal")));
         new_item.item_cloud_animation = std::make_unique<Animation>(*animation_manager->Get("items", "cloud"));
+        new_item.pos_y = 0;
         
         
 
         // SPAWN LOCATION
         SDL_Rect spawn_location = {     x_spawn_location, 
-                                        0, 
+                                        new_item.pos_y, 
                                         32,
                                         32 };
 
@@ -79,14 +81,14 @@ void ItemManager::UpdateItemList()
 
         SDL_Rect cloud_dest_rect = {    spawn_location.x,
                                         spawn_location.y,
-                                        new_item.item_cloud_animation->GetFrameWidth(),
-                                        new_item.item_cloud_animation->GetFrameHeight() };
+                                        new_item.item_cloud_animation->GetFrameWidth() * new_item.item_cloud_animation->GetScale(),
+                                        new_item.item_cloud_animation->GetFrameHeight()* new_item.item_cloud_animation->GetScale() };
 
 
-        SDL_Rect item_dest_rect = {     cloud_dest_rect.x + (cloud_dest_rect.w - static_cast<int>(new_item.current_animation->GetFrameWidth() * 2)) / 2,
-                                        cloud_dest_rect.y + (cloud_dest_rect.h - static_cast<int>(new_item.current_animation->GetFrameHeight() * 2)) / 2,
-                                        new_item.current_animation->GetFrameWidth() * 2,
-                                        new_item.current_animation->GetFrameHeight() * 2};
+        SDL_Rect item_dest_rect = {     cloud_dest_rect.x + (cloud_dest_rect.w / 2) - (new_item.current_animation->GetFrameWidth() * new_item.current_animation->GetScale() / 2),
+                                        cloud_dest_rect.y + (cloud_dest_rect.h / 2) - (new_item.current_animation->GetFrameHeight() * new_item.current_animation->GetScale() / 2),
+                                        new_item.current_animation->GetFrameWidth() * new_item.current_animation->GetScale(),
+                                        new_item.current_animation->GetFrameHeight()* new_item.current_animation->GetScale() };
         
         
         new_item.item_cloud_dest_rect = cloud_dest_rect;
@@ -106,9 +108,15 @@ void ItemManager::UpdateItemList()
 
     for (int i = 0; i < item_list.size(); i++)
     {  
-        item_list.at(i).item_dest_rect.y += 1;
-        item_list.at(i).item_cloud_dest_rect.y += 1;
-        item_list.at(i).item_cloud_coll_shape.circle.y += 1;
+        
+        item_list.at(i).pos_y += ITEM_SPEED;
+        
+        item_list.at(i).item_cloud_dest_rect.y = static_cast<int>(item_list.at(i).pos_y);
+
+        item_list.at(i).item_dest_rect.y = item_list.at(i).item_cloud_dest_rect.y + item_list.at(i).item_cloud_dest_rect.h / 2 - (item_list.at(i).item_dest_rect.h / 2);
+        
+        
+        item_list.at(i).item_cloud_coll_shape.circle.y = item_list.at(i).item_dest_rect.y + (item_list.at(i).item_dest_rect.h / 2);
 
 
     }
