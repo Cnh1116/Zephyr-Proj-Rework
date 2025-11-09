@@ -67,7 +67,7 @@ void ItemManager::UpdateItemList(int screen_width, int screen_height)
         new_item.current_animation = std::make_unique<Animation>(*animation_manager->Get("items", item_to_spawn));
         new_item.overlay_animations.emplace_back(std::make_unique<Animation>(*animation_manager->Get("overlays", "heal")));
         new_item.item_cloud_animation = std::make_unique<Animation>(*animation_manager->Get("items", "cloud"));
-        new_item.pos_y = 0;
+        new_item.pos_y = -64;
         
         
 
@@ -115,7 +115,6 @@ void ItemManager::UpdateItemList(int screen_width, int screen_height)
 
         item_list.at(i).item_dest_rect.y = item_list.at(i).item_cloud_dest_rect.y + item_list.at(i).item_cloud_dest_rect.h / 2 - (item_list.at(i).item_dest_rect.h / 2);
         
-        
         item_list.at(i).item_cloud_coll_shape.circle.y = item_list.at(i).item_dest_rect.y + (item_list.at(i).item_dest_rect.h / 2);
 
 
@@ -130,7 +129,6 @@ void ItemManager::DrawItems(SDL_Renderer* renderer, bool collision_box_flag, int
     {
         if (item_list.at(i).item_dest_rect.x >= 0 &&
             item_list.at(i).item_dest_rect.x <= screen_width - item_list.at(i).item_dest_rect.w &&
-            item_list.at(i).item_dest_rect.y + item_list.at(i).item_dest_rect.h >= 0 &&
             item_list.at(i).item_dest_rect.y <= screen_height)
         {
             item_list.at(i).item_cloud_animation->Draw(renderer, item_list.at(i).item_cloud_dest_rect);

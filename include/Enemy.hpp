@@ -49,7 +49,7 @@ class Enemy
         int image_scale;
         
         bool shiny;
-		float SHINY_CHANCE = 50.0f;
+		float SHINY_CHANCE = 0.05f;
         bool shiny_sound_played = false;
 
         // ANIMATIONS
@@ -85,10 +85,10 @@ class IceCrystal : public Enemy
         bool WaitDone();
         void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
+        void UpdateSwing();
 
 private:
     bool added_death_animation = false;
-    float target_x = 0;
     int num_proj_shot = 0;
     int max_proj_shot = 4;
     Uint32 bullet_rate = 100;
@@ -96,15 +96,31 @@ private:
     
     Uint32 last_wait_time;
 	Uint32 wait_duration = 1000;
-    float velocity = 0.05f;
+
+    int player_distance_threshold = 10;
 
 	// Movement Parameters
-    const float stiffness = 1.1f;
-    const float damping = 0.7f;
-    const float hover_amp = 1.5f;
-    const float hover_freq = 0.07f;
-    const float dead_zone = 40.0f;
+    float target_x = 0;
+    float old_target_x = 0;
+    bool do_swing = false;
+
+    float acceleration = 0.04f;
+    float deceleration = 0.0005f;  
+    float max_speed = 1.4f;   
+    float velocity = 0.0f;   
+    float dead_zone; 
     float posX = 0.0f;
+
+    int direction;
+
+    bool going_down = false;
+    float distance_to_swing = 100.0f;
+    double swing_angle = 0.0;         // current rotation angle
+	double max_swing_angle = 60.0; // maximum swing angle
+    double BASE_STEP_ANGLE = 3.0;
+    double step_angle = BASE_STEP_ANGLE;        // angle change per update
+	double scale_factor = 0.80;          // scale factor for size change
+    bool swinging_initialized = false;
 };
 
 class StormCloud : public Enemy

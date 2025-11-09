@@ -21,8 +21,8 @@ OverlayText::OverlayText(   SDL_Renderer* renderer,
     SDL_FreeSurface(surf);
 
     last_tick = SDL_GetTicks();
-    offset_y = -0.04f - (rand() % 10) / 300.0f;
-    velocity_y = -0.04f - (rand() % 10) / 300.0f; // slightly random speed
+    offset_y = -0.04f - (rand() % 10) / 500.0f;
+    velocity_y = -0.04f - (rand() % 10) / 500.0f; // slightly random speed
     last_tick = SDL_GetTicks();
 
     SDL_QueryTexture(texture, nullptr, nullptr, &dest.w, &dest.h);
@@ -42,8 +42,8 @@ OverlayText::OverlayText(SDL_Renderer* renderer, TTF_Font* font,
     SDL_FreeSurface(surf);
 
     last_tick = SDL_GetTicks();
-    offset_y = -0.04f - (rand() % 10) / 300.0f;
-    velocity_y = -0.04f - (rand() % 10) / 300.0f; // slightly random speed
+    offset_y = -0.04f - (rand() % 10) / 500.0f;
+    velocity_y = -0.04f - (rand() % 10) / 500.0f; // slightly random speed
     last_tick = SDL_GetTicks();
 
     SDL_QueryTexture(texture, nullptr, nullptr, &dest.w, &dest.h);

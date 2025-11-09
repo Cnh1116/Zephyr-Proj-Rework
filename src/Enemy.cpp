@@ -120,7 +120,7 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 
 void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, int screen_width, int screen_height)
 {
-	int player_distance_threshold = 40;
+	
 	//std::cout << "ICE STATE: " << "---------------------------------------------------" << state << std::endl;
 	
 	if (state == "idle")
@@ -130,8 +130,15 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 			sound_manager.PlaySound("shiny", 50);
 			shiny_sound_played = true;
 		}
+
+		velocity = 0.0f;
 		
 		int lateral_diff = abs(enemy_dest_rect.x - player->GetDstRect()->x);
+		if (lateral_diff > distance_to_swing)
+		{
+			do_swing = true;
+			step_angle = BASE_STEP_ANGLE;
+		}
 
 		if (lateral_diff <= player_distance_threshold)
 		{
@@ -141,14 +148,18 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 		}
 		else
 		{
+			old_target_x = target_x;
+			std::cout << "[*] Player X: " << player->GetDstRect()->x << " Enemy X: " << enemy_dest_rect.x << std::endl;
 			target_x = static_cast<float>(player->GetDstRect()->x);
+			direction = (target_x - enemy_dest_rect.x > 0) ? 1 : -1;
 			state = "move";
 		}
 	}
 
-	if (state == "wait" && this->WaitDone())
+	if (state == "wait")
 	{
-		state = "idle";
+		if (this->WaitDone())
+			state = "idle";
 	}
 	
 	if (state == "move")
@@ -183,6 +194,7 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 
 	if (state == "death")
 	{
+		swing_angle = 0.0;
 		enemy_coll_shape.circle.r = 0;
 		enemy_coll_shape.circle.x = 0;
 		enemy_coll_shape.circle.y = 0;
@@ -215,38 +227,62 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 	{
 		animation->Update();
 	}
-	
-	
+
+	UpdateSwing();
 }
 
 void IceCrystal::Move(Player* player, int screen_width, int screen_height)
 {
-	float max_speed = 0.01f * screen_width;
-	
+
 	float diff = target_x - posX;
+	float distance = fabsf(diff);
+	float direction = (diff > 0 ? 1.0f : -1.0f);
+	dead_zone = diff * 0.25;
 
-	float norm_diff = diff / screen_height;
-	float hover_offset;
+	
 
-	if (fabs(diff) > dead_zone)
-		velocity = velocity * damping + norm_diff * stiffness;
+	// Slow-down zone begins this distance away from target
+	float slow_range = 100.0f;    // tune this like "braking radius"
 
+	if (distance > dead_zone)
+	{
+		// accelerate toward target
+		velocity += direction * acceleration;
+	}
 	else
 	{
-		velocity *= 0.0f;
-		hover_offset = 0.0f;
+		// ---------------------------------------------------------
+		// Scale deceleration by how close we are
+		// ---------------------------------------------------------
+		float proximity = 1.0f - (distance / slow_range);
+		if (proximity < 0.0f) proximity = 0.0f;
+		if (proximity > 1.0f) proximity = 1.0f;
+
+		float scaled_deccel = deceleration * proximity;
+
+		// Apply braking gradually
+		if (velocity > 0.0f)
+		{
+			velocity -= scaled_deccel;
+			if (velocity < 0.0f) velocity = 0.0f;
+		}
+		else if (velocity < 0.0f)
+		{
+			velocity += scaled_deccel;
+			if (velocity > 0.0f) velocity = 0.0f;
+		}
 	}
 
+	// clamp speed
 	if (velocity > max_speed) velocity = max_speed;
 	if (velocity < -max_speed) velocity = -max_speed;
 
+	// apply movement
 	posX += velocity;
-
 	enemy_dest_rect.x = static_cast<int>(posX);
 
-	int coll_box_width = enemy_dest_rect.w / 3;
-	int coll_box_hight = enemy_dest_rect.h / 3;
-	
+
+	enemy_dest_rect.x = static_cast<int>(posX);
 	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
 	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);
 	enemy_coll_shape.circle.r = enemy_dest_rect.w / 5;
@@ -307,7 +343,6 @@ void IceCrystal::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 	std::string texture_key = shiny ? "spawn_shiny" : "spawn";
 	int proj_w = animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameWidth() * animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetScale();
 	int proj_h = animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetFrameHeight() * animation_manager.Get("proj-ice-crystal-attack", texture_key)->GetScale();
-	std::cout << "[*] PROJECTILE SIZE: " << proj_w << "x" << proj_h << "=============================================" << std::endl;
 
 	// Base center position
 	int enemy_center_x = enemy_dest_rect.x + enemy_dest_rect.w / 2;
@@ -324,8 +359,65 @@ void IceCrystal::Attack(std::vector<Projectile*>& game_projectiles, Player* play
 	SDL_Rect ice_shard_dest = { final_x, final_y, proj_w, proj_h };
 
 	game_projectiles.emplace_back(
-		new IceShard(animation_manager, ice_shard_dest, 2.0, 3, base_damage, shiny)
+		new IceShard(animation_manager, ice_shard_dest, 1.3, 3, base_damage, shiny)
 	);
+}
+
+void IceCrystal::UpdateSwing()
+{	
+	if (!do_swing)
+		return;
+
+	// Determine direction if not already set
+	if (!swinging_initialized)
+	{
+		direction = (target_x - enemy_dest_rect.x >= 0) ? 1 : -1;
+		swinging_initialized = true;
+	}
+
+	// Apply swing
+	if (!going_down)
+	{
+		// Accelerate toward max angle
+		swing_angle += step_angle * direction;
+
+		// Overshoot check
+		if (abs(swing_angle) >= max_swing_angle)
+		{
+			swing_angle = max_swing_angle * direction; // clamp to max
+			going_down = true;
+		}
+
+		// Smooth acceleration: step increases slightly each frame
+		step_angle *= 1.05; // small acceleration factor
+		if (step_angle > BASE_STEP_ANGLE * 1.35)
+			step_angle = BASE_STEP_ANGLE * 1.35; // clamp max step
+	}
+	else
+	{
+		// Decelerate swing back toward zero
+		swing_angle -= step_angle * direction;
+
+		// Stop swing when near zero
+		if ((direction > 0 && swing_angle <= 0.0) ||
+			(direction < 0 && swing_angle >= 0.0))
+		{
+			swing_angle = 0.0;
+			going_down = false;
+			do_swing = false;
+			swinging_initialized = false;
+		}
+
+		// Smooth decay: reduce step each frame
+		step_angle *= scale_factor;
+		if (step_angle < 0.5) // clamp minimal step to avoid tiny oscillations
+			step_angle = 0.5;
+	}
+
+	// Debug print
+	std::cout << "[*] Swing Angle: " << swing_angle
+		<< " Step Angle: " << step_angle
+		<< " Direction: " << direction << std::endl;
 }
 
 void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
@@ -345,7 +437,8 @@ void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)
 		}
 	}
 
-	current_animation->Draw(renderer, enemy_dest_rect, SDL_FLIP_NONE);
+
+	current_animation->DrawRotated(renderer, enemy_dest_rect, SDL_FLIP_NONE, swing_angle);
 	
 	if (collision_box_flag)
 	{

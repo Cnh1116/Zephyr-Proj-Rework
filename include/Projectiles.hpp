@@ -107,6 +107,7 @@ class SecondaryFire : public Projectile
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
     private:
         float pos_y;
+		float item_speed = 0.35f;
 };
 
 class Slash: public Projectile
@@ -140,6 +141,9 @@ class IceShard : public Projectile
         void MoveProjectile() override;
         void Update() override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
+    private:
+        float pos_y;
+    
 
 
 };

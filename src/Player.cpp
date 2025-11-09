@@ -355,13 +355,11 @@ bool Player::IsShieldReady()
 
     if ((current_time - shield.last_time_used) >= shield.shield_cooldown_ms)
     {
-        std::cout << "[*] SHIELD IS SHIELDING !\n";
         return(true);
     }
 
     else
     {
-        std::cout << "[*] Shield on cooldown\n";
         return(false);
     }
 }
@@ -689,7 +687,7 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag, int screen_wi
         animation_manager.Get("zephyr", "shield")->Draw(renderer, temp, SDL_FLIP_NONE);
     }
     current_animation->Draw(renderer, player_dest_rect, SDL_FLIP_NONE);
-    current_animation->OutputInformation();
+    //current_animation->OutputInformation();
 
 	animation_manager.Get("zephyr", "secondary_fire_hud")->Draw(renderer, secondary_fire.hud_dest_rect, SDL_FLIP_NONE);
 

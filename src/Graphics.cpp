@@ -51,12 +51,12 @@ Graphics::Graphics(const char* title, int log_width, int log_height, int width, 
 
     LoadTextures();
 
-    font_1 = TTF_OpenFont("assets/fonts/raster-forge-font/RasterForgeRegular-JpBgm.ttf",50);
+    font_1 = TTF_OpenFont("assets/fonts/raster-forge-font/RasterForgeRegular-JpBgm.ttf",25);
     if (!font_1) 
     {
         std::cout << "[!] font 1 not initialized.";
     }
-    font_2 = TTF_OpenFont("assets/fonts/raster-forge-font/RasterForgeRegular-JpBgm.ttf", 25);
+    font_2 = TTF_OpenFont("assets/fonts/raster-forge-font/RasterForgeRegular-JpBgm.ttf", 10);
     if (!font_2)
     {
         std::cout << "[!] font 2 not initialized.";

@@ -204,7 +204,7 @@ class Player
             Uint32 cooldown_time_ms = 1500;
             Uint32 last_fire_time = SDL_GetTicks() - cooldown_time_ms;
             float speed = 0.6;
-            float item_speed = 0.6;
+            float item_speed = 0.35;
         };
         Secondary_fire secondary_fire;
 

@@ -247,7 +247,7 @@ void SecondaryFire::Update()
         dest_rect.x = old_center_x - dest_rect.w / 2;
         dest_rect.y = old_center_y - dest_rect.h / 2;
 
-        speed = -0.6;
+        speed = -item_speed;
     }
     if (state == "impact" && current_animation->IsFinished())
     {
@@ -437,7 +437,7 @@ IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rec
 	collision_shape.type = ColliderType::CIRCLE;
 	collision_shape.circle.x = dest_rect.x + dest_rect.w / 2;
 	collision_shape.circle.y = dest_rect.y + dest_rect.h / 2;
-	collision_shape.circle.r = dest_rect.w / 4;
+	collision_shape.circle.r = 0;
     state = "spawn";
     if (shiny)
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "spawn_shiny"));
@@ -445,22 +445,19 @@ IceShard::IceShard(AnimationManager& animation_manager, const SDL_Rect& dest_rec
         current_animation = std::make_unique<Animation>(*animation_manager.Get("proj-ice-crystal-attack", "spawn"));
 	dest_rect.w = current_animation->GetFrameWidth() * current_animation->GetScale();
 	dest_rect.h = current_animation->GetFrameHeight() * current_animation->GetScale();
+    pos_y = dest_rect.y;
 }
 void IceShard::MoveProjectile()
 {
-    dest_rect.y += speed;
+    pos_y += speed;
+    dest_rect.y = static_cast<int>(pos_y);
 }
 
 void IceShard::Update()
 {
-    if (state == "spawn")
-    {
-		collision_shape.circle.r = 0;
-        collision_shape.circle.x = 0;
-        collision_shape.circle.y = 0;
-        if (current_animation->IsFinished())
-            state = "main";
-    }
+    if (state == "spawn" && current_animation->IsFinished())
+        state = "main";
+    
     
     if (state == "main")
     {
@@ -480,6 +477,8 @@ void IceShard::Update()
     if (state == "impact")
     {
         collision_shape.circle.r = 0;
+        collision_shape.circle.x = 0;
+        collision_shape.circle.y = 0;
         if (current_animation->GetName() != "proj-ice-crystal-attack-impact" and current_animation->GetName() != "proj-ice-crystal-attack-impact_shiny")
         {
             if (shiny)
@@ -516,7 +515,7 @@ void IceShard::Draw(SDL_Renderer* renderer, bool collision_box_flag)
         animation->Draw(renderer, temp, SDL_FLIP_NONE);
     }
 
-    if (collision_box_flag)
+    if (collision_box_flag and collision_shape.circle.r > 0)
     {
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		Collisions::DrawCircle(renderer, collision_shape.circle);

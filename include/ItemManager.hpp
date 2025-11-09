@@ -42,7 +42,7 @@ protected:
         Uint32 time_last_item_spawned;
         Uint32 cooldown_item_spawn_ms = 3000;
 
-        float ITEM_SPEED = 0.6f;
+        float ITEM_SPEED = 0.35f; //MATCH to player.hpp marker item speed, and to secondary_fire.hpp item speed
         std::vector<item> item_list;
 };
 
