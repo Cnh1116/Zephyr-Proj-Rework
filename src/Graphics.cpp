@@ -162,6 +162,7 @@ bool Graphics::init(const char* title, int width, int height)
         return false;
     }
     SDL_RenderSetLogicalSize(renderer, logical_width, logical_height);
+    SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
 
     return true;
 }

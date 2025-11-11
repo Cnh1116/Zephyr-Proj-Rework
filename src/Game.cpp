@@ -15,11 +15,14 @@ int LOGICAL_WIDTH = 640;
 int LOGICAL_HEIGHT = 360;
 
 
-//int WINDOW_WIDTH = 2560;
-//int WINDOW_HEIGHT = 1440;
+int WINDOW_WIDTH = 2560;
+int WINDOW_HEIGHT = 1440;
 
-int WINDOW_WIDTH = 1920;
-int WINDOW_HEIGHT = 1080;
+//int WINDOW_WIDTH = 1920;
+//int WINDOW_HEIGHT = 1080;
+
+//int WINDOW_WIDTH = 640;
+//int WINDOW_HEIGHT = 480;
 
 //int WINDOW_WIDTH = 640;
 //int WINDOW_HEIGHT = 360;
@@ -42,7 +45,7 @@ Game::Game() // Game constructor acts as my INIT function for the game.
       player(Player(PIXEL_SCALE, *animation_manager))
 {
     // Load Player Sprite
-    player.SetPosition( (WINDOW_WIDTH/2) - (player.GetDstRect()->w / 2), WINDOW_HEIGHT - (player.GetDstRect()->h), WINDOW_WIDTH, WINDOW_HEIGHT );
+    player.SetPosition( (LOGICAL_WIDTH /2) - (player.GetDstRect()->w / 2), LOGICAL_HEIGHT - (player.GetDstRect()->h), LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
     play_state = std::make_unique<PlayState>();
     game_state_manager.ChangeState(new MenuState(), this);
@@ -439,8 +442,8 @@ void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
     if (this->GetElapsedTimeSeconds() < 5)
         return;
 
-    //if (enemies.size() == 0 or enemies.size() == 1 or enemies.size() == 2)
-    if (enemies.size() == 0)
+    if (enemies.size() == 0 or enemies.size() == 1 or enemies.size() == 2)
+    //if (enemies.size() == 0)
     {
         
         // PICK A RANDOM ENEMY
@@ -457,14 +460,12 @@ void Game::SpawnEnemies(std::vector<Enemy*> &enemies)
         {
             case 0:
             {
-                std::uniform_int_distribution<> distrib_x(0, graphics_manager->GetScreenWidth());
+                std::uniform_int_distribution<> distrib_x(0, graphics_manager->GetScreenWidth() * 0.8);
                 int random_location_x = distrib_x(gen);
 
-                std::uniform_int_distribution<> distrib_y(0, static_cast<int>(graphics_manager->GetScreenHeight() * 0.15));
-                int random_location_y = distrib_y(gen);
                 enemies.emplace_back(new IceCrystal(*animation_manager,
                                                     { random_location_x,
-                                                      random_location_y,
+                                                      -64,
                                                       1,
                                                       1}));
                 break;

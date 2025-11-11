@@ -250,6 +250,8 @@ class Player
         Animation* slash_bar_animation;
         Animation* health_bar_base_animation;
 		Animation* shield_ready_animation;
+
+        Animation* current_shield_animation;
         
 
 };

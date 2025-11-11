@@ -100,7 +100,7 @@ IceCrystal::IceCrystal(AnimationManager& animation_manager, const SDL_Rect& dest
 {
 	
 	
-	state = "idle";
+	state = "spawn";
 	if (shiny)
 		current_animation = std::make_unique<Animation>(*animation_manager.Get("enemy-ice-crystal", "main_shiny"));
 	else
@@ -122,6 +122,17 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 {
 	
 	//std::cout << "ICE STATE: " << "---------------------------------------------------" << state << std::endl;
+	
+	if (state == "spawn")
+	{
+		if(!spawn_target_set)
+		{
+			spawn_target_x = rand() % static_cast<int>(screen_width * 0.9f);
+			spawn_target_y = rand() % static_cast<int>(screen_height * 0.15f);
+			spawn_target_set = true;
+		}
+		SpawnMove();
+	}
 	
 	if (state == "idle")
 	{
@@ -152,10 +163,17 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 			std::cout << "[*] Player X: " << player->GetDstRect()->x << " Enemy X: " << enemy_dest_rect.x << std::endl;
 			target_x = static_cast<float>(player->GetDstRect()->x);
 			direction = (target_x - enemy_dest_rect.x > 0) ? 1 : -1;
+			move_start_time = SDL_GetTicks();
 			state = "move";
 		}
 	}
 
+	if (state == "short_wait")
+	{
+		if (SDL_GetTicks() - last_short_wait_time >= short_wait_duration)
+			state = "idle";
+	}
+	
 	if (state == "wait")
 	{
 		if (this->WaitDone())
@@ -171,6 +189,24 @@ void IceCrystal::Update(Player *player, std::vector<Projectile*>& game_projectil
 			state = "shoot";
 			num_proj_shot = 0;
 			last_fire_time = SDL_GetTicks();
+		}
+		// If we've been moving too long → return to idle
+		if (SDL_GetTicks() - move_start_time >= move_timeout_ms)
+		{
+			if (velocity > 0.0f && player->GetDstRect()->x < enemy_dest_rect.x)
+			{
+				last_short_wait_time = SDL_GetTicks();
+				state = "short_wait";
+				velocity = 0.0f;
+			}
+
+			// If moving left but player is now right of us
+			if (velocity < 0.0f && player->GetDstRect()->x > enemy_dest_rect.x)
+			{
+				last_short_wait_time = SDL_GetTicks();
+				state = "short_wait";
+				velocity = 0.0f;
+			}
 		}
 	}
 
@@ -286,6 +322,27 @@ void IceCrystal::Move(Player* player, int screen_width, int screen_height)
 	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
 	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);
 	enemy_coll_shape.circle.r = enemy_dest_rect.w / 5;
+}
+
+void IceCrystal::SpawnMove()
+{
+	// Move toward target without ever overshooting
+	enemy_dest_rect.y = std::min(enemy_dest_rect.y + spawn_speed, spawn_target_y);
+
+	// Transition when we arrive
+	if (enemy_dest_rect.y >= spawn_target_y)
+	{
+		posX = static_cast<float>(enemy_dest_rect.x);
+		enemy_dest_rect.y = spawn_target_y;
+		last_wait_time = SDL_GetTicks();
+		state = "wait";
+		spawn_target_set = false;
+	}
+
+	// Update collision circle
+	enemy_coll_shape.circle.x = enemy_dest_rect.x + (enemy_dest_rect.w / 2);
+	enemy_coll_shape.circle.y = enemy_dest_rect.y + (enemy_dest_rect.h / 2);
+
 }
 
 bool IceCrystal::IsReadyToAttack()
@@ -414,10 +471,10 @@ void IceCrystal::UpdateSwing()
 			step_angle = 0.5;
 	}
 
-	// Debug print
-	std::cout << "[*] Swing Angle: " << swing_angle
-		<< " Step Angle: " << step_angle
-		<< " Direction: " << direction << std::endl;
+	//// Debug print
+	//std::cout << "[*] Swing Angle: " << swing_angle
+	//	<< " Step Angle: " << step_angle
+	//	<< " Direction: " << direction << std::endl;
 }
 
 void IceCrystal::Draw(SDL_Renderer* renderer, bool collision_box_flag)

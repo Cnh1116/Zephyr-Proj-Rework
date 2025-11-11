@@ -80,12 +80,14 @@ class IceCrystal : public Enemy
         IceCrystal(AnimationManager& animation_manager, const SDL_Rect& rect);
         void Update(Player *player, std::vector<Projectile*>& game_projectiles, SoundManager& sound_manager, int screen_width, int screen_height) override;
         void Move(Player* player, int screen_width, int screen_height) override;
+        void SpawnMove();
         bool IsReadyToAttack() override;
         bool BulletReady();
         bool WaitDone();
         void Attack(std::vector<Projectile*>& game_projectiles, Player* player) override;
         void Draw(SDL_Renderer* renderer, bool collision_box_flag) override;
         void UpdateSwing();
+
 
 private:
     bool added_death_animation = false;
@@ -94,19 +96,29 @@ private:
     Uint32 bullet_rate = 100;
     Uint32 last_bullet_time = 0;
     
-    Uint32 last_wait_time;
-	Uint32 wait_duration = 1000;
+    Uint32 last_wait_time = 0;
+	Uint32 wait_duration = 1100;
+	Uint32 last_short_wait_time = 0;
+	Uint32 short_wait_duration = 300;
 
     int player_distance_threshold = 10;
+
+    Uint32 move_start_time = 0;
+    Uint32 move_timeout_ms = 1200;
+
+    float spawn_target_x;
+    float spawn_target_y;
 
 	// Movement Parameters
     float target_x = 0;
     float old_target_x = 0;
     bool do_swing = false;
+    bool spawn_target_set = false;
+	float spawn_speed = 1.0;
 
     float acceleration = 0.04f;
     float deceleration = 0.0005f;  
-    float max_speed = 1.4f;   
+    float max_speed = 1.1f;   
     float velocity = 0.0f;   
     float dead_zone; 
     float posX = 0.0f;
@@ -139,6 +151,11 @@ class StormCloud : public Enemy
         double direction_x, direction_y;
         double position_x = enemy_dest_rect.x;
         double position_y = enemy_dest_rect.y;
+
+        bool spawn_target_set = false;
+        float spawn_target_x = 0;
+        float spawn_target_y = 0;
+        float spawn_speed = 2.0f;
 
         Uint32 fire_cooldown_ms = 300;
         Uint32 time_to_wait_ms = 1500;

@@ -20,13 +20,33 @@
 			"layout": "vertical",
 			"scale": 1.3
 		},
-		"shield": {
-			"texture": "assets\\sprites\\zephyr-sprites\\shield-prime4.png",
+		"shield-start": {
+			"texture": "assets\\sprites\\zephyr-sprites\\shield-start.png",
+			"frame_width": 64,
+			"frame_height": 64,
+			"frames": 5,
+			"frame_time_ms": 60,
+			"loop_flag": false,
+			"layout": "horizontal",
+			"scale": 1.0
+		},
+		"shield-main": {
+			"texture": "assets\\sprites\\zephyr-sprites\\shield-main-prime1.png",
 			"frame_width": 64,
 			"frame_height": 64,
 			"frames": 6,
-			"frame_time_ms": 75,
+			"frame_time_ms": 60,
 			"loop_flag": true,
+			"layout": "horizontal",
+			"scale": 1.0
+		},
+		"shield-end": {
+			"texture": "assets\\sprites\\zephyr-sprites\\shield-end.png",
+			"frame_width": 64,
+			"frame_height": 64,
+			"frames": 5,
+			"frame_time_ms": 60,
+			"loop_flag": false,
 			"layout": "horizontal",
 			"scale": 1.0
 		},

@@ -15,6 +15,7 @@ Player::Player(int PIXEL_SCALE, AnimationManager& animation_manager_arg)
     
 
     current_animation = animation_manager_arg.Get("zephyr", "main");
+    current_shield_animation = animation_manager_arg.Get("zephyr", "shield-start");
 
     health_bar_animation = animation_manager_arg.Get("ui", "health_bar");
     shield_bar_animation = animation_manager_arg.Get("ui", "shield_bar");
@@ -73,7 +74,9 @@ void Player::Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 
 		std::cout << "[*] SHIELD IS READY !\n";
 
 		
-        animation_manager.Get("zephyr", "shield")->Reset();
+        animation_manager.Get("zephyr", "shield-main")->Reset();
+        animation_manager.Get("zephyr", "shield-start")->Reset();
+        animation_manager.Get("zephyr", "shield-end")->Reset();
         animation_manager.Get("overlays", "shield_ready")->Reset();
         overlay_animations.push_back(std::make_unique<Animation>(*animation_manager.Get("overlays", "shield_ready")));
 
@@ -112,8 +115,24 @@ void Player::Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 
 
     if (state == "shield")
     {
+        std::cout << "[*] SHIELD ACTIVE, CURRENT ANIMATION: " << current_shield_animation->GetName() << " Finished? " << current_animation->IsFinished() << std::endl;
         shield.coll_shape.circle.r = shield.dest_rect.w / 2;
-        animation_manager.Get("zephyr","shield")->Update();
+        current_shield_animation->Update();
+        
+        if (current_shield_animation->GetName() == "zephyr-shield-start" && current_shield_animation->IsFinished())
+            current_shield_animation = animation_manager.Get("zephyr", "shield-main");
+        
+        else if (SDL_GetTicks() - this->GetShieldLastTimeUsed() >= shield.shield_duration_ms)
+        {
+            std::cout << "I AM HERE ___________________________________________________________" << std::endl;
+            current_shield_animation = animation_manager.Get("zephyr", "shield-end");
+        }
+
+        if (current_shield_animation->GetName() == "zephyr-shield-end" && current_shield_animation->IsFinished())
+        {
+            std::cout << "I AM HERE ___________________________________________________________ PART 2" << std::endl;
+            state = "main";
+        }
 
         shield.shield_ready = false;
         current_speed = base_speed;
@@ -123,12 +142,6 @@ void Player::Update(int SCREEN_WIDTH, int SCREEN_HEIGHT, long loop_flag, Uint32 
         shield.coll_shape.circle.y = player_dest_rect.y + (player_dest_rect.h / 2);
         
         shield.dest_rect = { player_dest_rect.x, player_dest_rect.y, player_dest_rect.w, player_dest_rect.h };
-
-        if (SDL_GetTicks() - this->GetShieldLastTimeUsed() >= shield.shield_duration_ms)
-        {
-            state = "main";
-			
-        }
     }
 
     if (state == "dash")
@@ -595,6 +608,7 @@ void Player::UpdatePlayerState(std::string new_state)
     if (new_state == "shield")
     {
 		shield.last_time_used = SDL_GetTicks();
+		current_shield_animation = animation_manager.Get("zephyr", "shield-start");
 
     }
 }
@@ -680,11 +694,11 @@ void Player::Draw(SDL_Renderer* renderer, bool collision_box_flag, int screen_wi
     }
     if (state == "shield")
     {
-        SDL_Rect temp = { player_dest_rect.x - (animation_manager.Get("zephyr", "shield")->GetFrameWidth() * animation_manager.Get("zephyr", "shield")->GetScale() - player_dest_rect.w) / 2,
-                          player_dest_rect.y - (animation_manager.Get("zephyr", "shield")->GetFrameWidth() * animation_manager.Get("zephyr", "shield")->GetScale() - player_dest_rect.h) / 2,
-            animation_manager.Get("zephyr", "shield")->GetFrameWidth() * animation_manager.Get("zephyr", "shield")->GetScale(),
-                          animation_manager.Get("zephyr", "shield")->GetFrameWidth() * animation_manager.Get("zephyr", "shield")->GetScale() };
-        animation_manager.Get("zephyr", "shield")->Draw(renderer, temp, SDL_FLIP_NONE);
+        SDL_Rect temp = { player_dest_rect.x - (current_shield_animation->GetFrameWidth() * current_shield_animation->GetScale() - player_dest_rect.w) / 2,
+                          player_dest_rect.y - (current_shield_animation->GetFrameWidth() * current_shield_animation->GetScale() - player_dest_rect.h) / 2,
+            current_shield_animation->GetFrameWidth() * current_shield_animation->GetScale(),
+                          current_shield_animation->GetFrameWidth() * current_shield_animation->GetScale() };
+        current_shield_animation->Draw(renderer, temp, SDL_FLIP_NONE);
     }
     current_animation->Draw(renderer, player_dest_rect, SDL_FLIP_NONE);
     //current_animation->OutputInformation();
